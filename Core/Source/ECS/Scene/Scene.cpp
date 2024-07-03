@@ -8,8 +8,12 @@ using namespace Engine;
 Entity Scene::CreateEntity(const std::string& name) {
 	Entity entity(_registry.create(), this);
 
-	auto& tc = entity.AddComponent<NameComponent>(name);
-	tc.name = name.empty() ? "Unamed Entity" : name;
+	// Add Name
+	auto& nc = entity.AddComponent<NameComponent>(name);
+	nc.name = name.empty() ? "Unamed Entity" : name;
+
+	// Add Transform
+	entity.AddComponent<TransformComponent>();
 
 	return entity;
 }
@@ -30,17 +34,4 @@ Entity Scene::GetEntity(const std::string& name) {
 
 void Scene::UpdateScene(float ts) {
 
-}
-
-void Scene::RenderScene() {
-	// Mesh renderers
-	{
-		auto view = _registry.view<const MeshFilterComponent, MeshRendererComponent>();
-		for (auto entity : view) {
-			auto& filter = view.get<MeshFilterComponent>(entity);
-			auto& renderer = view.get<MeshRendererComponent>(entity);
-
-			renderer.RenderMesh(*filter.mesh);
-		}
-	}
 }

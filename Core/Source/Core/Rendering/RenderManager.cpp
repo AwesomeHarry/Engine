@@ -13,7 +13,7 @@
 using namespace Engine;
 
 RenderManager::RenderManager(const GraphicsContext& graphicsContext)
-	: _graphicsContext(graphicsContext), _imguiContext(nullptr), _wireframeMode(WireframeMode::Fill) {}
+	: _graphicsContext(graphicsContext), _wireframeMode(WireframeMode::Fill) {}
 
 bool RenderManager::Initialize(Window& window) {
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
@@ -26,7 +26,7 @@ bool RenderManager::Initialize(Window& window) {
 	{
 		// Setup Dear ImGui context
 		IMGUI_CHECKVERSION();
-		_imguiContext = ImGui::CreateContext();
+		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;      // Enable Docking
@@ -44,10 +44,15 @@ bool RenderManager::Initialize(Window& window) {
 		glViewport(0, 0, event.GetWidth(), event.GetHeight());
 	});
 
+	_renderPipeline->Initialize();
+
 	return true;
 }
 
-void RenderManager::Shutdown() {}
+void RenderManager::Shutdown() {
+	ImGui_ImplOpenGL3_Shutdown();
+	ImGui_ImplGlfw_Shutdown();
+}
 
 void RenderManager::BeginFrame() {
 	RenderCommands::SetWireframe(_wireframeMode);
@@ -60,6 +65,8 @@ void RenderManager::BeginFrame() {
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplGlfw_NewFrame();
 		ImGui::NewFrame();
+
+		ImGui::DockSpaceOverViewport(ImGui::GetMainViewport()->ID, ImGui::GetMainViewport(), ImGuiDockNodeFlags_PassthruCentralNode);
 	}
 }
 
@@ -108,5 +115,5 @@ void RenderManager::setContext() {
 }
 
 void RenderManager::RenderScene(const Scene& scene) {
-	//_renderPipeline.RenderScene(scene);
+	_renderPipeline->RenderScene(scene);
 }

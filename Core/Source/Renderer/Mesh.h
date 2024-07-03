@@ -17,7 +17,9 @@ namespace Engine {
 		void AddSubmesh(std::shared_ptr<VertexArrayObject> submesh);
 
 		inline void SetName(const std::string& newName) { _name = newName; }
-		inline const std::vector<std::shared_ptr<VertexArrayObject>>& GetSubmeshes() const { return _submeshes; }
+		inline std::string GetName() const { return _name; }
+
+		inline int GetSubmeshCount() const { return _submeshes.size(); }
 		inline const VertexArrayObject& GetSubmesh(int index) const { return *_submeshes[index]; }
 	private:
 		std::string _name;

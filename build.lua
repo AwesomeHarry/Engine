@@ -103,7 +103,8 @@ project "Core"
         "vendor/json",
         "vendor/stb_image",
         "vendor/tiny_gltf",
-        "vendor/entt/src"
+        "vendor/entt/src",
+        "vendor/glm/include"
     }
 
     vpaths {
@@ -149,7 +150,8 @@ project "Sandbox"
         "vendor/json",
         "vendor/stb_image",
         "vendor/tiny_gltf",
-        "vendor/entt/src"
+        "vendor/entt/src",
+        "vendor/glm/include"
     }
 
     vpaths {

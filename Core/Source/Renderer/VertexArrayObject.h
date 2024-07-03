@@ -21,7 +21,9 @@ namespace Engine {
 
 		void Compute();
 
-		inline const IndexBufferObject& GetIndexBuffer() { return *_indexBuffer; }
+		inline const IndexBufferObject& GetIndexBuffer() const { return *_indexBuffer; }
+		inline int GetVertexBufferCount() const { return _vertexBuffers.size(); }
+		inline const VertexBufferObject& GetVertexBuffer(int index) const { return *_vertexBuffers[index]; }
 
 		inline bool HasIndices() const { return _hasIndices; }
 		inline uint64_t GetCount() const { return _hasIndices ? _indexBuffer->GetCount() : _vertexBuffers[0]->GetCount(); }

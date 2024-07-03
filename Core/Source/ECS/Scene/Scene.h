@@ -7,16 +7,22 @@ namespace Engine {
 
 	class Scene {
 	public:
-		Scene() {}
-		~Scene() {}
+		Scene() = default;
+		~Scene() = default;
 
 		Entity CreateEntity(const std::string& name = "");
 		void DestroyEntity(Entity entity);
 
 		Entity GetEntity(const std::string& name);
 
+		template <typename... Components>
+		auto GetAllEntitiesWith() const {
+			return _registry.view<Components...>();
+		}
+
 		void UpdateScene(float ts);
-		void RenderScene();
+
+		const entt::registry& GetRegistry() const { return _registry; }
 	private:
 		entt::registry _registry;
 

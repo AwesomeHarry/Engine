@@ -5,34 +5,83 @@
 
 using namespace Engine;
 
-bool Root::Initialize() {
+bool Root::Initialize(const WindowSpec& windowSpec, const GraphicsContext& graphicsContext) {
 	spdlog::stopwatch sw;
 
 	// Create systems
 	_loggingManager = std::make_unique<LoggingManager>();
-	_windowManager = std::make_unique<WindowManager>();
+
+	_window = std::make_unique<Window>(windowSpec);
+	_renderManager = std::make_unique<RenderManager>(graphicsContext);
 
 	// Initialize in order of dependency
 	_loggingManager->Initialize();
-	if (!_windowManager->Initialize()) {
-		ENGINE_ERROR("Failed to initialize window manager");
+
+	if (!_window->Initialize())
 		return false;
-	}
 
+	// Log debug
 	ENGINE_INFO("Systems initialized in {:.4}s", sw);
-
 	return true;
 }
 
-void Root::Run() {
-	// Update in order of dependency
-	while (_windowManager->IsWindowOpen()) {
-		_windowManager->Update();
+void Root::PushLayer(std::shared_ptr<Layer> layer) {
+	_layerStack.push_back(layer);
+
+	layer->_window = _window.get();
+	layer->_renderManager = _renderManager.get();
+
+	if (_window->IsOpen())
+		layer->OnAttach();
+}
+
+void Root::PopLayer(std::shared_ptr<Layer> layer) {
+	auto it = std::find(_layerStack.begin(), _layerStack.end(), layer);
+	if (it != _layerStack.end()) {
+		(*it)->OnDetach();
+		_layerStack.erase(it);
 	}
+}
+
+void Root::Run() {
+	_window->Open();
+	if (!_renderManager->Initialize(*_window)) {
+		ENGINE_ERROR("Failed to initialize renderer!");
+		return;
+	}
+
+	for (auto& layer : _layerStack)
+		layer->OnAttach();
+
+	/* Setup deltaTime */
+	using clock = std::chrono::high_resolution_clock;
+	auto previousTime = clock::now();
+
+	while (_window->IsOpen()) {
+		_renderManager->BeginFrame();
+
+		auto currentTime = clock::now();
+		std::chrono::duration<float> deltaTimeDuration = currentTime - previousTime;
+		float deltaTime = deltaTimeDuration.count();
+		previousTime = currentTime;
+
+		for (auto& layer : _layerStack) {
+			layer->OnUpdate(deltaTime);
+		}
+
+		_renderManager->EndFrame();
+		_window->Update();
+	}
+
+	for (auto& layer : _layerStack)
+		layer->OnDetach();
+
+	_window->Close();
 }
 
 void Root::Shutdown() {
 	// Shutdown in reverse order of initialization
-	_windowManager->Shutdown();
+	_renderManager->Shutdown();
+	_window->Shutdown();
 	_loggingManager->Shutdown();
 }

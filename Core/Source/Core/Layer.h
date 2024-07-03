@@ -6,8 +6,8 @@ namespace Engine {
 
 	class Layer {
 	protected:
-		Window* _attachedWindow = nullptr;
-		RenderManager* _renderer = nullptr;
+		Window* _window = nullptr;
+		RenderManager* _renderManager = nullptr;
 	public:
 		virtual ~Layer() = default;
 
@@ -16,6 +16,6 @@ namespace Engine {
 
 		virtual void OnUpdate(float ts) {}
 
-		friend class Window;
+		friend class Root;
 	};
 }

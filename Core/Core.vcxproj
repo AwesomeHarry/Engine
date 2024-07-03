@@ -56,7 +56,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Source;..\vendor\glfw\include;..\vendor\spdlog\include;..\vendor\glad\include;..\vendor\imgui;..\vendor\json;..\vendor\stb_image;..\vendor\tiny_gltf;..\vendor\entt\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Source;..\vendor\glfw\include;..\vendor\spdlog\include;..\vendor\glad\include;..\vendor\imgui;..\vendor\json;..\vendor\stb_image;..\vendor\tiny_gltf;..\vendor\entt\src;..\vendor\glm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
@@ -75,7 +75,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>NDEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>Source;..\vendor\glfw\include;..\vendor\spdlog\include;..\vendor\glad\include;..\vendor\imgui;..\vendor\json;..\vendor\stb_image;..\vendor\tiny_gltf;..\vendor\entt\src;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Source;..\vendor\glfw\include;..\vendor\spdlog\include;..\vendor\glad\include;..\vendor\imgui;..\vendor\json;..\vendor\stb_image;..\vendor\tiny_gltf;..\vendor\entt\src;..\vendor\glm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -94,51 +94,63 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Core\Rendering\IRenderPipeline.h" />
-    <ClInclude Include="Source\Core\Rendering\RenderCommands.h" />
-    <ClInclude Include="Source\ECS\Components\MeshFilterComponent.h" />
-    <ClInclude Include="Source\ECS\Components\BaseComponent.h" />
+    <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h" />
+    <ClInclude Include="Source\ECS\Components\CameraComponent.h" />
+    <ClInclude Include="Source\Core\ISystemManager.h" />
     <ClInclude Include="Source\Core\Layer.h" />
     <ClInclude Include="Source\Core\LoggingManager.h" />
     <ClInclude Include="Source\Core\Rendering\GraphicsContext.h" />
+    <ClInclude Include="Source\Core\Rendering\IRenderPipeline.h" />
+    <ClInclude Include="Source\Core\Rendering\RenderCommands.h" />
     <ClInclude Include="Source\Core\Rendering\RenderManager.h" />
     <ClInclude Include="Source\Core\Root.h" />
     <ClInclude Include="Source\Core\Window.h" />
-    <ClInclude Include="Source\Core\WindowManager.h" />
+    <ClInclude Include="Source\ECS\Components\BaseComponent.h" />
     <ClInclude Include="Source\ECS\Components\Components.h" />
+    <ClInclude Include="Source\ECS\Components\MeshFilterComponent.h" />
+    <ClInclude Include="Source\ECS\Components\MeshRendererComponent.h" />
+    <ClInclude Include="Source\ECS\Components\NameComponent.h" />
     <ClInclude Include="Source\ECS\Scene\Entity.h" />
     <ClInclude Include="Source\ECS\Scene\Scene.h" />
-    <ClInclude Include="Source\Core\ISystemManager.h" />
     <ClInclude Include="Source\Logging\Logging.h" />
     <ClInclude Include="Source\Renderer\Buffer.h" />
     <ClInclude Include="Source\Renderer\IndexBufferObject.h" />
     <ClInclude Include="Source\Renderer\Mesh.h" />
     <ClInclude Include="Source\Renderer\Shader.h" />
+    <ClInclude Include="Source\Renderer\Texture.h" />
     <ClInclude Include="Source\Renderer\VertexArrayObject.h" />
     <ClInclude Include="Source\Renderer\VertexBufferObject.h" />
+    <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h" />
+    <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h" />
+    <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h" />
+    <ClInclude Include="Source\UI\EntityPropertiesUI_ImGui.h" />
+    <ClInclude Include="Source\UI\SceneHeirarchyUI_ImGui.h" />
+    <ClInclude Include="Source\UI\UIUtil.h" />
     <ClInclude Include="Source\UI\WindowInfoUI_ImGui.h" />
-    <ClInclude Include="Source\UI\WindowInfoUI.h" />
     <ClInclude Include="Source\Util\EventSystem\Event.h" />
     <ClInclude Include="Source\Util\EventSystem\EventDispatcher.h" />
     <ClInclude Include="Source\Util\FileIO.h" />
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
-    <ClInclude Include="Source\ECS\Components\NameComponent.h" />
+    <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
+    <ClInclude Include="Source\Renderer\UniformBufferObject.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Core\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Core\LoggingManager.cpp" />
+    <ClCompile Include="Source\Core\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Core\Rendering\RenderManager.cpp" />
     <ClCompile Include="Source\Core\Root.cpp" />
     <ClCompile Include="Source\Core\Window.cpp" />
-    <ClCompile Include="Source\Core\WindowManager.cpp" />
     <ClCompile Include="Source\ECS\Components\MeshFilterComponent.cpp" />
+    <ClCompile Include="Source\ECS\Components\MeshRendererComponent.cpp" />
     <ClCompile Include="Source\ECS\Scene\Scene.cpp" />
     <ClCompile Include="Source\Renderer\IndexBufferObject.cpp" />
     <ClCompile Include="Source\Renderer\Mesh.cpp" />
     <ClCompile Include="Source\Renderer\Shader.cpp" />
+    <ClCompile Include="Source\Renderer\Texture.cpp" />
     <ClCompile Include="Source\Renderer\VertexArrayObject.cpp" />
     <ClCompile Include="Source\Renderer\VertexBufferObject.cpp" />
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp" />
+    <ClCompile Include="Source\Renderer\UniformBufferObject.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Vendor\glad\glad.vcxproj">

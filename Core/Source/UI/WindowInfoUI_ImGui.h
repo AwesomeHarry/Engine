@@ -1,19 +1,15 @@
 #pragma once
 
-#include "WindowInfoUI.h"
+#include "Core/Window.h"
+#include <imgui.h>
 
 namespace Engine {
-	class WindowInfoUI_ImGui : public WindowInfoUI {
+	class WindowInfoUI_ImGui {
 	public:
-		WindowInfoUI_ImGui(const Window& window)
-			: WindowInfoUI(window) {}
-		~WindowInfoUI_ImGui() = default;
-
-		virtual void RenderUI() override {
-			ImGui::Text("Title: %s", _window.GetTitle().c_str());
-			ImGui::Text("Width: %d", _window.GetWidth());
-			ImGui::Text("Height: %d", _window.GetHeight());
-			ImGui::Text("Layer Count: %d", _window.GetLayers().size());
+		static void RenderUI(const Window& window) {
+			ImGui::Text("Title: %s", window.GetTitle().c_str());
+			ImGui::Text("Width: %d", window.GetWidth());
+			ImGui::Text("Height: %d", window.GetHeight());
 		}
 	};
 }

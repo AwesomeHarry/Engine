@@ -1,34 +1,45 @@
 #include "Window.h"
+#include <GLFW/glfw3.h>
 
 using namespace Engine;
 
-Window::Window(const std::string& title, int width, int height, const GraphicsContext& graphicsContext)
-	: _title(title), _width(width), _height(height), _handle(nullptr) {
-	_renderer = std::make_unique<RenderManager>(graphicsContext);
+Window::Window(const WindowSpec& windowSpec)
+	: _title(windowSpec.Title), _width(windowSpec.Width), _height(windowSpec.Height), _handle(nullptr) {}
+
+bool Window::Initialize() {
+	glfwSetErrorCallback([](int error, const char* description) {
+		ENGINE_ERROR("GLFW Error {}: {}", error, description);
+	});
+
+	if (!glfwInit()) {
+		ENGINE_ERROR("Failed to initialize GLFW");
+		return false;
+	}
+
+	glfwMakeContextCurrent(_handle);
+
+	return true;
 }
 
 void Window::Open() {
-	if (isOpen)
-		ENGINE_WARN("Trying to open window that is already open - {}", _title);
+	if (isOpen) {
+		ENGINE_WARN("Trying to open window that is already open - {}", GetTitle());
+		return;
+	}
 
-	// Create window and initialize renderer
-	if (createWindow() && _renderer->Initialize(*this)) {
-		ENGINE_INFO("Window created - {}", _title);
+	// Create window
+	if (createWindow()) {
+		ENGINE_INFO("Window created - {}", GetTitle());
 	}
 	else {
-		ENGINE_ERROR("Failed to create window - {}", _title);
+		ENGINE_ERROR("Failed to create window - {}", GetTitle());
 		Close();
 		return;
 	}
 
 	isOpen = true;
-	for (auto& layer : _layerStack) {
-		attachLayer(layer);
-		layer->OnAttach();
-	}
 
-	Dispatch(WindowOpenEvent());
-	Dispatch(WindowResizeEvent(_width, _height));
+	Dispatch(WindowResizeEvent(GetWidth(), GetHeight()));
 }
 
 bool Window::createWindow() {
@@ -55,67 +66,38 @@ void Window::setupCallbacks() {
 		auto windowInstance = static_cast<Window*>(glfwGetWindowUserPointer(window));
 		windowInstance->Dispatch(WindowResizeEvent(width, height));
 	});
+
+	Subscribe<WindowResizeEvent>([&](const WindowResizeEvent& e) {
+		_width = e.GetWidth();
+		_height = e.GetHeight();
+	});
 }
 
 void Window::Close() {
-	if (!isOpen)
-		ENGINE_WARN("Trying to close window that is already closed - {}", _title);
-
-	Dispatch(WindowCloseEvent());
-
-	for (auto& layer : _layerStack)
-		layer->OnDetach();
-
 	isOpen = false;
-	_renderer->Shutdown();
-	glfwMakeContextCurrent(_handle);
 	glfwDestroyWindow(_handle);
 
-	ENGINE_INFO("Window closed - {}", _title);
+	ENGINE_INFO("Window closed - {}", GetTitle());
+}
+
+void Engine::Window::Shutdown() {
+	glfwTerminate();
 }
 
 void Window::Update() {
 	if (!isOpen)
 		return;
 
-	if (shouldClose()) {
-		Close();
+	if (glfwWindowShouldClose(_handle)) {
+		isOpen = false;
 		return;
 	}
 
-	glfwMakeContextCurrent(_handle);
 	glfwPollEvents();
-
-	_renderer->BeginFrame();
-
-	for (auto& layer : _layerStack) {
-		attachLayer(layer);
-		layer->OnUpdate(0.2f);
-	}
-
-	_renderer->EndFrame();
-
 	glfwSwapBuffers(_handle);
 }
 
-void Window::PushLayer(std::shared_ptr<Layer> layer) {
-	_layerStack.push_back(layer);
-
-	if (isOpen) {
-		attachLayer(layer);
-		layer->OnAttach();
-	}
-}
-
 void Window::attachLayer(std::shared_ptr<Layer> layer) {
-	layer->_attachedWindow = this;
-	layer->_renderer = _renderer.get();
-}
-
-void Window::PopLayer(std::shared_ptr<Layer> layer) {
-	auto it = std::find(_layerStack.begin(), _layerStack.end(), layer);
-	if (it != _layerStack.end()) {
-		(*it)->OnDetach();
-		_layerStack.erase(it);
-	}
+	//layer->_attachedWindow = this;
+	//layer->_renderer = _renderer.get();
 }

@@ -2,6 +2,8 @@
 
 #include <cstdint>
 
+#include "IRenderPipeline.h"
+
 namespace Engine {
 	enum class BlendFactor : uint32_t {
 		ZERO = 0,

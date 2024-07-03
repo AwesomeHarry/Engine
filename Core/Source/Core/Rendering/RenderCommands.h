@@ -15,10 +15,15 @@ namespace Engine {
 		Point = 0x1B00
 	};
 
+	class Mesh;
+	class Shader;
+
 	class RenderCommands {
 	public:
 		static void SetClearColor(float r, float g, float b, float a);
 		static void ClearBuffers(const std::initializer_list<BufferBit>& bufferBits);
 		static void SetWireframe(WireframeMode wireframeMode);
+
+		static void RenderMesh(const Mesh& mesh, const Shader& shader);
 	};
 }

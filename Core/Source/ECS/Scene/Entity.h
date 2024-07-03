@@ -5,7 +5,7 @@
 
 #include "ECS/Scene/Scene.h"
 
-#include "ECS/Components/NameComponent.h"
+#include "ECS/Components/Components.h"
 
 namespace Engine {
 	class Entity {
@@ -33,18 +33,19 @@ namespace Engine {
 
 		template<typename ComponentType>
 		ComponentType& GetComponent() {
-			ENGINE_ASSERT(!HasComponent<ComponentType>(), "Entity does not have component.");
+			ENGINE_ASSERT(HasComponent<ComponentType>(), "Entity does not have component.");
 			return _scene->_registry.get<ComponentType>(_id);
 		}
 
 		template<typename ComponentType>
 		void RemoveComponent() {
-			ENGINE_ASSERT(!HasComponent<ComponentType>(), "Entity does not have component.");
+			ENGINE_ASSERT(HasComponent<ComponentType>(), "Entity does not have component.");
 			_scene->_registry.remove<ComponentType>(_id);
 		}
 
 		inline entt::entity GetID() const { return _id; }
 		inline const std::string& GetName() { return GetComponent<NameComponent>().name; }
+		inline TransformComponent& GetTransform() { return GetComponent<TransformComponent>(); }
 
 		operator bool() const { return _id != entt::null; }
 		bool operator== (const Entity& other) const { return _id == other._id; }
