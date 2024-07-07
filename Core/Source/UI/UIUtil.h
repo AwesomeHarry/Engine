@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include "Renderer/Buffer.h"
+#include "Rendering/Platform/Buffer/BufferCommon.h"
 
 namespace Engine::UIUtil {
 	std::string LTypeToString(LType type) {

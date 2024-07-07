@@ -5,11 +5,11 @@
 
 #include <tiny_gltf.h>
 
-#include "Renderer/Buffer.h"
+#include "Rendering/Platform/Buffer/BufferCommon.h"
 
-#include <Renderer/VertexArrayObject.h>
-#include <Renderer/VertexBufferObject.h>
-#include <Renderer/IndexBufferObject.h>
+#include "Rendering/Platform/Buffer/VertexArrayObject.h"
+#include "Rendering/Platform/Buffer/VertexBufferObject.h"
+#include "Rendering/Platform/Buffer/IndexBufferObject.h"
 
 namespace Engine {
 	class GltfIO {

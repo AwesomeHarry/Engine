@@ -1,18 +1,19 @@
 #pragma once
-
 #include <entt/entt.hpp>
+#include "ECS/Components/DebugShapeManager.h"
 
 namespace Engine {
 	class Entity;
 
 	class Scene {
 	public:
-		Scene() = default;
+		Scene();
 		~Scene() = default;
 
 		Entity CreateEntity(const std::string& name = "");
 		void DestroyEntity(Entity entity);
 
+		Entity GetEntity(entt::entity handle);
 		Entity GetEntity(const std::string& name);
 
 		template <typename... Components>
@@ -23,8 +24,12 @@ namespace Engine {
 		void UpdateScene(float ts);
 
 		const entt::registry& GetRegistry() const { return _registry; }
+		entt::registry& GetRegistry() { return _registry; }
+
+		DebugShapeManager& GetDebugRenderer() { return _registry.get<DebugShapeManager>(_debugShapeManager); }
 	private:
 		entt::registry _registry;
+		entt::entity _debugShapeManager;
 
 		friend class Entity;
 	};

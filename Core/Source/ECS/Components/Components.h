@@ -5,3 +5,4 @@
 #include "MeshRendererComponent.h"
 #include "TransformComponent.h"
 #include "CameraComponent.h"
+#include "DebugShapeManager.h"

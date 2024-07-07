@@ -98,6 +98,7 @@ std::shared_ptr<VertexArrayObject> GltfIO::LoadPrimitive(const tinygltf::Model& 
 	}
 
 	vao->Compute();
+	vao->SetDrawMode((DrawMode)primitive.mode);
 
 	return vao;
 }

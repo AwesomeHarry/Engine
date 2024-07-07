@@ -5,6 +5,7 @@
 #include "ComponentUI/MeshRendererUI_ImGui.h"
 #include "ComponentUI/TransformUI_ImGui.h"
 #include "ComponentUI/CameraUI_ImGui.h"
+#include "ComponentUI/DebugShapeManagerUI_ImGui.h"
 
 namespace Engine {
 	float v = 0;
@@ -34,6 +35,11 @@ namespace Engine {
 			if (entity.HasComponent<CameraComponent>()) {
 				auto& camera = entity.GetComponent<CameraComponent>();
 				CameraUI_ImGui::RenderUI(camera);
+			}
+
+			if (entity.HasComponent<DebugShapeManager>()) {
+				auto& dsm = entity.GetComponent<DebugShapeManager>();
+				DebugShapeManagerUI_ImGui::RenderUI(dsm);
 			}
 		}
 	};

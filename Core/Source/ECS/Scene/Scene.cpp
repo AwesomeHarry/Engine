@@ -1,9 +1,18 @@
 #include "Scene.h"
 
-#include "Entity.h"
 #include "ECS/Components/Components.h"
+#include "Entity.h"
 
 using namespace Engine;
+
+Scene::Scene() {
+	/* Add Debug Shape Manager */
+	{
+		Entity e = CreateEntity("Debug Shape Renderer");
+		e.AddComponent<DebugShapeManager>();
+		_debugShapeManager = e.GetID();
+	}
+}
 
 Entity Scene::CreateEntity(const std::string& name) {
 	Entity entity(_registry.create(), this);
@@ -20,6 +29,10 @@ Entity Scene::CreateEntity(const std::string& name) {
 
 void Scene::DestroyEntity(Entity entity) {
 	_registry.destroy(entity.GetID());
+}
+
+Entity Engine::Scene::GetEntity(entt::entity handle) {
+	return Entity(handle, this);
 }
 
 Entity Scene::GetEntity(const std::string& name) {

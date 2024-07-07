@@ -1,8 +1,8 @@
 #pragma once
 
 #include "BaseComponent.h"
-#include "Renderer/Mesh.h"
-#include "Renderer/Shader.h"
+#include "Rendering/Platform/Mesh.h"
+#include "Rendering/Platform/Shader.h"
 
 namespace Engine {
 	class Entity;

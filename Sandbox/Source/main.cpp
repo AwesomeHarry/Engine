@@ -1,22 +1,24 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <GLFW/glfw3.h>
 
-#include "Core/Root.h"
+#include "Core/Application/Root.h"
 
 #include "ECS/Scene/Scene.h"
 #include "ECS/Scene/Entity.h"
 
-#include "Renderer/Mesh.h"
-#include "Renderer/Shader.h"
-#include "Renderer/UniformBufferObject.h"
+#include "Rendering/Platform/Mesh.h"
+#include "Rendering/Platform/Shader.h"
+#include "Rendering/Platform/Buffer/UniformBufferObject.h"
 
 #include "Util/Mesh/GltfIO.h"
 
 #include "UI/WindowInfoUI_ImGui.h"
 #include "UI/SceneHeirarchyUI_ImGui.h"
 #include "UI/EntityPropertiesUI_ImGui.h"
+
+#include "CameraController.h"
+#include "SRP.h"
 
 #pragma region Shader Source
 
@@ -67,10 +69,9 @@ class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
 
-	float _color[3] = { 0.06f, 0.06f, 0.06f };
-	std::shared_ptr<Engine::Shader> _shader;
-
 	Engine::Entity _monkeh;
+	Engine::Entity _camera;
+	CameraController _cameraController;
 
 	bool _renderWireframe = false;
 public:
@@ -82,8 +83,9 @@ public:
 		auto shader = std::make_shared<Engine::Shader>(vertexShaderSource, fragmentShaderSource);
 		shader->BindUniformBlock("CameraData", 0);
 
+		/* Manual Mesh */
 		{
-			/* Create Manual Mesh */
+			/* Create Quad */
 			auto mesh = std::make_shared<Engine::Mesh>("Quad");
 			{
 			#pragma region Data
@@ -138,11 +140,13 @@ public:
 			//entity.AddComponent<Engine::MeshRendererComponent>(shader);
 		}
 
+		/* Gltf Mesh */
 		{
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Monkeh");
 			{
 				auto model = Engine::GltfIO::LoadFile("Resources/Suzanne/glTF/Suzanne.gltf");
+				//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
 
 				const auto& mesh = model.meshes[0];
 				for (const auto& primitive : mesh.primitives) {
@@ -154,151 +158,83 @@ public:
 			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
 			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
 			entity.AddComponent<Engine::MeshRendererComponent>(shader);
-
+			
 			_monkeh = entity;
 		}
 
+		/* Camera */
 		{
 			/* Add Camera */
-			Engine::Entity camera = _scene->CreateEntity("Camera");
-			camera.GetTransform().position.z -= 5.0f;
-			auto& cc = camera.AddComponent<Engine::CameraComponent>();
-			{
-				float width = (float)_window->GetWidth();
-				float height = (float)_window->GetHeight();
-
-				float aspectRatio = width / height;
-				float orthoSize = 1.0f * std::max(width, height) / height;
-
-				float left = -orthoSize * aspectRatio;
-				float right = orthoSize * aspectRatio;
-				float bottom = -orthoSize;
-				float top = orthoSize;
-
-				cc.SetOrthographic(left, right, bottom, top, cc.nearPlane, cc.farPlane);
-			}
-
-			_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
-				float width = (float)e.GetWidth();
-				float height = (float)e.GetHeight();
-
-				float aspectRatio = width / height;
-				float orthoSize = 1.0f * std::max(width, height) / height;
-
-				float left = -orthoSize * aspectRatio;
-				float right = orthoSize * aspectRatio;
-				float bottom = -orthoSize;
-				float top = orthoSize;
-
-				cc.SetOrthographic(left, right, bottom, top, cc.nearPlane, cc.farPlane);
-			});
+			_camera = _scene->CreateEntity("Camera");
+			_camera.GetTransform().position.z -= 5.0f;
+			auto& cc = _camera.AddComponent<Engine::CameraComponent>();
+			cc.type = Engine::CameraType::Perspective;
+			cc.farPlane = 1000000;
+			/*_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
+				cc.aspectRatio = _window->GetAspect();
+			});*/
 		}
-	}
 
-	int initialTab = 0;
+		_cameraController = CameraController(_inputManager);
+		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
+			_cameraController.OnScroll((float)e.yOffset);
+		});
+	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		{
-			auto& transform = _monkeh.GetTransform();
-			transform.rotation.x += 20.0f * ts;
-			transform.rotation.y += 30.0f * ts;
-			transform.rotation.z += 40.0f * ts;
+			_cameraController.OnUpdate(ts);
+			auto& tc = _camera.GetTransform();
+			tc.position = _cameraController.GetPosition();
+			tc.rotation = _cameraController.GetRotation();
+			auto& cc = _camera.GetComponent<Engine::CameraComponent>();
+			if (cc.type == Engine::CameraType::Perspective)
+				cc.perspectiveSpec.fov = _cameraController.GetFOV();
+			else
+				cc.orthographicSpec.size = _cameraController.GetFOV();
 		}
 
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
+		static Engine::DebugShapeSpec spec;
+		ImGui::DragFloat3("Pos", &spec.position[0], 0.1f);
+		ImGui::DragFloat3("Rot", &spec.rotation[0], 0.1f);
+		ImGui::DragFloat3("Sca", &spec.scale[0], 0.1f);
+		ImGui::ColorEdit4("Col", &spec.color[0]);
+		_scene->GetDebugRenderer().Draw("Line", spec);
+
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);
 
 		/* Render UI */
-		ImGui::Begin("Window");
-		Engine::WindowInfoUI_ImGui::RenderUI(*_window);
-		ImGui::End();
-
-		ImGui::Begin("Properties");
-		Engine::EntityPropertiesUI_ImGui::RenderUI(Engine::SceneHeirarchyUI_ImGui::GetSelectedEntity());
-		ImGui::End();
-
-		ImGui::Begin("Settings");
-		ImGui::ColorEdit3("Clear Color", &_color[0]);
-		_renderManager->SetClearColor(_color[0], _color[1], _color[2], 1);
-		if (ImGui::Checkbox("Wireframe", &_renderWireframe)) {
-			_renderManager->SetWireframeMode(_renderWireframe ? Engine::WireframeMode::Line : Engine::WireframeMode::Fill);
-		}
-		ImGui::Text("Delta Time: %.6fms", ts);
-		ImGui::Text("FPS: %.1f", 1.0f / ts);
-		ImGui::End();
-
-		ImGui::Begin("Scene Info");
-		Engine::SceneHeirarchyUI_ImGui::RenderUI(*_scene);
-		ImGui::End();
-	}
-};
-
-class SRP : public Engine::IRenderPipeline {
-private:
-	struct CameraData { glm::mat4 projection; glm::mat4 view; };
-	CameraData _cameraData;
-	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
-public:
-	virtual void Initialize() {
-		_cameraData.projection = glm::ortho(-1, 1, -1, 1);
-		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0);
-	}
-
-	virtual void RenderScene(const Engine::Scene& scene) override {
-		//Engine::RenderCommands::SetClearColor(currentCamera.GetClearColor());
-		Engine::RenderCommands::ClearBuffers({ Engine::BufferBit::Color, Engine::BufferBit::Depth });
-
-		/* Set render targets from cameras */
-		{}
-
-		/* RenderOpaqueObjects(scene, camera); */
-		/* RenderTransparentObjects(scene, camera); */
-
-		/* ApplyPostProcessing(); */
-
-		auto& reg = scene.GetRegistry();
-
 		{
-			auto view = reg.view<const Engine::TransformComponent, const Engine::CameraComponent>();
-			for (auto entity : view) {
-				auto& transform = view.get<Engine::TransformComponent>(entity);
-				auto& camera = view.get<Engine::CameraComponent>(entity);
+			ImGui::Begin("Window");
+			Engine::WindowInfoUI_ImGui::RenderUI(*_window);
+			ImGui::End();
 
-				if (camera.isMainCamera) {
-					_cameraData.projection = camera.GetProjectionMatrix();
-					_cameraData.view = camera.CalculateViewMatrix(transform);
-				}
+			ImGui::Begin("Properties");
+			Engine::EntityPropertiesUI_ImGui::RenderUI(Engine::SceneHeirarchyUI_ImGui::GetSelectedEntity());
+			ImGui::End();
 
-
+			ImGui::Begin("Settings");
+			if (ImGui::Checkbox("Wireframe", &_renderWireframe)) {
+				_renderManager->SetWireframeMode(_renderWireframe ? Engine::WireframeMode::Line : Engine::WireframeMode::Fill);
 			}
-		}
+			ImGui::Text("Delta Time: %.6fms", ts);
+			ImGui::Text("FPS: %.1f", 1.0f / ts);
+			glm::vec2 mp = _inputManager->GetMousePosition();
+			ImGui::Text("Mouse Position: %.1f,%.1f", mp.x, mp.y);
 
-		_cameraDataUbo->Bind();
-		_cameraDataUbo->SetData(&_cameraData, sizeof(CameraData), 0);
+			ImGui::Separator();
+			CameraControllerUI_ImGui::RenderUI(_cameraController);
 
-		{
-			auto view = reg.view<const Engine::TransformComponent, const Engine::MeshFilterComponent, const Engine::MeshRendererComponent>();
-			for (auto entity : view) {
-				auto& filter = view.get<Engine::MeshFilterComponent>(entity);
-				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
-				auto& transform = view.get<Engine::TransformComponent>(entity);
+			ImGui::End();
 
-				auto& shader = *renderer.shader;
-
-				glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), transform.position);
-				modelMatrix = glm::rotate(modelMatrix, glm::radians(transform.rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-				modelMatrix = glm::rotate(modelMatrix, glm::radians(transform.rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-				modelMatrix = glm::rotate(modelMatrix, glm::radians(transform.rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-				modelMatrix = glm::scale(modelMatrix, transform.scale);
-
-				shader.SetUniform("model", modelMatrix);
-
-				Engine::RenderCommands::RenderMesh(*filter.mesh, shader);
-			}
+			ImGui::Begin("Scene Info");
+			Engine::SceneHeirarchyUI_ImGui::RenderUI(*_scene);
+			ImGui::End();
 		}
 	}
 };
@@ -313,6 +249,8 @@ int main(int argc, char** argv) {
 
 	Engine::GraphicsContext graphicsContext{};
 	graphicsContext.EnableDepthTest = true;
+	graphicsContext.EnableBlend = true;
+	graphicsContext.EnableCullFace = true;
 	graphicsContext.CullBack = true;
 
 	if (!root->Initialize(windowSpec, graphicsContext))

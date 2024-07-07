@@ -23,6 +23,7 @@ namespace Engine {
 			}
 
 			ComponentType& component = _scene->_registry.emplace<ComponentType>(_id, std::forward<Args>(args)...);
+			component.OnComponentAdded(*this);
 			return component;
 		}
 

@@ -6,31 +6,28 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Core\ISystemManager.h">
+    <ClInclude Include="Source\Core\Application\Layer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Layer.h">
+    <ClInclude Include="Source\Core\Logging\LoggingManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\LoggingManager.h">
+    <ClInclude Include="Source\Rendering\GraphicsContext.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Rendering\GraphicsContext.h">
+    <ClInclude Include="Source\Rendering\IRenderPipeline.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Rendering\IRenderPipeline.h">
+    <ClInclude Include="Source\Rendering\RenderCommands.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Rendering\RenderCommands.h">
+    <ClInclude Include="Source\Rendering\RenderManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Rendering\RenderManager.h">
+    <ClInclude Include="Source\Core\Application\Root.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Root.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Core\Window.h">
+    <ClInclude Include="Source\Core\Application\Window.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\BaseComponent.h">
@@ -57,25 +54,25 @@
     <ClInclude Include="Source\Logging\Logging.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\Buffer.h">
+    <ClInclude Include="Source\Rendering\Platform\Buffer\BufferCommon.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\IndexBufferObject.h">
+    <ClInclude Include="Source\Rendering\Platform\Buffer\IndexBufferObject.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\Mesh.h">
+    <ClInclude Include="Source\Rendering\Platform\Mesh.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\Shader.h">
+    <ClInclude Include="Source\Rendering\Platform\Shader.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\Texture.h">
+    <ClInclude Include="Source\Rendering\Platform\Texture.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\VertexArrayObject.h">
+    <ClInclude Include="Source\Rendering\Platform\Buffer\VertexArrayObject.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Renderer\VertexBufferObject.h">
+    <ClInclude Include="Source\Rendering\Platform\Buffer\VertexBufferObject.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h">
@@ -108,27 +105,27 @@
     <ClInclude Include="Source\ECS\Components\TransformComponent.h" />
     <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h" />
     <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h" />
-    <ClInclude Include="Source\Renderer\UniformBufferObject.h" />
+    <ClInclude Include="Source\Rendering\Platform\Buffer\UniformBufferObject.h" />
     <ClInclude Include="Source\ECS\Components\CameraComponent.h" />
     <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h" />
+    <ClInclude Include="Source\Core\Input\InputSystem.h" />
+    <ClInclude Include="Source\Core\Input\InputCommon.h" />
+    <ClInclude Include="Source\Rendering\Platform\Framebuffer.h" />
+    <ClInclude Include="Source\Rendering\Platform\ImageFormat.h" />
+    <ClInclude Include="Source\ECS\Components\DebugShapeManager.h" />
+    <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Core\LoggingManager.cpp">
+    <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Rendering\RenderCommands.cpp">
+    <ClCompile Include="Source\Rendering\RenderCommands.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Rendering\RenderManager.cpp">
+    <ClCompile Include="Source\Core\Application\Root.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Core\Root.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Core\Window.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Components\MeshFilterComponent.cpp">
+    <ClCompile Include="Source\Core\Application\Window.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Components\MeshRendererComponent.cpp">
@@ -137,27 +134,32 @@
     <ClCompile Include="Source\ECS\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\IndexBufferObject.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Buffer\IndexBufferObject.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\Mesh.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Mesh.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\Shader.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Shader.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\Texture.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Texture.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\VertexArrayObject.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Buffer\VertexArrayObject.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\VertexBufferObject.cpp">
+    <ClCompile Include="Source\Rendering\Platform\Buffer\VertexBufferObject.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Renderer\UniformBufferObject.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\Buffer\UniformBufferObject.cpp" />
+    <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\Framebuffer.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp" />
+    <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
+    <ClCompile Include="Source\Rendering\RenderManager.cpp" />
   </ItemGroup>
 </Project>

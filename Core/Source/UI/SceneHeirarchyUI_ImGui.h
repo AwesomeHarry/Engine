@@ -10,7 +10,7 @@ namespace Engine {
 	public:
 		static void RenderUI(Scene& scene) {
 			auto& reg = scene.GetRegistry();
-			auto view = reg.view<entt::entity>();
+			auto view = reg.view<NameComponent>();
 			for (auto e : view) {
 				Entity entity(e, &scene);
 

@@ -6,7 +6,7 @@
 namespace Engine {
 	class MeshFilterUI_ImGui {
 	public:
-		static void RenderUI(const MeshFilterComponent& meshFilter) {
+		static void RenderUI(MeshFilterComponent& meshFilter) {
 			if (ImGui::TreeNodeEx("Mesh Filter", ImGuiTreeNodeFlags_Framed)) {
 				auto& mesh = *meshFilter.mesh;
 

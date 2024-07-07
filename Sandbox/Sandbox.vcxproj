@@ -97,6 +97,11 @@
       <Project>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</Project>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Source\CameraController.h" />
+    <ClInclude Include="Source\FPSCameraController.h" />
+    <ClInclude Include="Source\SRP.h" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

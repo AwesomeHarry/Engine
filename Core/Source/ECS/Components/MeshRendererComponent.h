@@ -2,8 +2,8 @@
 #include <memory>
 
 #include "BaseComponent.h"
-#include "Renderer/Shader.h"
-#include "Renderer/Mesh.h"
+#include "Rendering/Platform/Shader.h"
+#include "Rendering/Platform/Mesh.h"
 
 namespace Engine {
 	class Entity;
