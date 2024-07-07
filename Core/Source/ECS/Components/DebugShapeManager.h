@@ -23,7 +23,11 @@ namespace Engine {
 	struct DebugShapeManager : BaseComponent {
 	public:
 		struct PointSpec { glm::vec3 pos; glm::vec4 color; };
-		std::vector<PointSpec> points;
+		std::vector<PointSpec> pointData;
+
+		std::shared_ptr<VertexArrayObject> pointInfoVao;
+		std::shared_ptr<VertexBufferObject> pointInfoVbo;
+		std::shared_ptr<Shader> pointShader;
 
 		void DrawPoint(const PointSpec& spec);
 
@@ -34,19 +38,10 @@ namespace Engine {
 		std::shared_ptr<VertexBufferObject> lineInfoVbo;
 		std::shared_ptr<Shader> lineShader;
 
-
 		void DrawLine(const LineSpec& spec);
-
-		const Mesh& GetMesh() const { return *_meshTemplate; }
-		Shader& GetPointShader() { return *_pointShader; }
 
 		virtual void OnComponentAdded(Entity& entity) override;
 	private:
 		void initialize();
-
-		std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshDb;
-		std::shared_ptr<Mesh> _meshTemplate;
-		std::shared_ptr<Shader> _pointShader;
-
 	};
 }

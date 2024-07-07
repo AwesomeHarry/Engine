@@ -8,16 +8,21 @@
 
 namespace Engine {
 #pragma region Shaders
-	const char* commonVertexShader = R"glsl(
+
+#pragma region PointShader
+	const char* pointShader_V = R"glsl(
     #version 330 core
     layout(location = 0) in vec3 aPos;
-	uniform mat4 model;
+    layout(location = 1) in vec4 aColor;
+    out vec3 vPos;
+	out vec4 vColor;
     void main() {
-        gl_Position = model * vec4(aPos, 1.0);
+        vPos = aPos;
+		vColor = aColor;
+        gl_Position = vec4(aPos, 1.0);
     }
     )glsl";
 
-#pragma region PointShader
 	const char* pointShader_G = R"glsl(
     #version 330 core
 
@@ -29,14 +34,19 @@ namespace Engine {
         mat4 view;
     };
 
+	in vec3 vPos[];
+	in vec4 vColor[];
+
     uniform float radius = 0.1;
     uniform int segments = 20;
+
+	out vec4 color;
 
     const float PI = 3.1415926535897932384626433832795;
 
     void main() {
         // Transform the center point to view space
-        vec4 centerViewSpace = view * gl_in[0].gl_Position;
+        vec4 centerViewSpace = view * vec4(vPos[0], 1.0);
     
         for (int i = 0; i <= segments; i++) {
             float angle = 2.0 * PI * float(i) / float(segments);
@@ -44,14 +54,17 @@ namespace Engine {
         
             // Emit center vertex
             gl_Position = projection * centerViewSpace;
+            color = vColor[0];
             EmitVertex();
         
             // Emit vertex on the circle's edge
             gl_Position = projection * (centerViewSpace + vec4(radius * cos(angle), radius * sin(angle), 0.0, 0.0));
+            color = vColor[0];
             EmitVertex();
         
             // Emit next vertex on the circle's edge
             gl_Position = projection * (centerViewSpace + vec4(radius * cos(nextAngle), radius * sin(nextAngle), 0.0, 0.0));
+            color = vColor[0];
             EmitVertex();
         
             EndPrimitive();
@@ -62,7 +75,7 @@ namespace Engine {
 	const char* pointShader_F = R"glsl(
     #version 330 core
     out vec4 FragColor;
-    uniform vec4 color;
+    in vec4 color;
     void main() {
         FragColor = color;
     }
@@ -149,7 +162,7 @@ namespace Engine {
 #pragma endregion
 
 	void DebugShapeManager::DrawPoint(const PointSpec& spec) {
-		points.push_back(spec);
+		pointData.push_back(spec);
 	}
 
 	void DebugShapeManager::DrawLine(const LineSpec& spec) {
@@ -161,43 +174,43 @@ namespace Engine {
 	}
 
 	void DebugShapeManager::initialize() {
-		_meshTemplate = std::make_shared<Engine::Mesh>("Test");
-		{
-			float verts[] = { 0,0,0 };
+        /* Points */
+        {
+            pointShader = std::make_shared<Shader>();
+            pointShader->AttachVertexShader(pointShader_V);
+            pointShader->AttachGeometeryShader(pointShader_G);
+            pointShader->AttachFragmentShader(pointShader_F);
+            pointShader->Link();
 
-			auto vertexArray = std::make_shared<Engine::VertexArrayObject>();
-			auto vertexBuffer = std::make_shared<Engine::VertexBufferObject>();
-			vertexBuffer->SetData(verts, 3, {
-				{ "POSITION", Engine::LType::Float, 3 }
-								  });
-			vertexArray->AddVertexBuffer(vertexBuffer);
-			vertexArray->Compute();
-			vertexArray->SetDrawMode(Engine::DrawMode::Points);
+            pointInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
+            pointInfoVbo->SetData(nullptr, 0, {
+                        { "aPos", Engine::LType::Float, 3 },
+                        { "aColor", Engine::LType::Float, 4 }
+                                  });
 
-			_meshTemplate->AddSubmesh(vertexArray);
-		}
+            pointInfoVao = std::make_shared<VertexArrayObject>();
+            pointInfoVao->AddVertexBuffer(pointInfoVbo);
+            pointInfoVao->Compute();
+        }
 
-		_pointShader = std::make_shared<Shader>();
-		_pointShader->AttachVertexShader(commonVertexShader);
-		_pointShader->AttachGeometeryShader(pointShader_G);
-		_pointShader->AttachFragmentShader(pointShader_F);
-		_pointShader->Link();
+        /* Lines */
+        {
+            lineShader = std::make_shared<Shader>();
+            lineShader->AttachVertexShader(lineShader_V);
+            lineShader->AttachGeometeryShader(lineShader_G);
+            lineShader->AttachFragmentShader(lineShader_F);
+            lineShader->Link();
 
-		lineShader = std::make_shared<Shader>();
-		lineShader->AttachVertexShader(lineShader_V);
-		lineShader->AttachGeometeryShader(lineShader_G);
-		lineShader->AttachFragmentShader(lineShader_F);
-		lineShader->Link();
+            lineInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
+            lineInfoVbo->SetData(nullptr, 0, {
+                        { "aStartPos", Engine::LType::Float, 3 },
+                        { "aEndPos", Engine::LType::Float, 3 },
+                        { "aColor", Engine::LType::Float, 4 }
+                                 });
 
-		lineInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
-		lineInfoVbo->SetData(nullptr, 0, {
-					{ "aStartPos", Engine::LType::Float, 3 },
-					{ "aEndPos", Engine::LType::Float, 3 },
-					{ "aColor", Engine::LType::Float, 4 }
-							 });
-
-        lineInfoVao = std::make_shared<VertexArrayObject>();
-        lineInfoVao->AddVertexBuffer(lineInfoVbo);
-        lineInfoVao->Compute();
+            lineInfoVao = std::make_shared<VertexArrayObject>();
+            lineInfoVao->AddVertexBuffer(lineInfoVbo);
+            lineInfoVao->Compute();
+        }
 	}
 }

@@ -123,38 +123,47 @@ public:
 				auto& dsm = view.get<Engine::DebugShapeManager>(view.front());
 
 				/* Points */
-				for (auto& point : dsm.points) {
-					auto& mesh = dsm.GetMesh();
-					auto& shader = dsm.GetPointShader();
-
-					glm::mat4 model = glm::translate(glm::mat4(1.0f), point.pos);
-					shader.SetUniform("model", model);
-					shader.SetUniform("color", point.color);
-					shader.SetUniform("radius", 0.1f);
+				{
+					auto& shader = *dsm.pointShader;
+					shader.SetUniform("radius", 0.01f);
 					shader.SetUniform("segments", 20);
 
-					Engine::RenderCommands::RenderMesh(mesh, shader);
+					auto& vao = *dsm.pointInfoVao;
+					auto& vbo = *dsm.pointInfoVbo;
+
+					size_t pointCount = dsm.pointData.size();
+					vbo.SetData(dsm.pointData.data(), pointCount, {
+						{ "aPos", Engine::LType::Float, 3 },
+						{ "aColor", Engine::LType::Float, 4 }
+								});
+
+					Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
+
+					// Clear draw list
+					dsm.pointData.clear();
 				}
 
 				/* Lines */
-				auto& shader = *dsm.lineShader;
-				shader.SetUniform("thickness", 0.01f);
+				{
+					auto& shader = *dsm.lineShader;
+					shader.SetUniform("thickness", 0.01f);
 
-				auto& vao = *dsm.lineInfoVao;
-				auto& vbo = *dsm.lineInfoVbo;
+					auto& vao = *dsm.lineInfoVao;
+					auto& vbo = *dsm.lineInfoVbo;
 
-				size_t lineCount = dsm.lineData.size();
-				vbo.SetData(dsm.lineData.data(), lineCount, {
-					{ "aStartPos", Engine::LType::Float, 3 },
-					{ "aEndPos", Engine::LType::Float, 3 },
-					{ "aColor", Engine::LType::Float, 4 }
-							});
+					size_t lineCount = dsm.lineData.size();
+					vbo.SetData(dsm.lineData.data(), lineCount, {
+						{ "aStartPos", Engine::LType::Float, 3 },
+						{ "aEndPos", Engine::LType::Float, 3 },
+						{ "aColor", Engine::LType::Float, 4 }
+								});
 
-				Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
+					Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
 
-				// Clear draw list
-				dsm.points.clear();
-				dsm.lineData.clear();
+					// Clear draw list
+					dsm.lineData.clear();
+				}
+
 			}
 		}
 

@@ -287,10 +287,10 @@ public:
 		//Engine::RenderCommands::ClearBuffers({ Engine::BufferBit::Color, Engine::BufferBit::Depth });
 		//Engine::RenderCommands::RenderMesh(*_mesh, *_shader);
 
-		static Engine::DebugShapeManager::PointSpec spec{ {0,0,0},{1,1,1,1} };
+		static Engine::DebugShapeManager::PointSpec spec{ {0,-1,0},{1,1,1,1} };
 		ImGui::DragFloat3("Pos", &spec.pos[0], 0.1f);
 		ImGui::ColorEdit4("Col", &spec.color[0]);
-		//_scene->GetDebugRenderer().DrawPoint(spec);
+		_scene->GetDebugRenderer().DrawPoint(spec);
 
 		static Engine::DebugShapeManager::LineSpec lspec{ {0,0,0},{1,0,0},{1,1,1,1} };
 		ImGui::DragFloat3("Pos1", &lspec.from[0], 0.1f);
