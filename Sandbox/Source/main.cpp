@@ -295,8 +295,16 @@ public:
 		static Engine::DebugShapeManager::LineSpec lspec{ {0,0,0},{1,0,0},{1,1,1,1} };
 		ImGui::DragFloat3("Pos1", &lspec.from[0], 0.1f);
 		ImGui::DragFloat3("Pos2", &lspec.to[0], 0.1f);
-		ImGui::ColorEdit4("Col", &lspec.color[0]);
+		ImGui::ColorEdit4("Col##2", &lspec.color[0]);
 		_scene->GetDebugRenderer().DrawLine(lspec);
+		
+		static Engine::DebugShapeManager::LineSpec lspec2{ {-1,0,0},{-1,1,0},{1,1,1,1} };
+		ImGui::DragFloat3("Pos1##1", &lspec2.from[0], 0.1f);
+		ImGui::DragFloat3("Pos2##1", &lspec2.to[0], 0.1f);
+		ImGui::ColorEdit4("Col##3", &lspec2.color[0]);
+		_scene->GetDebugRenderer().DrawLine(lspec2);
+
+
 
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);

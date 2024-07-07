@@ -13,32 +13,40 @@
 
 
 namespace Engine {
-    class Entity;
-    class Mesh;
-    class Shader;
+	class Entity;
+	class Mesh;
+	class Shader;
 
-    struct DebugShapeManager : BaseComponent {
-    public:
-        struct PointSpec { glm::vec3 pos; glm::vec4 color; };
-        std::vector<PointSpec> points;
+	class VertexArrayObject;
+	class VertexBufferObject;
 
-        void DrawPoint(const PointSpec& spec);
+	struct DebugShapeManager : BaseComponent {
+	public:
+		struct PointSpec { glm::vec3 pos; glm::vec4 color; };
+		std::vector<PointSpec> points;
 
-        struct LineSpec { glm::vec3 from, to; glm::vec4 color; };
-        std::vector<LineSpec> lines;
+		void DrawPoint(const PointSpec& spec);
 
-        void DrawLine(const LineSpec& spec);
+		struct LineSpec { glm::vec3 from, to; glm::vec4 color; };
+		std::vector<LineSpec> lineData;
 
-        const Mesh& GetMesh() const { return *_meshTemplate; }
-        Shader& GetPointShader() { return *_pointShader; }
-        Shader& GetLineShader() { return *_lineShader; }
+		std::shared_ptr<VertexArrayObject> lineInfoVao;
+		std::shared_ptr<VertexBufferObject> lineInfoVbo;
+		std::shared_ptr<Shader> lineShader;
 
-        virtual void OnComponentAdded(Entity& entity) override;
-    private:
-        void initialize();
 
-        std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshDb;
-        std::shared_ptr<Mesh> _meshTemplate;
-        std::shared_ptr<Shader> _pointShader, _lineShader;
-    };
+		void DrawLine(const LineSpec& spec);
+
+		const Mesh& GetMesh() const { return *_meshTemplate; }
+		Shader& GetPointShader() { return *_pointShader; }
+
+		virtual void OnComponentAdded(Entity& entity) override;
+	private:
+		void initialize();
+
+		std::unordered_map<std::string, std::shared_ptr<Mesh>> _meshDb;
+		std::shared_ptr<Mesh> _meshTemplate;
+		std::shared_ptr<Shader> _pointShader;
+
+	};
 }

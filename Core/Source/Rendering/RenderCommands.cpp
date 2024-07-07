@@ -28,7 +28,6 @@ void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 
 void RenderCommands::RenderMesh(const Mesh& mesh, const Shader& shader) {
 	shader.Bind();
-
 	for (size_t i = 0; i < mesh.GetSubmeshCount(); i++) {
 		auto& vertexArray = mesh.GetSubmesh(i);
 
@@ -39,6 +38,14 @@ void RenderCommands::RenderMesh(const Mesh& mesh, const Shader& shader) {
 		else
 			glDrawArrays((uint32_t)vertexArray.GetDrawMode(), 0, vertexArray.GetCount());
 	}
+	shader.Unbind();
+}
 
+// Likely usage for geometry shaders
+void RenderCommands::RenderPoints(const VertexArrayObject& vertexArray, uint64_t count, const Shader& shader) {
+	shader.Bind();
+	vertexArray.Bind();
+	glDrawArrays(GL_POINTS, 0, count);
+	vertexArray.Unbind();
 	shader.Unbind();
 }

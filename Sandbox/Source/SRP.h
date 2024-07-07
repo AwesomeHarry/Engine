@@ -137,21 +137,24 @@ public:
 				}
 
 				/* Lines */
-				for (auto& line : dsm.lines) {
-					auto& mesh = dsm.GetMesh();
-					auto& shader = dsm.GetLineShader();
+				auto& shader = *dsm.lineShader;
+				shader.SetUniform("thickness", 0.01f);
 
-					shader.SetUniform("color", line.color);
-					shader.SetUniform("p1", line.from);
-					shader.SetUniform("p2", line.to);
-					shader.SetUniform("thickness", 0.01f);
+				auto& vao = *dsm.lineInfoVao;
+				auto& vbo = *dsm.lineInfoVbo;
 
-					Engine::RenderCommands::RenderMesh(mesh, shader);
-				}
+				size_t lineCount = dsm.lineData.size();
+				vbo.SetData(dsm.lineData.data(), lineCount, {
+					{ "aStartPos", Engine::LType::Float, 3 },
+					{ "aEndPos", Engine::LType::Float, 3 },
+					{ "aColor", Engine::LType::Float, 4 }
+							});
+
+				Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
 
 				// Clear draw list
 				dsm.points.clear();
-				dsm.lines.clear();
+				dsm.lineData.clear();
 			}
 		}
 

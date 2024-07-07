@@ -43,21 +43,28 @@ namespace Engine {
 
 	class VertexBufferObject {
 	public:
-		VertexBufferObject(BufferUsage usage = BufferUsage::Static);
+		static const uint64_t DEFAULT_INITIAL_CAPACITY = 1000 * sizeof(float) * 4;
+
+		VertexBufferObject(BufferUsage usage = BufferUsage::Static, uint64_t initialCapacity = DEFAULT_INITIAL_CAPACITY);
 		~VertexBufferObject();
+
+		VertexBufferObject(const VertexBufferObject&) = delete;
+		VertexBufferObject& operator=(const VertexBufferObject&) = delete;
 
 		void Bind() const;
 		void Unbind() const;
 
 		void SetData(const void* data, uint64_t count, const VertexLayout& layout);
+		void UpdateSubData(const void* data, uint64_t offset, uint64_t size);
 
 		inline const VertexLayout& GetLayout() const { return _layout; }
 		inline uint64_t GetCount() const { return _count; }
+		inline uint64_t GetCapacity() const { return _capacity; }
 	private:
 		uint32_t _id;
 		BufferUsage _usage;
-
 		VertexLayout _layout;
 		uint64_t _count;
+		uint64_t _capacity;
 	};
 }
