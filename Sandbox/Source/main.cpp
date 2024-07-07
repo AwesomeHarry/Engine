@@ -1,6 +1,7 @@
 #include <imgui.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glad/glad.h>
 
 #include "Core/Application/Root.h"
 
@@ -65,6 +66,57 @@ void main()
 
 #pragma endregion
 
+const char* testv = R"glsl(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+void main() {
+    gl_Position = vec4(aPos, 1.0);
+}
+)glsl";
+
+const char* testg = R"glsl(
+#version 330 core
+layout (points) in;
+layout (triangle_strip, max_vertices = 66) out;
+
+uniform float radius = 0.1;
+uniform int segments = 20;
+
+const float PI = 3.1415926535;
+
+void main() {
+    // Transform the center point to view space
+    vec4 centerViewSpace = gl_in[0].gl_Position;
+    
+    for (int i = 0; i <= segments; i++) {
+        float angle = 2.0 * PI * float(i) / float(segments);
+        float nextAngle = 2.0 * PI * float(i + 1) / float(segments);
+        
+        // Emit center vertex
+        gl_Position = centerViewSpace;
+        EmitVertex();
+        
+        // Emit vertex on the circle's edge
+        gl_Position = (centerViewSpace + vec4(radius * cos(angle), radius * sin(angle), 0.0, 0.0));
+        EmitVertex();
+        
+        // Emit next vertex on the circle's edge
+        gl_Position = (centerViewSpace + vec4(radius * cos(nextAngle), radius * sin(nextAngle), 0.0, 0.0));
+        EmitVertex();
+        
+        EndPrimitive();
+    }
+}
+)glsl";
+
+const char* testf = R"glsl(
+#version 330 core
+out vec4 FragColor;
+void main() {
+    FragColor = vec4(1.0);
+}
+)glsl";
+
 class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
@@ -73,14 +125,20 @@ private:
 	Engine::Entity _camera;
 	CameraController _cameraController;
 
+	std::shared_ptr<Engine::Mesh> _mesh;
+	std::shared_ptr<Engine::Shader> _shader;
+
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
 		/* Create Scene */
 		_scene = std::make_shared<Engine::Scene>();
 
-		/* Create Shader */
-		auto shader = std::make_shared<Engine::Shader>(vertexShaderSource, fragmentShaderSource);
+		/* Create Shader for test scene */
+		auto shader = std::make_shared<Engine::Shader>();
+		shader->AttachVertexShader(vertexShaderSource);
+		shader->AttachFragmentShader(fragmentShaderSource);
+		shader->Link();
 		shader->BindUniformBlock("CameraData", 0);
 
 		/* Manual Mesh */
@@ -158,8 +216,10 @@ public:
 			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
 			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
 			entity.AddComponent<Engine::MeshRendererComponent>(shader);
-			
+
+
 			_monkeh = entity;
+			_monkeh.GetTransform().position.x += 10;
 		}
 
 		/* Camera */
@@ -179,6 +239,30 @@ public:
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
 			_cameraController.OnScroll((float)e.yOffset);
 		});
+
+		{
+			_shader = std::make_shared<Engine::Shader>();
+			_shader->AttachVertexShader(testv);
+			_shader->AttachGeometeryShader(testg);
+			_shader->AttachFragmentShader(testf);
+			_shader->Link();
+
+			_mesh = std::make_shared<Engine::Mesh>("Test");
+			{
+				float verts[] = { 0,0,0 };
+
+				auto vertexArray = std::make_shared<Engine::VertexArrayObject>();
+				auto vertexBuffer = std::make_shared<Engine::VertexBufferObject>();
+				vertexBuffer->SetData(verts, 3, {
+					{ "POSITION", Engine::LType::Float, 3 }
+									  });
+				vertexArray->AddVertexBuffer(vertexBuffer);
+				vertexArray->Compute();
+				vertexArray->SetDrawMode(Engine::DrawMode::Points);
+
+				_mesh->AddSubmesh(vertexArray);
+			}
+		}
 	}
 
 	void OnUpdate(float ts) override {
@@ -198,12 +282,21 @@ public:
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
-		static Engine::DebugShapeSpec spec;
-		ImGui::DragFloat3("Pos", &spec.position[0], 0.1f);
-		ImGui::DragFloat3("Rot", &spec.rotation[0], 0.1f);
-		ImGui::DragFloat3("Sca", &spec.scale[0], 0.1f);
+		/* Draw Test Shape */
+		//Engine::RenderCommands::SetViewport(0, 0, _window->GetWidth(), _window->GetHeight());
+		//Engine::RenderCommands::ClearBuffers({ Engine::BufferBit::Color, Engine::BufferBit::Depth });
+		//Engine::RenderCommands::RenderMesh(*_mesh, *_shader);
+
+		static Engine::DebugShapeManager::PointSpec spec{ {0,0,0},{1,1,1,1} };
+		ImGui::DragFloat3("Pos", &spec.pos[0], 0.1f);
 		ImGui::ColorEdit4("Col", &spec.color[0]);
-		_scene->GetDebugRenderer().Draw("Line", spec);
+		//_scene->GetDebugRenderer().DrawPoint(spec);
+
+		static Engine::DebugShapeManager::LineSpec lspec{ {0,0,0},{1,0,0},{1,1,1,1} };
+		ImGui::DragFloat3("Pos1", &lspec.from[0], 0.1f);
+		ImGui::DragFloat3("Pos2", &lspec.to[0], 0.1f);
+		ImGui::ColorEdit4("Col", &lspec.color[0]);
+		_scene->GetDebugRenderer().DrawLine(lspec);
 
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);
@@ -250,8 +343,8 @@ int main(int argc, char** argv) {
 	Engine::GraphicsContext graphicsContext{};
 	graphicsContext.EnableDepthTest = true;
 	graphicsContext.EnableBlend = true;
-	graphicsContext.EnableCullFace = true;
-	graphicsContext.CullBack = true;
+	//graphicsContext.EnableCullFace = true;
+	//graphicsContext.CullBack = true;
 
 	if (!root->Initialize(windowSpec, graphicsContext))
 		return 1;

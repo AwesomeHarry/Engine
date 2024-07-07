@@ -53,7 +53,10 @@ public:
 
 		_sceneFb = std::make_shared<Engine::Framebuffer>(fbSpec);
 
-		_debugShader = std::make_shared<Engine::Shader>(debugShaderVSrc, debugShaderFSrc);
+		_debugShader = std::make_shared<Engine::Shader>();
+		_debugShader->AttachVertexShader(debugShaderVSrc);
+		_debugShader->AttachFragmentShader(debugShaderFSrc);
+		_debugShader->Link();
 		_debugShader->BindUniformBlock("CameraData", 0);
 	}
 
@@ -118,19 +121,37 @@ public:
 
 				// Render each drawCall
 				auto& dsm = view.get<Engine::DebugShapeManager>(view.front());
-				for (const auto& call : dsm.drawCalls) {
-					auto& mesh = *call.first;
-					auto& spec = call.second;
 
-					glm::mat4 model = MakeModelMatrix(spec.position, spec.rotation, spec.scale);
-					_debugShader->SetUniform("model", model);
-					_debugShader->SetUniform("color", spec.color);
+				/* Points */
+				for (auto& point : dsm.points) {
+					auto& mesh = dsm.GetMesh();
+					auto& shader = dsm.GetPointShader();
 
-					Engine::RenderCommands::RenderMesh(mesh, *_debugShader);
+					glm::mat4 model = glm::translate(glm::mat4(1.0f), point.pos);
+					shader.SetUniform("model", model);
+					shader.SetUniform("color", point.color);
+					shader.SetUniform("radius", 0.1f);
+					shader.SetUniform("segments", 20);
+
+					Engine::RenderCommands::RenderMesh(mesh, shader);
+				}
+
+				/* Lines */
+				for (auto& line : dsm.lines) {
+					auto& mesh = dsm.GetMesh();
+					auto& shader = dsm.GetLineShader();
+
+					shader.SetUniform("color", line.color);
+					shader.SetUniform("p1", line.from);
+					shader.SetUniform("p2", line.to);
+					shader.SetUniform("thickness", 0.01f);
+
+					Engine::RenderCommands::RenderMesh(mesh, shader);
 				}
 
 				// Clear draw list
-				dsm.drawCalls.clear();
+				dsm.points.clear();
+				dsm.lines.clear();
 			}
 		}
 

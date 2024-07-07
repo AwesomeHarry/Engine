@@ -18,6 +18,10 @@ void RenderCommands::ClearBuffers(const std::initializer_list<BufferBit>& buffer
 	glClear(clearBitmask);
 }
 
+void RenderCommands::SetViewport(int x, int y, int width, int height) {
+	glViewport(x, y, width, height);
+}
+
 void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 	glPolygonMode(GL_FRONT_AND_BACK, (uint32_t)wireframeMode);
 }

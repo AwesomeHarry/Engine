@@ -161,5 +161,6 @@
     <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp" />
     <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />
+    <ClCompile Include="Source\ECS\Components\DebugShapeManager.cpp" />
   </ItemGroup>
 </Project>

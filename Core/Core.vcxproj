@@ -142,6 +142,7 @@
   <ItemGroup>
     <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp" />
+    <ClCompile Include="Source\ECS\Components\DebugShapeManager.cpp" />
     <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
     <ClCompile Include="Source\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />

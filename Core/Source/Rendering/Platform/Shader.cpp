@@ -5,13 +5,47 @@
 
 using namespace Engine;
 
-Shader::Shader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) {
-	loadShaders(vertexShaderSrc, fragmentShaderSrc);
-	preloadUniforms();
+Shader::Shader() {
+	_id = glCreateProgram();
 }
 
 Shader::~Shader() {
 	glDeleteProgram(_id);
+}
+
+void Shader::AttachVertexShader(const std::string& src) {
+	GLuint shader = compileShader(GL_VERTEX_SHADER, src.c_str());
+	glAttachShader(_id, shader);
+	glDeleteShader(shader);
+}
+
+void Shader::AttachFragmentShader(const std::string& src) {
+	GLuint shader = compileShader(GL_FRAGMENT_SHADER, src.c_str());
+	glAttachShader(_id, shader);
+	glDeleteShader(shader);
+}
+
+void Shader::AttachGeometeryShader(const std::string& src) {
+	GLuint shader = compileShader(GL_GEOMETRY_SHADER, src.c_str());
+	glAttachShader(_id, shader);
+	glDeleteShader(shader);
+}
+
+void Shader::Link() {
+	glLinkProgram(_id);
+
+	GLint success;
+	glGetProgramiv(_id, GL_LINK_STATUS, &success);
+	if (!success) {
+		GLint infoLogLength;
+		glGetProgramiv(_id, GL_INFO_LOG_LENGTH, &infoLogLength);
+		std::string infoLog(infoLogLength, ' ');
+		glGetProgramInfoLog(_id, infoLogLength, &infoLogLength, &infoLog[0]);
+		ENGINE_ERROR("Shader linking failed: {}", infoLog);
+		return;
+	}
+
+	preloadUniforms();
 }
 
 void Shader::Bind() const {
@@ -20,22 +54,6 @@ void Shader::Bind() const {
 
 void Shader::Unbind() const {
 	glUseProgram(0);
-}
-
-void Shader::loadShaders(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc) {
-	// Compile the shaders
-	GLuint vertexShader = compileShader(GL_VERTEX_SHADER, vertexShaderSrc.c_str());
-	GLuint fragmentShader = compileShader(GL_FRAGMENT_SHADER, fragmentShaderSrc.c_str());
-
-	// Create the shader program
-	_id = glCreateProgram();
-
-	// Attach the shaders to the program
-	linkShaders(_id, vertexShader, fragmentShader);
-
-	// Delete the shaders
-	glDeleteShader(vertexShader);
-	glDeleteShader(fragmentShader);
 }
 
 uint32_t Shader::compileShader(uint32_t type, const char* source) {
@@ -53,21 +71,6 @@ uint32_t Shader::compileShader(uint32_t type, const char* source) {
 	}
 
 	return shader;
-}
-
-void Shader::linkShaders(uint32_t shaderProgram, uint32_t vertexShader, uint32_t fragmentShader) {
-	glAttachShader(shaderProgram, vertexShader);
-	glAttachShader(shaderProgram, fragmentShader);
-	glLinkProgram(shaderProgram);
-
-	// Check for linking errors
-	int success;
-	char infoLog[512];
-	glGetProgramiv(shaderProgram, GL_LINK_STATUS, &success);
-	if (!success) {
-		glGetProgramInfoLog(shaderProgram, 512, NULL, infoLog);
-		ENGINE_ERROR("ERROR::SHADER::PROGRAM::LINKING_FAILED\n{}", infoLog);
-	}
 }
 
 void Shader::preloadUniforms() {
@@ -173,5 +176,9 @@ std::shared_ptr<Shader> ShaderUtils::FromFile(const std::string& vertexShaderPat
 	ENGINE_TRACE("Vertex Shader Source:\n{}", vertexShaderSource);
 	ENGINE_TRACE("Fragment Shader Source:\n{}", fragmentShaderSource);
 
-	return std::make_shared<Shader>(vertexShaderSource, fragmentShaderSource);
+	auto shader = std::make_shared<Shader>();
+	shader->AttachVertexShader(vertexShaderSource);
+	shader->AttachFragmentShader(fragmentShaderSource);
+	shader->Link();
+	return shader;
 }

@@ -38,8 +38,8 @@ Entity Engine::Scene::GetEntity(entt::entity handle) {
 Entity Scene::GetEntity(const std::string& name) {
 	auto view = _registry.view<NameComponent>();
 	for (auto entityUid : view) {
-		const NameComponent& tc = view.get<NameComponent>(entityUid);	
-		if (tc.name == name)
+		const NameComponent& nc = view.get<NameComponent>(entityUid);	
+		if (nc.name == name)
 			return Entity(entityUid, this);
 	}
 	return {};

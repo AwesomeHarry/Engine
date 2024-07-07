@@ -7,8 +7,14 @@
 namespace Engine {
 	class Shader {
 	public:
-		Shader(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
+		Shader();
 		~Shader();
+
+		void AttachVertexShader(const std::string& src);
+		void AttachFragmentShader(const std::string& src);
+		void AttachGeometeryShader(const std::string& src);
+
+		void Link();
 
 		void Bind() const;
 		void Unbind() const;
@@ -28,9 +34,7 @@ namespace Engine {
 		inline const std::unordered_map<std::string, uint32_t>& GetUniforms() const { return _uniformsMap; }
 		inline const std::unordered_map<std::string, uint32_t>& GetUniformBlocks() const { return _uniformBlockMap; }
 	private:
-		void loadShaders(const std::string& vertexShaderSrc, const std::string& fragmentShaderSrc);
 		uint32_t compileShader(uint32_t type, const char* source);
-		void linkShaders(uint32_t shaderProgram, uint32_t vertexShader, uint32_t fragmentShader);
 		void preloadUniforms();
 		bool findUniform(const std::string& name);
 	private:
