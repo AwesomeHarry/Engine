@@ -125,9 +125,6 @@ private:
 	Engine::Entity _camera;
 	CameraController _cameraController;
 
-	std::shared_ptr<Engine::Mesh> _mesh;
-	std::shared_ptr<Engine::Shader> _shader;
-
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
@@ -239,30 +236,6 @@ public:
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
 			_cameraController.OnScroll((float)e.yOffset);
 		});
-
-		{
-			_shader = std::make_shared<Engine::Shader>();
-			_shader->AttachVertexShader(testv);
-			_shader->AttachGeometeryShader(testg);
-			_shader->AttachFragmentShader(testf);
-			_shader->Link();
-
-			_mesh = std::make_shared<Engine::Mesh>("Test");
-			{
-				float verts[] = { 0,0,0 };
-
-				auto vertexArray = std::make_shared<Engine::VertexArrayObject>();
-				auto vertexBuffer = std::make_shared<Engine::VertexBufferObject>();
-				vertexBuffer->SetData(verts, 3, {
-					{ "POSITION", Engine::LType::Float, 3 }
-									  });
-				vertexArray->AddVertexBuffer(vertexBuffer);
-				vertexArray->Compute();
-				vertexArray->SetDrawMode(Engine::DrawMode::Points);
-
-				_mesh->AddSubmesh(vertexArray);
-			}
-		}
 	}
 
 	void OnUpdate(float ts) override {
@@ -282,11 +255,7 @@ public:
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
-		/* Draw Test Shape */
-		//Engine::RenderCommands::SetViewport(0, 0, _window->GetWidth(), _window->GetHeight());
-		//Engine::RenderCommands::ClearBuffers({ Engine::BufferBit::Color, Engine::BufferBit::Depth });
-		//Engine::RenderCommands::RenderMesh(*_mesh, *_shader);
-
+		/* Debug Draw */
 		static Engine::DebugShapeManager::PointSpec spec{ {0,-1,0},{1,1,1,1} };
 		ImGui::DragFloat3("Pos", &spec.pos[0], 0.1f);
 		ImGui::ColorEdit4("Col", &spec.color[0]);
@@ -303,8 +272,6 @@ public:
 		ImGui::DragFloat3("Pos2##1", &lspec2.to[0], 0.1f);
 		ImGui::ColorEdit4("Col##3", &lspec2.color[0]);
 		_scene->GetDebugRenderer().DrawLine(lspec2);
-
-
 
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);

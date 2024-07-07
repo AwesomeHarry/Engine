@@ -169,6 +169,11 @@ namespace Engine {
 		lineData.push_back(spec);
 	}
 
+    void DebugShapeManager::Clear() {
+		pointData.clear();
+		lineData.clear();
+    }
+
 	void DebugShapeManager::OnComponentAdded(Entity& entity) {
 		initialize();
 	}

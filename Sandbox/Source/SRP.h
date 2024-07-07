@@ -119,7 +119,6 @@ public:
 				if (view.size() > 1)
 					ENGINE_WARN("More than one DebugShapeManager in scene, only first will be used.");
 
-				// Render each drawCall
 				auto& dsm = view.get<Engine::DebugShapeManager>(view.front());
 
 				/* Points */
@@ -138,9 +137,6 @@ public:
 								});
 
 					Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
-
-					// Clear draw list
-					dsm.pointData.clear();
 				}
 
 				/* Lines */
@@ -159,11 +155,9 @@ public:
 								});
 
 					Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
-
-					// Clear draw list
-					dsm.lineData.clear();
 				}
 
+				dsm.Clear();
 			}
 		}
 

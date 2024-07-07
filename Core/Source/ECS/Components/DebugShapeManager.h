@@ -40,6 +40,8 @@ namespace Engine {
 
 		void DrawLine(const LineSpec& spec);
 
+		void Clear();
+
 		virtual void OnComponentAdded(Entity& entity) override;
 	private:
 		void initialize();
