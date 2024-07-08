@@ -223,10 +223,6 @@ public:
 		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,0,0,1), true);
 		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,1,1,0.2), false);
 
-		static int i;
-		ImGui::SliderInt("i", &i, 0, 7);
-		_scene->GetDebugRenderer().DrawPoint({ corners[i], 0.1f, glm::vec4(1, 1, 0, 1) });
-
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);
 
