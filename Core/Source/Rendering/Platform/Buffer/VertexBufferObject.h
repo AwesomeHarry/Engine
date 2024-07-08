@@ -60,6 +60,17 @@ namespace Engine {
 		inline const VertexLayout& GetLayout() const { return _layout; }
 		inline uint64_t GetCount() const { return _count; }
 		inline uint64_t GetCapacity() const { return _capacity; }
+
+		std::vector<uint8_t> GetRawData() const;
+
+		template <typename T>
+		std::vector<T> GetData() const {
+			std::vector<uint8_t> rawData = GetRawData();
+			size_t elementCount = rawData.size() / sizeof(T);
+			std::vector<T> data(elementCount);
+			std::memcpy(data.data(), rawData.data(), rawData.size());
+			return data;
+		}
 	private:
 		uint32_t _id;
 		BufferUsage _usage;

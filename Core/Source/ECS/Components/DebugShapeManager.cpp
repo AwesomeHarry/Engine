@@ -9,7 +9,7 @@
 namespace Engine {
 #pragma region Shaders
 
-#pragma region PointShader
+#pragma region Point Shader
 	const char* pointShader_V = R"glsl(
     #version 330 core
     layout(location = 0) in vec3 aPos;
@@ -82,7 +82,7 @@ namespace Engine {
     )glsl";
 #pragma endregion
 
-#pragma region LineShader
+#pragma region Line Shader
 	const char* lineShader_V = R"glsl(
 	#version 330 core
     layout (location = 0) in vec3 aStartPos;
@@ -159,6 +159,86 @@ namespace Engine {
 
 #pragma endregion
 
+#pragma region Quad Shader
+
+    const char* quadShader_V = R"glsl(
+	#version 330 core
+    layout (location = 0) in vec3 aP1;
+    layout (location = 1) in vec3 aP2;
+    layout (location = 2) in vec3 aP3;
+    layout (location = 3) in vec3 aP4;
+    layout (location = 4) in vec4 aColor;
+    
+    out vec3 vP1;
+    out vec3 vP2;
+    out vec3 vP3;
+    out vec3 vP4;
+	out vec4 vColor;
+
+    void main() {
+		vP1 = aP1;
+		vP2 = aP2;
+		vP3 = aP3;
+		vP4 = aP4;
+		vColor = aColor;
+		gl_Position = vec4(aP1, 1.0);
+	}
+    )glsl";
+
+    const char* quadShader_G = R"glsl(
+	#version 330 core
+	layout (points) in;
+	layout (triangle_strip, max_vertices = 4) out;
+
+	layout (std140) uniform CameraData {
+		mat4 projection;
+		mat4 view;
+	};
+
+	in vec3 vP1[];
+	in vec3 vP2[];
+	in vec3 vP3[];
+	in vec3 vP4[];
+	in vec4 vColor[];
+
+	out vec4 color;
+
+	void main() {
+		vec4 p1 = view * vec4(vP1[0], 1.0);
+		vec4 p2 = view * vec4(vP2[0], 1.0);
+		vec4 p3 = view * vec4(vP3[0], 1.0);
+		vec4 p4 = view * vec4(vP4[0], 1.0);
+
+		gl_Position = projection * p1;
+		color = vColor[0];
+		EmitVertex();
+
+		gl_Position = projection * p2;
+		color = vColor[0];
+		EmitVertex();
+
+		gl_Position = projection * p3;
+		color = vColor[0];
+		EmitVertex();
+
+		gl_Position = projection * p4;
+		color = vColor[0];
+		EmitVertex();
+
+		EndPrimitive();
+	}
+	)glsl";
+
+    const char* quadShader_F = R"glsl(
+    #version 330 core
+	out vec4 FragColor;
+	in vec4 color;
+	void main() {
+		FragColor = color;
+	}
+    )glsl";
+#pragma endregion
+
 #pragma endregion
 
 	void DebugShapeManager::DrawPoint(const PointSpec& spec) {
@@ -168,6 +248,43 @@ namespace Engine {
 	void DebugShapeManager::DrawLine(const LineSpec& spec) {
 		lineData.push_back(spec);
 	}
+
+    void DebugShapeManager::DrawQuad(const QuadSpec& spec) {
+        quadData.push_back(spec);
+    }
+
+    void DebugShapeManager::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color) {
+        // Construct cube out of lines
+        glm::vec3 halfSize = size / 2.0f;
+    	glm::vec3 vertices[8] = {
+			{ -halfSize.x, -halfSize.y, -halfSize.z },
+			{ halfSize.x, -halfSize.y, -halfSize.z },
+			{ halfSize.x, halfSize.y, -halfSize.z },
+			{ -halfSize.x, halfSize.y, -halfSize.z },
+			{ -halfSize.x, -halfSize.y, halfSize.z },
+			{ halfSize.x, -halfSize.y, halfSize.z },
+			{ halfSize.x, halfSize.y, halfSize.z },
+			{ -halfSize.x, halfSize.y, halfSize.z }
+		};
+
+        // Bottom
+        DrawLine({ position + vertices[0], position + vertices[1], color });
+        DrawLine({ position + vertices[1], position + vertices[2], color });
+        DrawLine({ position + vertices[2], position + vertices[3], color });
+        DrawLine({ position + vertices[3], position + vertices[0], color });
+            
+        // Top
+        DrawLine({ position + vertices[4], position + vertices[5], color });
+        DrawLine({ position + vertices[5], position + vertices[6], color });
+        DrawLine({ position + vertices[6], position + vertices[7], color });
+        DrawLine({ position + vertices[7], position + vertices[4], color });
+        
+        // Sides
+        DrawLine({ position + vertices[0], position + vertices[4], color });
+        DrawLine({ position + vertices[1], position + vertices[5], color });
+        DrawLine({ position + vertices[2], position + vertices[6], color });
+        DrawLine({ position + vertices[3], position + vertices[7], color });
+    }
 
     void DebugShapeManager::Clear() {
 		pointData.clear();
@@ -216,6 +333,28 @@ namespace Engine {
             lineInfoVao = std::make_shared<VertexArrayObject>();
             lineInfoVao->AddVertexBuffer(lineInfoVbo);
             lineInfoVao->Compute();
+        }
+
+        /* Cubes */
+        {
+            quadShader = std::make_shared<Shader>();
+			quadShader->AttachVertexShader(quadShader_V);
+			quadShader->AttachGeometeryShader(quadShader_G);
+			quadShader->AttachFragmentShader(quadShader_F);
+			quadShader->Link();
+
+			quadInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
+            quadInfoVbo->SetData(nullptr, 0, {
+						{ "aP1", Engine::LType::Float, 3 },
+						{ "aP2", Engine::LType::Float, 3 },
+						{ "aP3", Engine::LType::Float, 3 },
+						{ "aP4", Engine::LType::Float, 3 },
+						{ "aColor", Engine::LType::Float, 4 }
+								  });
+
+			quadInfoVao = std::make_shared<VertexArrayObject>();
+			quadInfoVao->AddVertexBuffer(quadInfoVbo);
+			quadInfoVao->Compute();
         }
 	}
 }

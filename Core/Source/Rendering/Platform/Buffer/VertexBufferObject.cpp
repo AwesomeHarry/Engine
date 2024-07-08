@@ -43,3 +43,10 @@ void VertexBufferObject::UpdateSubData(const void* data, uint64_t offset, uint64
     glBindBuffer(GL_ARRAY_BUFFER, _id);
     glBufferSubData(GL_ARRAY_BUFFER, offset, size, data);
 }
+
+std::vector<uint8_t> Engine::VertexBufferObject::GetRawData() const {
+    std::vector<uint8_t> rawData(_count * _layout.GetStride());
+    Bind();
+    glGetBufferSubData(GL_ARRAY_BUFFER, 0, rawData.size(), rawData.data());
+    return rawData;
+}

@@ -124,7 +124,7 @@ public:
 				/* Points */
 				{
 					auto& shader = *dsm.pointShader;
-					shader.SetUniform("radius", 0.01f);
+					shader.SetUniform("radius", 0.02f);
 					shader.SetUniform("segments", 20);
 
 					auto& vao = *dsm.pointInfoVao;
@@ -142,7 +142,7 @@ public:
 				/* Lines */
 				{
 					auto& shader = *dsm.lineShader;
-					shader.SetUniform("thickness", 0.01f);
+					shader.SetUniform("thickness", 0.005f);
 
 					auto& vao = *dsm.lineInfoVao;
 					auto& vbo = *dsm.lineInfoVbo;
@@ -155,6 +155,25 @@ public:
 								});
 
 					Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
+				}
+
+				/* Cubes */
+				{
+					auto& shader = *dsm.quadShader;
+
+					auto& vao = *dsm.quadInfoVao;
+					auto& vbo = *dsm.quadInfoVbo;
+
+					size_t cubeCount = dsm.quadData.size();
+					vbo.SetData(dsm.quadData.data(), cubeCount, {
+						{ "aP1", Engine::LType::Float, 3 },
+						{ "aP2", Engine::LType::Float, 3 },
+						{ "aP3", Engine::LType::Float, 3 },
+						{ "aP4", Engine::LType::Float, 3 },
+						{ "aColor", Engine::LType::Float, 4 }
+								});
+
+					Engine::RenderCommands::RenderPoints(vao, cubeCount, shader);
 				}
 
 				dsm.Clear();

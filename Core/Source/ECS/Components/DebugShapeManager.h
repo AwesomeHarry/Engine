@@ -40,6 +40,17 @@ namespace Engine {
 
 		void DrawLine(const LineSpec& spec);
 
+		struct QuadSpec { glm::vec3 p1, p2, p3, p4; glm::vec4 color; };
+		std::vector<QuadSpec> quadData;
+
+		std::shared_ptr<VertexArrayObject> quadInfoVao;
+		std::shared_ptr<VertexBufferObject> quadInfoVbo;
+		std::shared_ptr<Shader> quadShader;
+
+		void DrawQuad(const QuadSpec& spec);
+
+		void DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color);
+
 		void Clear();
 
 		virtual void OnComponentAdded(Entity& entity) override;
