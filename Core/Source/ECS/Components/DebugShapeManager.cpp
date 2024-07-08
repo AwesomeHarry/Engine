@@ -13,11 +13,14 @@ namespace Engine {
 	const char* pointShader_V = R"glsl(
     #version 330 core
     layout(location = 0) in vec3 aPos;
-    layout(location = 1) in vec4 aColor;
+    layout(location = 1) in float aRadius;
+    layout(location = 2) in vec4 aColor;
     out vec3 vPos;
+    out float vRadius;
 	out vec4 vColor;
     void main() {
         vPos = aPos;
+		vRadius = aRadius;
 		vColor = aColor;
         gl_Position = vec4(aPos, 1.0);
     }
@@ -35,9 +38,9 @@ namespace Engine {
     };
 
 	in vec3 vPos[];
+	in float vRadius[];
 	in vec4 vColor[];
 
-    uniform float radius = 0.1;
     uniform int segments = 20;
 
 	out vec4 color;
@@ -47,6 +50,7 @@ namespace Engine {
     void main() {
         // Transform the center point to view space
         vec4 centerViewSpace = view * vec4(vPos[0], 1.0);
+        float radius = vRadius[0];
     
         for (int i = 0; i <= segments; i++) {
             float angle = 2.0 * PI * float(i) / float(segments);
@@ -253,42 +257,49 @@ namespace Engine {
         quadData.push_back(spec);
     }
 
-    void DebugShapeManager::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color) {
-        // Construct cube out of lines
+    void DebugShapeManager::DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color, bool wireframe) {
         glm::vec3 halfSize = size / 2.0f;
     	glm::vec3 vertices[8] = {
 			{ -halfSize.x, -halfSize.y, -halfSize.z },
-			{ halfSize.x, -halfSize.y, -halfSize.z },
-			{ halfSize.x, halfSize.y, -halfSize.z },
-			{ -halfSize.x, halfSize.y, -halfSize.z },
-			{ -halfSize.x, -halfSize.y, halfSize.z },
-			{ halfSize.x, -halfSize.y, halfSize.z },
-			{ halfSize.x, halfSize.y, halfSize.z },
-			{ -halfSize.x, halfSize.y, halfSize.z }
+			{ -halfSize.x, -halfSize.y,  halfSize.z },
+			{ -halfSize.x,  halfSize.y, -halfSize.z },
+			{ -halfSize.x,  halfSize.y,  halfSize.z },
+			{  halfSize.x, -halfSize.y,  halfSize.z },
+			{  halfSize.x, -halfSize.y, -halfSize.z },
+			{  halfSize.x,  halfSize.y,  halfSize.z },
+			{  halfSize.x,  halfSize.y, -halfSize.z }
 		};
 
-        // Bottom
-        DrawLine({ position + vertices[0], position + vertices[1], color });
-        DrawLine({ position + vertices[1], position + vertices[2], color });
-        DrawLine({ position + vertices[2], position + vertices[3], color });
-        DrawLine({ position + vertices[3], position + vertices[0], color });
-            
-        // Top
-        DrawLine({ position + vertices[4], position + vertices[5], color });
-        DrawLine({ position + vertices[5], position + vertices[6], color });
-        DrawLine({ position + vertices[6], position + vertices[7], color });
-        DrawLine({ position + vertices[7], position + vertices[4], color });
-        
-        // Sides
-        DrawLine({ position + vertices[0], position + vertices[4], color });
-        DrawLine({ position + vertices[1], position + vertices[5], color });
-        DrawLine({ position + vertices[2], position + vertices[6], color });
-        DrawLine({ position + vertices[3], position + vertices[7], color });
+        if (wireframe) {
+            DrawLine({ position + vertices[0],position + vertices[1],color });
+            DrawLine({ position + vertices[1],position + vertices[3],color });
+            DrawLine({ position + vertices[3],position + vertices[2],color });
+            DrawLine({ position + vertices[2],position + vertices[0],color });
+
+            DrawLine({ position + vertices[4],position + vertices[5],color });
+            DrawLine({ position + vertices[5],position + vertices[7],color });
+            DrawLine({ position + vertices[7],position + vertices[6],color });
+            DrawLine({ position + vertices[6],position + vertices[4],color });
+
+            DrawLine({ position + vertices[0],position + vertices[5],color });
+            DrawLine({ position + vertices[1],position + vertices[4],color });
+            DrawLine({ position + vertices[2],position + vertices[7],color });
+            DrawLine({ position + vertices[3],position + vertices[6],color });
+        }
+        else {
+            DrawQuad({ position + vertices[0],position + vertices[1],position + vertices[2],position + vertices[3],color });
+            DrawQuad({ position + vertices[4],position + vertices[5],position + vertices[6],position + vertices[7],color });
+            DrawQuad({ position + vertices[1],position + vertices[0],position + vertices[4],position + vertices[5],color });
+            DrawQuad({ position + vertices[2],position + vertices[3],position + vertices[7],position + vertices[6],color });
+            DrawQuad({ position + vertices[3],position + vertices[1],position + vertices[6],position + vertices[4],color });
+            DrawQuad({ position + vertices[0],position + vertices[2],position + vertices[5],position + vertices[7],color });
+        }
     }
 
     void DebugShapeManager::Clear() {
 		pointData.clear();
 		lineData.clear();
+        quadData.clear();
     }
 
 	void DebugShapeManager::OnComponentAdded(Entity& entity) {
@@ -307,6 +318,7 @@ namespace Engine {
             pointInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
             pointInfoVbo->SetData(nullptr, 0, {
                         { "aPos", Engine::LType::Float, 3 },
+                        { "aRadius", Engine::LType::Float, 1 },
                         { "aColor", Engine::LType::Float, 4 }
                                   });
 

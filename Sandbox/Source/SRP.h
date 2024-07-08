@@ -7,39 +7,12 @@
 #include "Rendering/RenderManager.h"
 #include "ECS/Components/Components.h"
 
-#pragma region Shaders
-
-const char* debugShaderVSrc = R"glsl(
-#version 330 core
-layout(location = 0) in vec3 aPos;
-layout (std140) uniform CameraData {
-	mat4 projection;
-	mat4 view;
-};
-uniform mat4 model;
-void main() {
-    gl_Position = projection * view * model * vec4(aPos, 1.0);
-}
-)glsl";
-
-const char* debugShaderFSrc = R"glsl(
-#version 330 core
-out vec4 FragColor;
-uniform vec4 color;
-void main() {
-    FragColor = color;
-}
-)glsl";
-
-#pragma endregion
-
 class SRP : public Engine::IRenderPipeline {
 private:
 	struct CameraData { glm::mat4 projection; glm::mat4 view; };
 	CameraData _cameraData;
 	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
 	std::shared_ptr<Engine::Framebuffer> _sceneFb;
-	std::shared_ptr<Engine::Shader> _debugShader;
 public:
 	virtual void Initialize() {
 		_cameraData.projection = glm::ortho(-1, 1, -1, 1);
@@ -52,12 +25,6 @@ public:
 		fbSpec.includeDepthStencil = true;
 
 		_sceneFb = std::make_shared<Engine::Framebuffer>(fbSpec);
-
-		_debugShader = std::make_shared<Engine::Shader>();
-		_debugShader->AttachVertexShader(debugShaderVSrc);
-		_debugShader->AttachFragmentShader(debugShaderFSrc);
-		_debugShader->Link();
-		_debugShader->BindUniformBlock("CameraData", 0);
 	}
 
 	virtual void RenderScene(Engine::Scene& scene) override {
@@ -124,7 +91,6 @@ public:
 				/* Points */
 				{
 					auto& shader = *dsm.pointShader;
-					shader.SetUniform("radius", 0.02f);
 					shader.SetUniform("segments", 20);
 
 					auto& vao = *dsm.pointInfoVao;
@@ -133,6 +99,7 @@ public:
 					size_t pointCount = dsm.pointData.size();
 					vbo.SetData(dsm.pointData.data(), pointCount, {
 						{ "aPos", Engine::LType::Float, 3 },
+						{ "aRadius", Engine::LType::Float, 1 },
 						{ "aColor", Engine::LType::Float, 4 }
 								});
 

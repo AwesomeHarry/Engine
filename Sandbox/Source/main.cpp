@@ -22,6 +22,7 @@
 #include "SRP.h"
 
 #include "BoundingBox.h"
+#include <spdlog/stopwatch.h>
 
 #pragma region Shader Source
 
@@ -77,6 +78,8 @@ private:
 	CameraController _cameraController;
 
 	BoundingBox _bb;
+
+	std::vector<glm::vec3> _points;
 
 	bool _renderWireframe = false;
 public:
@@ -171,11 +174,11 @@ public:
 			_monkeh = entity;
 
 			auto& vbo = gltfMesh->GetSubmesh(0).GetVertexBuffer(0);
-			auto& data = vbo.GetData<glm::vec3>();
+			_points = vbo.GetData<glm::vec3>();
 
 			// Print data
-			for (int i = 0; i < data.size(); i++) {
-				_bb.GrowToInclude(data[i]);
+			for (int i = 0; i < _points.size(); i++) {
+				_bb.GrowToInclude(_points[i]);
 			}
 		}
 
@@ -217,16 +220,12 @@ public:
 
 		/* Render Bounding Box */
 		auto corners = _bb.GetCorners();
-		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1));
+		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,0,0,1), true);
+		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,1,1,0.2), false);
 
-		_scene->GetDebugRenderer().DrawQuad({ corners[0],corners[1],corners[2],corners[3],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
-		_scene->GetDebugRenderer().DrawQuad({ corners[5],corners[4],corners[7],corners[6],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
-
-		_scene->GetDebugRenderer().DrawQuad({ corners[1],corners[0],corners[5],corners[4],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
-		_scene->GetDebugRenderer().DrawQuad({ corners[2],corners[3],corners[6],corners[7],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
-
-		_scene->GetDebugRenderer().DrawQuad({ corners[3],corners[1],corners[7],corners[5],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
-		_scene->GetDebugRenderer().DrawQuad({ corners[0],corners[2],corners[4],corners[6],glm::vec4(1.0f,1.0f,1.0f,0.2f) });
+		static int i;
+		ImGui::SliderInt("i", &i, 0, 7);
+		_scene->GetDebugRenderer().DrawPoint({ corners[i], 0.1f, glm::vec4(1, 1, 0, 1) });
 
 		/* Render Scene */
 		_renderManager->RenderScene(*_scene);

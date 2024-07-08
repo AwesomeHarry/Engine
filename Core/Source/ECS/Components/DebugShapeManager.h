@@ -22,7 +22,7 @@ namespace Engine {
 
 	struct DebugShapeManager : BaseComponent {
 	public:
-		struct PointSpec { glm::vec3 pos; glm::vec4 color; };
+		struct PointSpec { glm::vec3 pos; float size; glm::vec4 color; };
 		std::vector<PointSpec> pointData;
 
 		std::shared_ptr<VertexArrayObject> pointInfoVao;
@@ -49,7 +49,7 @@ namespace Engine {
 
 		void DrawQuad(const QuadSpec& spec);
 
-		void DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color);
+		void DrawCube(const glm::vec3& position, const glm::vec3& size, const glm::vec4& color, bool wireframe = false);
 
 		void Clear();
 
