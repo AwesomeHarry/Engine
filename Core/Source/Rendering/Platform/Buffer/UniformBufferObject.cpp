@@ -3,11 +3,11 @@
 
 using namespace Engine;
 
-UniformBufferObject::UniformBufferObject(uint32_t size, uint32_t bindingPoint) 
+UniformBufferObject::UniformBufferObject(uint32_t size, uint32_t bindingPoint, BufferUsage usage) 
 	: _bindingPoint(bindingPoint) {
 	glGenBuffers(1, &_id);
 	glBindBuffer(GL_UNIFORM_BUFFER, _id);
-	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, GL_STATIC_DRAW);
+	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, (GLenum)usage);
 	glBindBuffer(GL_UNIFORM_BUFFER, 0);
 	glBindBufferBase(GL_UNIFORM_BUFFER, bindingPoint, _id);
 }

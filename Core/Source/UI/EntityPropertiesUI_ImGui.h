@@ -1,6 +1,7 @@
 #pragma once
 #include <imgui.h>
 #include "ECS/Scene/Entity.h"
+#include "ECS/Components/Native/Components.h"
 #include "ComponentUI/MeshFilterUI_ImGui.h"
 #include "ComponentUI/MeshRendererUI_ImGui.h"
 #include "ComponentUI/TransformUI_ImGui.h"
@@ -40,6 +41,17 @@ namespace Engine {
 			if (entity.HasComponent<DebugShapeManager>()) {
 				auto& dsm = entity.GetComponent<DebugShapeManager>();
 				DebugShapeManagerUI_ImGui::RenderUI(dsm);
+			}
+
+			if (entity.HasComponent<BoundingBoxComponent>()) {
+				auto& bb = entity.GetComponent<BoundingBoxComponent>();
+				if (ImGui::TreeNodeEx("Bounding Box", ImGuiTreeNodeFlags_Framed)) {
+					ImGui::Text("Center: (%f, %f, %f)", bb.GetCenter().x, bb.GetCenter().y, bb.GetCenter().z);
+					ImGui::Text("Size: (%f, %f, %f)", bb.GetSize().x, bb.GetSize().y, bb.GetSize().z);
+					ImGui::Text("Min: (%f, %f, %f)", bb.min.x, bb.min.y, bb.min.z);
+					ImGui::Text("Max: (%f, %f, %f)", bb.max.x, bb.max.y, bb.max.z);
+					ImGui::TreePop();
+				}
 			}
 		}
 	};

@@ -1,104 +1,88 @@
 #pragma once
 #include "Core/Input/InputSystem.h"
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
+#include <ECS/Components/Native/TransformComponent.h>
 
 class FPSCameraController {
 public:
-    FPSCameraController() : _inputManager(nullptr) {}
-    FPSCameraController(Engine::InputManager* inputManager)
-        : _inputManager(inputManager) {}
-    ~FPSCameraController() {}
+	FPSCameraController() : _inputManager(nullptr) {}
+	FPSCameraController(Engine::InputManager* inputManager)
+		: _inputManager(inputManager) {}
+	~FPSCameraController() {}
 
-    using Key = Engine::Keycode;
-    using Mouse = Engine::MouseButton;
+	using Key = Engine::Keycode;
+	using Mouse = Engine::MouseButton;
+	void OnUpdate(Engine::TransformComponent& transform, float ts) {
+		glm::vec2 mouseDelta = GetMouseDelta();
 
-    void OnUpdate(float ts) {
-        bool isControlActive = _inputManager->IsButtonPressed(Mouse::Right);
+		if (_inputManager->IsButtonPressed(Engine::MouseButton::Right)) {
+			_inputManager->SetCursorMode(Engine::CursorMode::Disabled);
 
-        if (isControlActive) {
-            _inputManager->SetCursorMode(Engine::CursorMode::Disabled);
+			transform.rotation.y += mouseDelta.x * mouseSensitivity;
+			transform.rotation.x -= mouseDelta.y * mouseSensitivity;
+			transform.rotation.x = glm::clamp(transform.rotation.x, -89.0f, 89.0f);
 
-            // Mouse look
-            glm::vec2 mousePosition = _inputManager->GetMousePosition();
-            glm::vec2 mouseDelta = mousePosition - _prevMousePosition;
-            _yaw -= mouseDelta.x * _mouseSensitivity;
-            _pitch += mouseDelta.y * _mouseSensitivity;
-            _pitch = glm::clamp(_pitch, -89.0f, 89.0f);
+			if (_inputManager->IsKeyPressed(Key::R))
+				transform.rotation.z += cameraSpeed * ts * 3.0f;
+			if (_inputManager->IsKeyPressed(Key::F))
+				transform.rotation.z -= cameraSpeed * ts * 3.0f;
+		}
+		else {
+			_inputManager->SetCursorMode(Engine::CursorMode::Normal);
+		}
 
-            ENGINE_TRACE("{},{}", mouseDelta.x, mouseDelta.y);
 
-            // Update camera orientation
-            float yr = glm::radians(_yaw);
-            float pr = glm::radians(_pitch);
+		glm::vec3 cameraFront = transform.GetForwardDirection();
+		glm::vec3 cameraRight = transform.GetRightDirection();
+		glm::vec3 cameraUp = transform.GetUpDirection();
 
-            glm::vec3 front;
-            front.x = glm::cos(pr) * glm::sin(yr);
-            front.y = -glm::sin(pr);
-            front.z = glm::cos(pr) * glm::cos(yr);
-            _front = -glm::normalize(front);
-            _right = glm::normalize(glm::cross(_front, glm::vec3(0, 1, 0)));
-            _up = glm::normalize(glm::cross(_right, _front));
+		float speed = cameraSpeed * ts;
 
-            // Movement
-            float speed = _moveSpeed;
-            if (_inputManager->IsKeyPressed(Key::LeftShift)) {
-                speed *= _speedMultiplier;
-            }
+		if (_inputManager->IsKeyPressed(Key::LeftShift))
+			speed *= cameraBoostMultiplier;
 
-            if (_inputManager->IsKeyPressed(Key::W)) _position += _front * speed * ts;
-            if (_inputManager->IsKeyPressed(Key::S)) _position -= _front * speed * ts;
-            if (_inputManager->IsKeyPressed(Key::D)) _position += _right * speed * ts;
-            if (_inputManager->IsKeyPressed(Key::A)) _position -= _right * speed * ts;
-            if (_inputManager->IsKeyPressed(Key::E)) _position += glm::vec3(0, 1, 0) * speed * ts;
-            if (_inputManager->IsKeyPressed(Key::Q)) _position -= glm::vec3(0, 1, 0) * speed * ts;
-        }
-        else {
-            _inputManager->SetCursorMode(Engine::CursorMode::Normal);
-        }
+		if (_inputManager->IsKeyPressed(Key::W))
+			transform.position += cameraFront * speed;
+		if (_inputManager->IsKeyPressed(Key::S))
+			transform.position -= cameraFront * speed;
+		if (_inputManager->IsKeyPressed(Key::A))
+			transform.position -= cameraRight * speed;
+		if (_inputManager->IsKeyPressed(Key::D))
+			transform.position += cameraRight * speed;
+		if (_inputManager->IsKeyPressed(Key::E))
+			transform.position += cameraUp * speed;
+		if (_inputManager->IsKeyPressed(Key::Q))
+			transform.position -= cameraUp * speed;
+	}
 
-        _prevMousePosition = _inputManager->GetMousePosition();
-    }
-
-    inline glm::vec3 GetPosition() const { return _position; }
-    inline glm::vec3 GetFront() const { return _front; }
-    inline glm::vec3 GetUp() const { return _up; }
-    inline glm::vec3 GetRight() const { return _right; }
-
-    glm::vec3 GetRotation() const {
-        return glm::vec3(-_pitch, _yaw, 0.0f);
-    }
-
+	glm::vec2 GetMouseDelta() {
+		glm::vec2 mousePosition = _inputManager->GetMousePosition();
+		glm::vec2 diff = mousePosition - _prevMousePosition;
+		_prevMousePosition = mousePosition;
+		return { diff.x, -diff.y };
+	}
+public:
+	// Camera Properties
+	float mouseSensitivity = 0.25f;
+	float cameraSpeed = 5.0f;
+	float cameraBoostMultiplier = 3.0f;
 private:
-    Engine::InputManager* _inputManager;
-    glm::vec2 _prevMousePosition{ 0, 0 };
-    glm::vec3 _position{ 0, 0, 5 };
-    glm::vec3 _front{ 0, 0, 1 };
-    glm::vec3 _up{ 0, 1, 0 };
-    glm::vec3 _right{ 1, 0, 0 };
-    float _yaw = 0.0F;
-    float _pitch = 0.0f;
-    float _moveSpeed = 5.0f;
-    float _mouseSensitivity = 0.1f;
-    float _speedMultiplier = 2.0f;
+	Engine::InputManager* _inputManager;
 
-    friend class FPSCameraControllerUI_ImGui;
+	// Mouse Delta
+	glm::vec2 _prevMousePosition = { 0,0 };
 };
 
 #include <imgui.h>
 
 class FPSCameraControllerUI_ImGui {
 public:
-    static void RenderUI(FPSCameraController& cc) {
-        ImGui::DragFloat("Move Speed", &cc._moveSpeed, 0.1f);
-        ImGui::DragFloat("Mouse Sensitivity", &cc._mouseSensitivity, 0.01f);
-        ImGui::DragFloat("Speed Multiplier", &cc._speedMultiplier, 0.1f);
+	static void RenderUI(FPSCameraController& cc) {
+		if (ImGui::TreeNodeEx("FPSCameraController", ImGuiTreeNodeFlags_Framed)) {
+			ImGui::SliderFloat("Mouse Sensitivity", &cc.mouseSensitivity, 0.01f, 1.0f);
+			ImGui::SliderFloat("Camera Speed", &cc.cameraSpeed, 0.01f, 100.0f);
+			ImGui::SliderFloat("Camera Boost Multiplier", &cc.cameraBoostMultiplier, 0.01f, 10.0f);
 
-        ImGui::Text("Front: (%.2f, %.2f, %.2f)", cc._front.x, cc._front.y, cc._front.z);
-        ImGui::Text("Right: (%.2f, %.2f, %.2f)", cc._right.x, cc._right.y, cc._right.z);
-        ImGui::Text("Up: (%.2f, %.2f, %.2f)", cc._up.x, cc._up.y, cc._up.z);
-
-        ImGui::Text("Position: (%.2f, %.2f, %.2f)", cc._position.x, cc._position.y, cc._position.z);
-        ImGui::Text("Yaw: %.2f, Pitch: %.2f", cc._yaw, cc._pitch);
-    }
+			ImGui::TreePop();
+		}
+	}
 };

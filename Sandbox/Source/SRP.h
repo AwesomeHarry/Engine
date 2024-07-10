@@ -1,33 +1,24 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "Rendering/IRenderPipeline.h"
+#include "ECS/Scene/Scene.h"
+#include "Rendering/BaseRenderPipeline.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Rendering/RenderManager.h"
-#include "ECS/Components/Components.h"
+#include "ECS/Components/Native/Components.h"
 
-class SRP : public Engine::IRenderPipeline {
+class SRP : public Engine::BaseRenderPipeline {
 private:
 	struct CameraData { glm::mat4 projection; glm::mat4 view; };
-	CameraData _cameraData;
 	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
-	std::shared_ptr<Engine::Framebuffer> _sceneFb;
 public:
-	virtual void Initialize() {
-		_cameraData.projection = glm::ortho(-1, 1, -1, 1);
-		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0);
-
-		Engine::Framebuffer::FramebufferSpec fbSpec;
-		fbSpec.width = 1280;
-		fbSpec.height = 720;
-		fbSpec.attachments = { Engine::ImageFormat::RGB8 };
-		fbSpec.includeDepthStencil = true;
-
-		_sceneFb = std::make_shared<Engine::Framebuffer>(fbSpec);
+	virtual void Initialize(std::shared_ptr<Engine::Framebuffer> mainFramebuffer) {
+		Engine::BaseRenderPipeline::Initialize(mainFramebuffer);
+		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0, Engine::BufferUsage::Dynamic);
 	}
 
-	virtual void RenderScene(Engine::Scene& scene) override {
+	void RenderScene(Engine::Scene& scene) {
 		/* Set render targets from cameras */
 		{}
 
@@ -36,30 +27,34 @@ public:
 
 		/* ApplyPostProcessing(); */
 
-		auto& reg = scene.GetRegistry();
+	}
 
-		/* Handle Cameras */
-		{
-			auto view = reg.view<const Engine::TransformComponent, Engine::CameraComponent>();
-			for (auto entity : view) {
-				auto& transform = view.get<Engine::TransformComponent>(entity);
-				auto& camera = view.get<Engine::CameraComponent>(entity);
+	virtual void RenderScene(Engine::Scene& scene, Engine::Entity& cameraEntity) override {
+		auto& camera = cameraEntity.GetComponent<Engine::CameraComponent>();
+		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _mainFb : camera.renderFramebuffer;
 
-				if (camera.isMainCamera) {
-					float aspect = (float)_sceneFb->GetSpecification().width / (float)_sceneFb->GetSpecification().height;
-					_cameraData.projection = camera.GetProjectionMatrix(aspect);
-					_cameraData.view = camera.CalculateViewMatrix(transform);
-					Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b);
-				}
-			}
-		}
+		framebuffer->Bind();
 
-		_sceneFb->Bind();
+		Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g,camera.backgroundColor.b	);
+		Engine::RenderCommands::ClearBuffers(camera.clearFlags);
 
-		Engine::RenderCommands::ClearBuffers({ Engine::BufferBit::Color, Engine::BufferBit::Depth });
+		CameraData cameraData;
+		float aspect = (float)framebuffer->GetSpecification().width / (float)framebuffer->GetSpecification().height;
+		cameraData.projection = camera.GetProjectionMatrix(aspect);
+		cameraData.view = camera.CalculateViewMatrix(cameraEntity.GetTransform());
 
 		_cameraDataUbo->Bind();
-		_cameraDataUbo->SetData(&_cameraData, sizeof(CameraData), 0);
+		_cameraDataUbo->SetData(&cameraData, sizeof(CameraData), 0);
+
+
+		RenderOpaqueObjects(scene);
+		RenderDebugMeshes(scene);
+
+		framebuffer->Unbind();
+	}
+
+	void RenderOpaqueObjects(Engine::Scene& scene) {
+		auto& reg = scene.GetRegistry();
 
 		/* Render Meshes */
 		{
@@ -72,12 +67,17 @@ public:
 				auto& shader = *renderer.shader;
 				auto& mesh = *filter.mesh;
 
-				glm::mat4 model = MakeModelMatrix(transform.position, transform.rotation, transform.scale);
+				glm::mat4 model = transform.GetTransformMatrix();
 				shader.SetUniform("model", model);
 
 				Engine::RenderCommands::RenderMesh(mesh, shader);
 			}
 		}
+
+	}
+
+	void RenderDebugMeshes(Engine::Scene& scene) {
+		auto& reg = scene.GetRegistry();
 
 		/* Render Debug Shapes */
 		{
@@ -146,25 +146,5 @@ public:
 				dsm.Clear();
 			}
 		}
-
-		_sceneFb->Unbind();
-
-		ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
-		ImGui::Begin("Scene");
-		auto s = ImGui::GetContentRegionAvail();
-		if (_sceneFb->GetSpecification().width != (uint32_t)s.x || _sceneFb->GetSpecification().height != (uint32_t)s.y)
-			_sceneFb->Resize(s.x, s.y);
-		ImGui::Image((ImTextureID)(intptr_t)_sceneFb->GetColorAttachment(0)->GetID(), s, { 0,1 }, { 1,0 });
-		ImGui::End();
-		ImGui::PopStyleVar();
-	}
-
-	glm::mat4 MakeModelMatrix(glm::vec3 position, glm::vec3 rotation, glm::vec3 scale) {
-		glm::mat4 modelMatrix = glm::translate(glm::mat4(1.0f), position);
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.y), glm::vec3(0.0f, 1.0f, 0.0f));
-		modelMatrix = glm::rotate(modelMatrix, glm::radians(rotation.x), glm::vec3(1.0f, 0.0f, 0.0f));
-		modelMatrix = glm::scale(modelMatrix, scale);
-		return modelMatrix;
 	}
 };

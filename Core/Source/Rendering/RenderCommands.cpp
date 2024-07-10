@@ -11,7 +11,7 @@ void RenderCommands::SetClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b, a);
 }
 
-void RenderCommands::ClearBuffers(const std::initializer_list<BufferBit>& bufferBits) {
+void RenderCommands::ClearBuffers(const std::vector<BufferBit>& bufferBits) {
 	uint32_t clearBitmask = 0;
 	for (auto& bit : bufferBits)
 		clearBitmask |= (uint32_t)bit;

@@ -1,6 +1,6 @@
 #pragma once
 #include <entt/entt.hpp>
-#include "ECS/Components/DebugShapeManager.h"
+#include "ECS/Components/Native/DebugShapeManager.h"
 
 namespace Engine {
 	class Entity;
@@ -22,6 +22,7 @@ namespace Engine {
 		}
 
 		void UpdateScene(float ts);
+		void RenderScene();
 
 		const entt::registry& GetRegistry() const { return _registry; }
 		entt::registry& GetRegistry() { return _registry; }

@@ -5,8 +5,8 @@
 
 #include "ECS/Scene/Scene.h"
 
-#include "ECS/Components/NameComponent.h"
-#include "ECS/Components/TransformComponent.h"
+#include "ECS/Components/Native/NameComponent.h"
+#include "ECS/Components/Native/TransformComponent.h"
 
 namespace Engine {
 	class Entity {

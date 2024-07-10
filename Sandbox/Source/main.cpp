@@ -18,11 +18,8 @@
 #include "UI/SceneHeirarchyUI_ImGui.h"
 #include "UI/EntityPropertiesUI_ImGui.h"
 
-#include "CameraController.h"
+#include "FPSCameraController.h"
 #include "SRP.h"
-
-#include "BoundingBox.h"
-#include <spdlog/stopwatch.h>
 
 #pragma region Shader Source
 
@@ -63,7 +60,7 @@ in vec2 tex;
 void main()
 {
     //FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-    FragColor = vec4(nor, 1.0);
+    FragColor = vec4(normalize(nor), 1.0);
 }
 )glsl";
 
@@ -72,20 +69,30 @@ void main()
 class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
+	std::shared_ptr<SRP> _standardRenderPipeline;
 
 	Engine::Entity _monkeh;
 	Engine::Entity _camera;
-	CameraController _cameraController;
-
-	BoundingBox _bb;
-
-	std::vector<glm::vec3> _points;
+	FPSCameraController _cameraController;
 
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
 		/* Create Scene */
 		_scene = std::make_shared<Engine::Scene>();
+
+		/* Create Standard Render Pipeline */
+		_standardRenderPipeline = std::make_shared<SRP>();
+		{
+			Engine::Framebuffer::FramebufferSpec fbSpec;
+			fbSpec.width = 1280;
+			fbSpec.height = 720;
+			fbSpec.attachments = { Engine::ImageFormat::RGB8 };
+			fbSpec.includeDepthStencil = true;
+
+			auto mainFramebuffer = std::make_shared<Engine::Framebuffer>(fbSpec);
+			_standardRenderPipeline->Initialize(mainFramebuffer);
+		}
 
 		/* Create Shader for test scene */
 		auto shader = std::make_shared<Engine::Shader>();
@@ -155,39 +162,38 @@ public:
 		{
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Monkeh");
+			glm::vec3 scale;
 			{
 				auto model = Engine::GltfIO::LoadFile("Resources/Suzanne/glTF/Suzanne.gltf");
-				//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
 
 				const auto& mesh = model.meshes[0];
 				for (const auto& primitive : mesh.primitives) {
 					auto vertexArray = Engine::GltfIO::LoadPrimitive(model, primitive);
 					gltfMesh->AddSubmesh(vertexArray);
 				}
+
+				auto s = model.nodes[0].scale;
+				scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
 			}
 
 			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
+			entity.GetTransform().scale = scale;
 			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
 			entity.AddComponent<Engine::MeshRendererComponent>(shader);
-
+			auto& bb = entity.AddComponent<Engine::BoundingBoxComponent>();
+			bb.GrowToInclude(*gltfMesh);
 
 			_monkeh = entity;
 
-			auto& vbo = gltfMesh->GetSubmesh(0).GetVertexBuffer(0);
-			_points = vbo.GetData<glm::vec3>();
-
-			// Print data
-			for (int i = 0; i < _points.size(); i++) {
-				_bb.GrowToInclude(_points[i]);
-			}
 		}
 
 		/* Camera */
 		{
 			/* Add Camera */
 			_camera = _scene->CreateEntity("Camera");
-			_camera.GetTransform().position.z -= 5.0f;
+			_camera.GetTransform().position.z += 5.0f;
 			auto& cc = _camera.AddComponent<Engine::CameraComponent>();
+			cc.renderPipeline = _standardRenderPipeline;
 			cc.type = Engine::CameraType::Perspective;
 			cc.farPlane = 1000000;
 			/*_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
@@ -195,39 +201,105 @@ public:
 			});*/
 		}
 
-		_cameraController = CameraController(_inputManager);
+		_cameraController = FPSCameraController(_inputManager);
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
-			_cameraController.OnScroll((float)e.yOffset);
+			//_cameraController.OnScroll((float)e.yOffset);
 		});
 	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		{
-			_cameraController.OnUpdate(ts);
-			auto& tc = _camera.GetTransform();
-			tc.position = _cameraController.GetPosition();
-			tc.rotation = _cameraController.GetRotation();
-			auto& cc = _camera.GetComponent<Engine::CameraComponent>();
-			if (cc.type == Engine::CameraType::Perspective)
-				cc.perspectiveSpec.fov = _cameraController.GetFOV();
-			else
-				cc.orthographicSpec.size = _cameraController.GetFOV();
+			_cameraController.OnUpdate(_camera.GetTransform(), ts);
+			//auto& cc = _camera.GetComponent<Engine::CameraComponent>();
 		}
+
+		/* Render Axis */
+		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
+		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
+		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
+
+		/* {
+			static glm::vec2 _prevMousePosition = { 0,0 };
+			glm::vec2 mousePosition = _inputManager->GetMousePosition();
+			glm::vec2 diff = mousePosition - _prevMousePosition;
+			glm::vec2 mouseDelta = { diff.x, -diff.y };
+			_prevMousePosition = mousePosition;
+
+			auto& transform = _camera.GetTransform();
+
+			static float mouseSensitivity = 0.25f;
+			static float cameraSpeed = 5.0f;
+			static glm::vec3 cameraFront = { 0,0,-1 };
+			static glm::vec3 cameraUp = { 0,1,0 };
+
+			cameraFront = transform.GetForwardDirection();
+			cameraUp = transform.GetUpDirection();
+
+			if (_inputManager->IsButtonPressed(Engine::MouseButton::Right)) {
+				_inputManager->SetCursorMode(Engine::CursorMode::Disabled);
+
+				float newRotationX = transform.rotation.x - mouseDelta.y * mouseSensitivity;
+				float newRotationY = transform.rotation.y + mouseDelta.x * mouseSensitivity;
+				newRotationX = glm::clamp(newRotationX, -89.0f, 89.0f);
+
+				float newRotationZ = transform.rotation.z;
+				float speed = cameraSpeed * ts;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::E))
+					newRotationZ += speed * 3.0f;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::Q))
+					newRotationZ -= speed * 3.0f;
+
+				transform.rotation = { newRotationX, newRotationY, newRotationZ };
+
+				glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
+
+				glm::vec3 newCameraPosition = transform.position;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::W))
+					newCameraPosition += cameraFront * speed;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::S))
+					newCameraPosition -= cameraFront * speed;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::A))
+					newCameraPosition -= cameraRight * speed;
+				if (_inputManager->IsKeyPressed(Engine::Keycode::D))
+					newCameraPosition += cameraRight * speed;
+				transform.position = newCameraPosition;
+			}
+			else
+				_inputManager->SetCursorMode(Engine::CursorMode::Normal);
+
+			auto& cc = _camera.GetComponent<Engine::CameraComponent>();
+			cc.view = cc.CalculateViewMatrix(transform);
+		}*/
 
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
 		/* Render Bounding Box */
-		auto corners = _bb.GetCorners();
-		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,0,0,1), true);
-		_scene->GetDebugRenderer().DrawCube(_bb.GetCenter(), _bb.GetSize(), glm::vec4(1,1,1,0.2), false);
+		auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
+		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
+		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
 
 		/* Render Scene */
-		_renderManager->RenderScene(*_scene);
+		_scene->RenderScene();
 
 		/* Render UI */
 		{
+			/* Viewport */
+			{
+				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
+				ImGui::Begin("Scene");
+				auto s = ImGui::GetContentRegionAvail();
+				auto& mainFramebuffer = _standardRenderPipeline->GetMainFramebuffer();
+				if (mainFramebuffer.GetSpecification().width != (uint32_t)s.x ||
+					mainFramebuffer.GetSpecification().height != (uint32_t)s.y) {
+					mainFramebuffer.Resize(s.x, s.y);
+				}
+				ImGui::Image((ImTextureID)(intptr_t)mainFramebuffer.GetColorAttachment(0)->GetID(), s, { 0,1 }, { 1,0 });
+				ImGui::End();
+				ImGui::PopStyleVar();
+			}
+
 			ImGui::Begin("Window");
 			Engine::WindowInfoUI_ImGui::RenderUI(*_window);
 			ImGui::End();
@@ -246,7 +318,7 @@ public:
 			ImGui::Text("Mouse Position: %.1f,%.1f", mp.x, mp.y);
 
 			ImGui::Separator();
-			CameraControllerUI_ImGui::RenderUI(_cameraController);
+			FPSCameraControllerUI_ImGui::RenderUI(_cameraController);
 
 			ImGui::End();
 
@@ -273,9 +345,6 @@ int main(int argc, char** argv) {
 
 	if (!root->Initialize(windowSpec, graphicsContext))
 		return 1;
-
-	auto& renderer = root->GetRenderer();
-	renderer.SetPipeline<SRP>();
 
 	auto layer = std::make_shared<SandboxLayer>();
 	root->PushLayer(layer);

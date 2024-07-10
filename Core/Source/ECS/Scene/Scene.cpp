@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include "ECS/Components/Components.h"
+#include "ECS/Components/Native/Components.h"
 #include "Entity.h"
 
 using namespace Engine;
@@ -38,7 +38,7 @@ Entity Engine::Scene::GetEntity(entt::entity handle) {
 Entity Scene::GetEntity(const std::string& name) {
 	auto view = _registry.view<NameComponent>();
 	for (auto entityUid : view) {
-		const NameComponent& nc = view.get<NameComponent>(entityUid);	
+		const NameComponent& nc = view.get<NameComponent>(entityUid);
 		if (nc.name == name)
 			return Entity(entityUid, this);
 	}
@@ -47,4 +47,18 @@ Entity Scene::GetEntity(const std::string& name) {
 
 void Scene::UpdateScene(float ts) {
 
+}
+
+void Scene::RenderScene() {
+	auto cameraGroup = _registry.group<Engine::TransformComponent, Engine::CameraComponent>();
+	cameraGroup.sort<Engine::CameraComponent>([](const Engine::CameraComponent& a, const Engine::CameraComponent& b) {
+		return a.priority < b.priority;
+	});
+
+	for (auto entity : cameraGroup) {
+		auto& transform = cameraGroup.get<Engine::TransformComponent>(entity);
+		auto& camera = cameraGroup.get<Engine::CameraComponent>(entity);
+
+		camera.renderPipeline->RenderScene(*this, Entity{ entity,this });
+	}
 }

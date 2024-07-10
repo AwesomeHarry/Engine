@@ -1,6 +1,7 @@
 #pragma once
-#include "Core/Input/InputSystem.h"
 #include <glm/glm.hpp>
+#include "Core/Input/InputSystem.h"
+#include "ECS/Components/Native/TransformComponent.h"
 
 class CameraController {
 public:
@@ -11,7 +12,7 @@ public:
 
 	using Key = Engine::Keycode;
 	using Mouse = Engine::MouseButton;
-	void OnUpdate(float ts) {
+	void OnUpdate(Engine::TransformComponent& tc, float ts) {
 		glm::vec2 mousePosition = _inputManager->GetMousePosition();
 		glm::vec2 mouseDelta = mousePosition - _prevMousePosition;
 		_prevMousePosition = mousePosition;
@@ -19,65 +20,52 @@ public:
 		if (_inputManager->IsButtonPressed(Mouse::Right)) {
 			_inputManager->SetCursorMode(Engine::CursorMode::Disabled);
 
-			_targetYaw -= mouseDelta.x * 0.1f;
-			_targetPitch += mouseDelta.y * 0.1f;
-			_targetPitch = glm::clamp(_targetPitch, -89.0f, 89.0f);
+			float newRotationX = -mouseDelta.y * _freeLookSensitivity;
+			float newRotationY = mouseDelta.x * _freeLookSensitivity;
+			tc.rotation += glm::vec3(newRotationX, newRotationY, 0);
+
+			bool fastMove = _inputManager->IsKeyPressed(Key::LeftShift);
+			float moveSpeed = fastMove ? _moveSpeed * _speedMultiplier : _moveSpeed;
+
+			glm::vec3 forward = glm::vec3(0, 0, -1);
+			glm::mat4 rotationMatrix = glm::mat4(1.0f);
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(tc.rotation.x), glm::vec3(1, 0, 0));
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(-tc.rotation.y), glm::vec3(0, 1, 0));
+			rotationMatrix = glm::rotate(rotationMatrix, glm::radians(-tc.rotation.z), glm::vec3(0, 0, 1));
+			forward = glm::vec3(rotationMatrix * glm::vec4(forward, 0));
+			ENGINE_TRACE("{},{},{}", forward.x, forward.y, forward.z);
+
+			forward = tc.GetForwardDirection();
+
+			if (_inputManager->IsKeyPressed(Key::W))
+				tc.position += forward * moveSpeed * ts;
+			if (_inputManager->IsKeyPressed(Key::S))
+				tc.position -= forward * moveSpeed * ts;
+			if (_inputManager->IsKeyPressed(Key::A)) {}
+			//tc.position -= tc.GetRight() * moveSpeed * ts;
+			if (_inputManager->IsKeyPressed(Key::D)) {}
+			//tc.position += tc.GetRight() * moveSpeed * ts;
+			if (_inputManager->IsKeyPressed(Key::E))
+				tc.rotation.z += 50.0f * ts;
+			//tc.position += glm::vec3(0,1,0) * moveSpeed * ts;
+			if (_inputManager->IsKeyPressed(Key::Q))
+				tc.rotation.z -= 50.0f * ts;
+			//tc.position -= glm::vec3(0,1,0) * moveSpeed * ts;
 		}
 		else {
 			_inputManager->SetCursorMode(Engine::CursorMode::Normal);
 		}
-
-		// Apply smoothing to the yaw and pitch
-		_yaw = glm::mix(_yaw, _targetYaw, _rotationSmoothness * ts);
-		_pitch = glm::mix(_pitch, _targetPitch, _rotationSmoothness * ts);
-
-		float yr = glm::radians(_yaw);
-		float pr = glm::radians(_pitch);
-
-		glm::vec3 direction;
-		direction.x = glm::cos(pr) * glm::sin(yr);
-		direction.y = glm::sin(pr);
-		direction.z = glm::cos(pr) * glm::cos(yr);
-		glm::vec3 forward = -glm::normalize(direction);
-
-		_position = _origin - forward * _distance;
-
-		if (glm::abs(_scrollVelocity) > 0.1f) {
-			_scrollVelocity -= _scrollVelocity * _scrollDamp;
-			_fov -= _scrollVelocity;
-			_fov = glm::clamp(_fov, _scrollMinFov, _scrollMaxFov);
-		}
 	}
 
-	void OnScroll(float offset) {
-		_scrollVelocity += offset * _scrollSensitivity;
-		_scrollVelocity = glm::clamp(_scrollVelocity, -_scrollMaxVelocity, _scrollMaxVelocity);
-
-		_fov += offset;
-	}
-
-	inline glm::vec3 GetPosition() const { return _position; }
-	inline glm::vec3 GetRotation() const { return { -_pitch,_yaw,0.0f }; }
-	inline float GetFOV() const { return _fov; }
+	void OnScroll(float offset) {}
 private:
 	Engine::InputManager* _inputManager;
 
-	glm::vec2 _prevMousePosition{ 0,0 };
-	glm::vec3 _position{ 0,0,5 };
+	glm::vec2 _prevMousePosition = { 0,0 };
 
-	float _pitch = 0.0f, _yaw = 0.0f;
-	float _targetPitch = 0.0f, _targetYaw = 0.0f;
-	glm::vec3 _origin{ 0,0,0 };
-	float _fov = 30.0f;
-	float _distance = 5.0f;
-
-	float _scrollSensitivity = 1.0f;
-	float _scrollMinFov = 10.0f, _scrollMaxFov = 170.0f;
-	float _scrollDamp = 0.1f;
-	float _scrollVelocity = 0.0f;
-	float _scrollMaxVelocity = 5.0f;
-
-	float _rotationSmoothness = 25.0f;
+	float _freeLookSensitivity = 0.1f;
+	float _moveSpeed = 10.0f;
+	float _speedMultiplier = 4.0f;
 
 	friend class CameraControllerUI_ImGui;
 };
@@ -86,15 +74,5 @@ private:
 
 class CameraControllerUI_ImGui {
 public:
-	static void RenderUI(CameraController& cc) {
-		ImGui::DragFloat("Scroll Sensitivity", &cc._scrollSensitivity, 0.1f);
-		ImGui::DragFloatRange2("Scroll FOV Range", &cc._scrollMinFov, &cc._scrollMaxFov, 0.1f);
-		ImGui::DragFloat("Scroll Damp", &cc._scrollDamp, 0.1f);
-		ImGui::Text("Scroll Velocity: %.2f", cc._scrollVelocity);
-		ImGui::DragFloat("Max Scroll Velocity", &cc._scrollMaxVelocity);
-
-		ImGui::DragFloat("Rotation Smoothness", &cc._rotationSmoothness);
-
-		ImGui::DragFloat("Distance", &cc._distance);
-	}
+	static void RenderUI(CameraController& cc) {}
 };

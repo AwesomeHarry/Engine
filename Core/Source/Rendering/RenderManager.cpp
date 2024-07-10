@@ -45,8 +45,6 @@ bool RenderManager::Initialize(Window& window) {
 		glViewport(0, 0, event.width, event.height);
 	});
 
-	_renderPipeline->Initialize();
-
 	return true;
 }
 
@@ -110,8 +108,4 @@ void RenderManager::setContext() {
 		glCullFace(GL_FRONT);
 	else if (_graphicsContext.CullBack)
 		glCullFace(GL_BACK);
-}
-
-void RenderManager::RenderScene(Scene& scene) {
-	_renderPipeline->RenderScene(scene);
 }

@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include "ECS/Components/MeshFilterComponent.h"
+#include "ECS/Components/Native/MeshFilterComponent.h"
 #include "UI/UIUtil.h"
 
 namespace Engine {

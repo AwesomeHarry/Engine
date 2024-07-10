@@ -6,3 +6,4 @@
 #include "TransformComponent.h"
 #include "CameraComponent.h"
 #include "DebugShapeManager.h"
+#include "BoundingBoxComponent.h"
