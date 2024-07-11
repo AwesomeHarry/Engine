@@ -314,6 +314,7 @@ namespace Engine {
             pointShader->AttachGeometeryShader(pointShader_G);
             pointShader->AttachFragmentShader(pointShader_F);
             pointShader->Link();
+            pointShader->BindUniformBlock("CameraData", 0);
 
             pointInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
             pointInfoVbo->SetData(nullptr, 0, {
@@ -334,6 +335,7 @@ namespace Engine {
             lineShader->AttachGeometeryShader(lineShader_G);
             lineShader->AttachFragmentShader(lineShader_F);
             lineShader->Link();
+            lineShader->BindUniformBlock("CameraData", 0);
 
             lineInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
             lineInfoVbo->SetData(nullptr, 0, {
@@ -353,7 +355,8 @@ namespace Engine {
 			quadShader->AttachVertexShader(quadShader_V);
 			quadShader->AttachGeometeryShader(quadShader_G);
 			quadShader->AttachFragmentShader(quadShader_F);
-			quadShader->Link();
+            quadShader->Link();
+            quadShader->BindUniformBlock("CameraData", 0);
 
 			quadInfoVbo = std::make_shared<VertexBufferObject>(BufferUsage::Dynamic);
             quadInfoVbo->SetData(nullptr, 0, {

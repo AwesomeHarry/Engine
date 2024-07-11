@@ -2,6 +2,7 @@
 #include "BaseComponent.h"
 
 #include <memory>
+#include <Util/FlagSet.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtx/quaternion.hpp>
@@ -18,7 +19,7 @@ namespace Engine {
 
 	enum class CameraType { Orthographic, Perspective };
 	struct OrthographicCamera { float size = 1.0f; };
-	struct PerspectiveCamera { float fov = 30.0f; };
+	struct PerspectiveCamera { float fov = 45.0f; };
 
 	struct CameraComponent : public BaseComponent {
 	#pragma region Projection
@@ -31,7 +32,7 @@ namespace Engine {
 
 	#pragma region Rendering
 		std::shared_ptr<BaseRenderPipeline> renderPipeline = nullptr;
-		std::vector<BufferBit> clearFlags = { BufferBit::Color, BufferBit::Depth };
+		FlagSet<BufferBit> clearFlags = BufferBit::Color | BufferBit::Depth;
 		float priority = 0.0f;
 	#pragma endregion
 

@@ -35,7 +35,7 @@ public:
 
 		framebuffer->Bind();
 
-		Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g,camera.backgroundColor.b	);
+		Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b);
 		Engine::RenderCommands::ClearBuffers(camera.clearFlags);
 
 		CameraData cameraData;
@@ -80,71 +80,75 @@ public:
 		auto& reg = scene.GetRegistry();
 
 		/* Render Debug Shapes */
-		{
-			auto view = reg.view<Engine::DebugShapeManager>();
-			if (view.size() != 0) {
-				if (view.size() > 1)
-					ENGINE_WARN("More than one DebugShapeManager in scene, only first will be used.");
-
-				auto& dsm = view.get<Engine::DebugShapeManager>(view.front());
-
-				/* Points */
-				{
-					auto& shader = *dsm.pointShader;
-					shader.SetUniform("segments", 20);
-
-					auto& vao = *dsm.pointInfoVao;
-					auto& vbo = *dsm.pointInfoVbo;
-
-					size_t pointCount = dsm.pointData.size();
-					vbo.SetData(dsm.pointData.data(), pointCount, {
-						{ "aPos", Engine::LType::Float, 3 },
-						{ "aRadius", Engine::LType::Float, 1 },
-						{ "aColor", Engine::LType::Float, 4 }
-								});
-
-					Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
-				}
-
-				/* Lines */
-				{
-					auto& shader = *dsm.lineShader;
-					shader.SetUniform("thickness", 0.005f);
-
-					auto& vao = *dsm.lineInfoVao;
-					auto& vbo = *dsm.lineInfoVbo;
-
-					size_t lineCount = dsm.lineData.size();
-					vbo.SetData(dsm.lineData.data(), lineCount, {
-						{ "aStartPos", Engine::LType::Float, 3 },
-						{ "aEndPos", Engine::LType::Float, 3 },
-						{ "aColor", Engine::LType::Float, 4 }
-								});
-
-					Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
-				}
-
-				/* Cubes */
-				{
-					auto& shader = *dsm.quadShader;
-
-					auto& vao = *dsm.quadInfoVao;
-					auto& vbo = *dsm.quadInfoVbo;
-
-					size_t cubeCount = dsm.quadData.size();
-					vbo.SetData(dsm.quadData.data(), cubeCount, {
-						{ "aP1", Engine::LType::Float, 3 },
-						{ "aP2", Engine::LType::Float, 3 },
-						{ "aP3", Engine::LType::Float, 3 },
-						{ "aP4", Engine::LType::Float, 3 },
-						{ "aColor", Engine::LType::Float, 4 }
-								});
-
-					Engine::RenderCommands::RenderPoints(vao, cubeCount, shader);
-				}
-
-				dsm.Clear();
-			}
+		auto view = reg.view<Engine::DebugShapeManager>();
+		if (view.size() == 0) {
+			ENGINE_WARN("No DebugShapeManager in scene!");
+			return;
 		}
+
+		if (view.size() > 1)
+			ENGINE_WARN("More than one DebugShapeManager in scene, only first will be used.");
+
+		auto& dsm = view.get<Engine::DebugShapeManager>(view.front());
+
+		if (!dsm.renderDebugShapes)
+			return;
+
+		/* Points */
+		{
+			auto& shader = *dsm.pointShader;
+			shader.SetUniform("segments", 20);
+
+			auto& vao = *dsm.pointInfoVao;
+			auto& vbo = *dsm.pointInfoVbo;
+
+			size_t pointCount = dsm.pointData.size();
+			vbo.SetData(dsm.pointData.data(), pointCount, {
+				{ "aPos", Engine::LType::Float, 3 },
+				{ "aRadius", Engine::LType::Float, 1 },
+				{ "aColor", Engine::LType::Float, 4 }
+						});
+
+			Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
+		}
+
+		/* Lines */
+		{
+			auto& shader = *dsm.lineShader;
+			shader.SetUniform("thickness", 0.005f);
+
+			auto& vao = *dsm.lineInfoVao;
+			auto& vbo = *dsm.lineInfoVbo;
+
+			size_t lineCount = dsm.lineData.size();
+			vbo.SetData(dsm.lineData.data(), lineCount, {
+				{ "aStartPos", Engine::LType::Float, 3 },
+				{ "aEndPos", Engine::LType::Float, 3 },
+				{ "aColor", Engine::LType::Float, 4 }
+						});
+
+			Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
+		}
+
+		/* Cubes */
+		{
+			auto& shader = *dsm.quadShader;
+
+			auto& vao = *dsm.quadInfoVao;
+			auto& vbo = *dsm.quadInfoVbo;
+
+			size_t cubeCount = dsm.quadData.size();
+			vbo.SetData(dsm.quadData.data(), cubeCount, {
+				{ "aP1", Engine::LType::Float, 3 },
+				{ "aP2", Engine::LType::Float, 3 },
+				{ "aP3", Engine::LType::Float, 3 },
+				{ "aP4", Engine::LType::Float, 3 },
+				{ "aColor", Engine::LType::Float, 4 }
+						});
+
+			Engine::RenderCommands::RenderPoints(vao, cubeCount, shader);
+		}
+
+		dsm.Clear();
 	}
 };

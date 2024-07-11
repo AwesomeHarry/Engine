@@ -165,5 +165,6 @@
     <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />
     <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp" />
+    <ClCompile Include="Source\Util\FlagSet.h" />
   </ItemGroup>
 </Project>

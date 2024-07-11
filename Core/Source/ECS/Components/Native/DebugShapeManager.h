@@ -22,6 +22,8 @@ namespace Engine {
 
 	struct DebugShapeManager : BaseComponent {
 	public:
+		bool renderDebugShapes = true;
+
 		struct PointSpec { glm::vec3 pos; float size; glm::vec4 color; };
 		std::vector<PointSpec> pointData;
 

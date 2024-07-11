@@ -99,7 +99,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Source\BoundingBox.h" />
-    <ClInclude Include="Source\CameraController.h" />
+    <ClInclude Include="Source\OrbitCameraController.h" />
     <ClInclude Include="Source\FPSCameraController.h" />
     <ClInclude Include="Source\SRP.h" />
   </ItemGroup>

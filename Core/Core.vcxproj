@@ -161,6 +161,7 @@
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexArrayObject.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexBufferObject.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />
+    <ClCompile Include="Source\Util\FlagSet.h" />
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\UniformBufferObject.cpp" />
   </ItemGroup>

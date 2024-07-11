@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 #include <vector>
+#include <Util/FlagSet.h>
 #include "BufferBit.h"
 
 namespace Engine {
@@ -17,7 +18,7 @@ namespace Engine {
 	class RenderCommands {
 	public:
 		static void SetClearColor(float r, float g, float b, float a = 1.0f);
-		static void ClearBuffers(const std::vector<BufferBit>& bufferBits);
+		static void ClearBuffers(const FlagSet<BufferBit>& bufferBits);
 		static void SetViewport(int x, int y, int width, int height);
 
 		static void SetWireframe(WireframeMode wireframeMode);

@@ -11,11 +11,15 @@ void RenderCommands::SetClearColor(float r, float g, float b, float a) {
 	glClearColor(r, g, b, a);
 }
 
-void RenderCommands::ClearBuffers(const std::vector<BufferBit>& bufferBits) {
-	uint32_t clearBitmask = 0;
-	for (auto& bit : bufferBits)
-		clearBitmask |= (uint32_t)bit;
-	glClear(clearBitmask);
+void RenderCommands::ClearBuffers(const FlagSet<BufferBit>& bufferBits) {
+	GLbitfield bits = 0;
+	if (bufferBits[BufferBit::Color])
+		bits |= GL_COLOR_BUFFER_BIT;
+	if (bufferBits[BufferBit::Depth])
+		bits |= GL_DEPTH_BUFFER_BIT;
+	if (bufferBits[BufferBit::Stencil])
+		bits |= GL_STENCIL_BUFFER_BIT;
+	glClear(bits);
 }
 
 void RenderCommands::SetViewport(int x, int y, int width, int height) {

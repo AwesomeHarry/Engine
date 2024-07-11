@@ -54,10 +54,20 @@ namespace Engine {
 
 				if (ImGui::CollapsingHeader("Rendering")) {
 					//ImGui::Text("Render Pipeline: %s", camera.renderPipeline ? camera.renderPipeline->GetName().c_str() : "None");
-					ImGui::Text("Clear Flags: %s", camera.clearFlags.size() == 0 ? "None" : "");
-					for (auto& flag : camera.clearFlags) {
-						ImGui::Text("  %s", BufferBitToString(flag));
-					}
+
+					ImGui::Text("Clear Flags:");
+					ImGui::Indent();
+					bool colorBufferBit = camera.clearFlags[BufferBit::Color];
+					if (ImGui::Checkbox("Color", &colorBufferBit))
+						camera.clearFlags.set(BufferBit::Color, colorBufferBit);
+					bool depthBufferBit = camera.clearFlags[BufferBit::Depth];
+					if (ImGui::Checkbox("Depth", &depthBufferBit))
+						camera.clearFlags.set(BufferBit::Depth, depthBufferBit);
+					bool stencilBufferBit = camera.clearFlags[BufferBit::Stencil];
+					if (ImGui::Checkbox("Stencil", &stencilBufferBit))
+						camera.clearFlags.set(BufferBit::Stencil, stencilBufferBit);
+					ImGui::Unindent();
+
 					ImGui::DragFloat("Priority", &camera.priority, 0.1f);
 				}
 
@@ -67,7 +77,7 @@ namespace Engine {
 				}
 
 				if (ImGui::CollapsingHeader("Output")) {
-					ImGui::Text("Render Target: %s", RenderTargetToString(camera.renderTarget));
+					ImGui::Text("Render Target: %s", RenderTargetToString(camera.renderTarget).c_str());
 					//ImGui::Text("Render Framebuffer: %s", camera.renderFramebuffer ? camera.renderFramebuffer->GetName().c_str() : "None");
 				}
 

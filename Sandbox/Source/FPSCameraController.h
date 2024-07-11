@@ -30,7 +30,6 @@ public:
 			_inputManager->SetCursorMode(Engine::CursorMode::Normal);
 		}
 
-
 		glm::vec3 cameraFront = transform.GetForwardDirection();
 		glm::vec3 cameraRight = transform.GetRightDirection();
 		glm::vec3 cameraUp = transform.GetUpDirection();

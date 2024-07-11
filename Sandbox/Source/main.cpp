@@ -19,6 +19,8 @@
 #include "UI/EntityPropertiesUI_ImGui.h"
 
 #include "FPSCameraController.h"
+#include "OrbitCameraController.h"
+
 #include "SRP.h"
 
 #pragma region Shader Source
@@ -73,7 +75,8 @@ private:
 
 	Engine::Entity _monkeh;
 	Engine::Entity _camera;
-	FPSCameraController _cameraController;
+	FPSCameraController _fpsCameraController;
+	OrbitCameraController _orbitCameraController;
 
 	bool _renderWireframe = false;
 public:
@@ -87,7 +90,7 @@ public:
 			Engine::Framebuffer::FramebufferSpec fbSpec;
 			fbSpec.width = 1280;
 			fbSpec.height = 720;
-			fbSpec.attachments = { Engine::ImageFormat::RGB8 };
+			fbSpec.attachments = { Engine::ImageFormat::RGB32F };
 			fbSpec.includeDepthStencil = true;
 
 			auto mainFramebuffer = std::make_shared<Engine::Framebuffer>(fbSpec);
@@ -165,6 +168,7 @@ public:
 			glm::vec3 scale;
 			{
 				auto model = Engine::GltfIO::LoadFile("Resources/Suzanne/glTF/Suzanne.gltf");
+				//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
 
 				const auto& mesh = model.meshes[0];
 				for (const auto& primitive : mesh.primitives) {
@@ -201,16 +205,18 @@ public:
 			});*/
 		}
 
-		_cameraController = FPSCameraController(_inputManager);
+		_fpsCameraController = FPSCameraController(_inputManager);
+		_orbitCameraController = OrbitCameraController(_inputManager);
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
-			//_cameraController.OnScroll((float)e.yOffset);
+			_orbitCameraController.OnScroll((float)e.yOffset);
 		});
 	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		{
-			_cameraController.OnUpdate(_camera.GetTransform(), ts);
+			//_fpsCameraController.OnUpdate(_camera.GetTransform(), ts);
+			_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
 			//auto& cc = _camera.GetComponent<Engine::CameraComponent>();
 		}
 
@@ -218,6 +224,8 @@ public:
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
+
+		_scene->GetDebugRenderer().DrawPoint({ {1,1,1},0.5f,{1,1,1,1} });
 
 		/* {
 			static glm::vec2 _prevMousePosition = { 0,0 };
@@ -300,6 +308,8 @@ public:
 				ImGui::PopStyleVar();
 			}
 
+			ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->GetMainFramebuffer().GetDepthAttachment()->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
+
 			ImGui::Begin("Window");
 			Engine::WindowInfoUI_ImGui::RenderUI(*_window);
 			ImGui::End();
@@ -318,7 +328,7 @@ public:
 			ImGui::Text("Mouse Position: %.1f,%.1f", mp.x, mp.y);
 
 			ImGui::Separator();
-			FPSCameraControllerUI_ImGui::RenderUI(_cameraController);
+			FPSCameraControllerUI_ImGui::RenderUI(_fpsCameraController);
 
 			ImGui::End();
 
