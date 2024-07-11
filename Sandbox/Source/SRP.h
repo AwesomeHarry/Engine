@@ -20,13 +20,9 @@ public:
 
 	void RenderScene(Engine::Scene& scene) {
 		/* Set render targets from cameras */
-		{}
-
 		/* RenderOpaqueObjects(scene, camera); */
 		/* RenderTransparentObjects(scene, camera); */
-
 		/* ApplyPostProcessing(); */
-
 	}
 
 	virtual void RenderScene(Engine::Scene& scene, Engine::Entity& cameraEntity) override {
@@ -39,7 +35,8 @@ public:
 		Engine::RenderCommands::ClearBuffers(camera.clearFlags);
 
 		CameraData cameraData;
-		float aspect = (float)framebuffer->GetSpecification().width / (float)framebuffer->GetSpecification().height;
+		glm::vec2 viewportSize = { framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
+		float aspect = viewportSize.x / viewportSize.y;
 		cameraData.projection = camera.GetProjectionMatrix(aspect);
 		cameraData.view = camera.CalculateViewMatrix(cameraEntity.GetTransform());
 
@@ -48,7 +45,7 @@ public:
 
 
 		RenderOpaqueObjects(scene);
-		RenderDebugMeshes(scene);
+		RenderDebugMeshes(scene, viewportSize);
 
 		framebuffer->Unbind();
 	}
@@ -76,7 +73,7 @@ public:
 
 	}
 
-	void RenderDebugMeshes(Engine::Scene& scene) {
+	void RenderDebugMeshes(Engine::Scene& scene, const glm::vec2& viewportSize) {
 		auto& reg = scene.GetRegistry();
 
 		/* Render Debug Shapes */
@@ -94,61 +91,71 @@ public:
 		if (!dsm.renderDebugShapes)
 			return;
 
-		/* Points */
-		{
-			auto& shader = *dsm.pointShader;
-			shader.SetUniform("segments", 20);
-
-			auto& vao = *dsm.pointInfoVao;
-			auto& vbo = *dsm.pointInfoVbo;
-
-			size_t pointCount = dsm.pointData.size();
-			vbo.SetData(dsm.pointData.data(), pointCount, {
-				{ "aPos", Engine::LType::Float, 3 },
-				{ "aRadius", Engine::LType::Float, 1 },
-				{ "aColor", Engine::LType::Float, 4 }
-						});
-
-			Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
-		}
-
-		/* Lines */
-		{
-			auto& shader = *dsm.lineShader;
-			shader.SetUniform("thickness", 0.005f);
-
-			auto& vao = *dsm.lineInfoVao;
-			auto& vbo = *dsm.lineInfoVbo;
-
-			size_t lineCount = dsm.lineData.size();
-			vbo.SetData(dsm.lineData.data(), lineCount, {
-				{ "aStartPos", Engine::LType::Float, 3 },
-				{ "aEndPos", Engine::LType::Float, 3 },
-				{ "aColor", Engine::LType::Float, 4 }
-						});
-
-			Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
-		}
-
-		/* Cubes */
-		{
-			auto& shader = *dsm.quadShader;
-
-			auto& vao = *dsm.quadInfoVao;
-			auto& vbo = *dsm.quadInfoVbo;
-
-			size_t cubeCount = dsm.quadData.size();
-			vbo.SetData(dsm.quadData.data(), cubeCount, {
-				{ "aP1", Engine::LType::Float, 3 },
-				{ "aP2", Engine::LType::Float, 3 },
-				{ "aP3", Engine::LType::Float, 3 },
-				{ "aP4", Engine::LType::Float, 3 },
-				{ "aColor", Engine::LType::Float, 4 }
-						});
-
-			Engine::RenderCommands::RenderPoints(vao, cubeCount, shader);
-		}
+		RenderPoints(dsm, viewportSize);
+		RenderLines(dsm);
+		RenderQuads(dsm);
 
 		dsm.Clear();
+	}
+
+	void RenderPoints(Engine::DebugShapeManager& dsm, const glm::vec2& viewportSize) {
+		auto& shader = *dsm.pointShader;
+		shader.SetUniform("viewportSize", viewportSize);
+
+		auto& vao = *dsm.pointInfoVao;
+		auto& vbo = *dsm.pointInfoVbo;
+
+		size_t pointCount = dsm.pointData.size();
+		if (pointCount == 0)
+			return;
+
+		vbo.SetData(dsm.pointData.data(), pointCount, {
+			{ "aPos", Engine::LType::Float, 3 },
+			{ "aRadius", Engine::LType::Float, 1 },
+			{ "aColor", Engine::LType::Float, 4 }
+					});
+
+		Engine::RenderCommands::RenderPoints(vao, pointCount, shader);
+	}
+
+	void RenderLines(Engine::DebugShapeManager& dsm) {
+		auto& shader = *dsm.lineShader;
+		shader.SetUniform("thickness", 0.005f);
+
+		auto& vao = *dsm.lineInfoVao;
+		auto& vbo = *dsm.lineInfoVbo;
+
+		size_t lineCount = dsm.lineData.size();
+		if (lineCount == 0)
+			return;
+
+		vbo.SetData(dsm.lineData.data(), lineCount, {
+			{ "aStartPos", Engine::LType::Float, 3 },
+			{ "aEndPos", Engine::LType::Float, 3 },
+			{ "aColor", Engine::LType::Float, 4 }
+					});
+
+		Engine::RenderCommands::RenderPoints(vao, lineCount, shader);
+	}
+
+	void RenderQuads(Engine::DebugShapeManager& dsm) {
+		auto& shader = *dsm.quadShader;
+
+		auto& vao = *dsm.quadInfoVao;
+		auto& vbo = *dsm.quadInfoVbo;
+
+		size_t quadCount = dsm.quadData.size();
+		if (quadCount == 0)
+			return;
+
+		vbo.SetData(dsm.quadData.data(), quadCount, {
+			{ "aP1", Engine::LType::Float, 3 },
+			{ "aP2", Engine::LType::Float, 3 },
+			{ "aP3", Engine::LType::Float, 3 },
+			{ "aP4", Engine::LType::Float, 3 },
+			{ "aColor", Engine::LType::Float, 4 }
+					});
+
+		Engine::RenderCommands::RenderPoints(vao, quadCount, shader);
 	}
 };

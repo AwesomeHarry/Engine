@@ -10,78 +10,106 @@ namespace Engine {
 #pragma region Shaders
 
 #pragma region Point Shader
-	const char* pointShader_V = R"glsl(
+    const char* pointShader_V = R"glsl(
     #version 330 core
     layout(location = 0) in vec3 aPos;
     layout(location = 1) in float aRadius;
     layout(location = 2) in vec4 aColor;
     out vec3 vPos;
     out float vRadius;
-	out vec4 vColor;
+    out vec4 vColor;
     void main() {
         vPos = aPos;
-		vRadius = aRadius;
-		vColor = aColor;
+        vRadius = aRadius;
+        vColor = aColor;
         gl_Position = vec4(aPos, 1.0);
     }
     )glsl";
 
-	const char* pointShader_G = R"glsl(
+
+    const char* pointShader_G = R"glsl(
     #version 330 core
-
     layout (points) in;
-    layout (triangle_strip, max_vertices = 66) out;
-
+    layout (triangle_strip, max_vertices = 4) out;
     layout (std140) uniform CameraData {
         mat4 projection;
         mat4 view;
     };
+    uniform vec2 viewportSize;
 
-	in vec3 vPos[];
-	in float vRadius[];
-	in vec4 vColor[];
-
-    uniform int segments = 20;
-
-	out vec4 color;
-
-    const float PI = 3.1415926535897932384626433832795;
+    in vec3 vPos[];
+    in float vRadius[];
+    in vec4 vColor[];
+    out vec2 gTexCoords;
+    out vec4 gColor;
+    out vec3 gViewPos;
+    out float gRadius;
 
     void main() {
-        // Transform the center point to view space
         vec4 centerViewSpace = view * vec4(vPos[0], 1.0);
         float radius = vRadius[0];
     
-        for (int i = 0; i <= segments; i++) {
-            float angle = 2.0 * PI * float(i) / float(segments);
-            float nextAngle = 2.0 * PI * float(i + 1) / float(segments);
+        // Calculate the size in screen space (pixels)
+        float pixelSize = radius * 2.0; // Diameter in pixels
+    
+        // Calculate the size in NDC space, accounting for aspect ratio
+        vec2 sizeNDC = (pixelSize / viewportSize) * 2.0;
+    
+        // Emit a quad
+        vec2 offsets[4] = vec2[](
+            vec2(-1.0, -1.0),
+            vec2( 1.0, -1.0),
+            vec2(-1.0,  1.0),
+            vec2( 1.0,  1.0)
+        );
+    
+        for (int i = 0; i < 4; i++) {
+            // Calculate vertex position in clip space
+            vec4 posClip = projection * centerViewSpace;
         
-            // Emit center vertex
-            gl_Position = projection * centerViewSpace;
-            color = vColor[0];
+            // Convert to NDC
+            vec3 posNDC = posClip.xyz / posClip.w;
+        
+            // Add offset in NDC space, accounting for aspect ratio
+            posNDC.xy += offsets[i] * sizeNDC * 0.5;
+        
+            // Convert back to clip space
+            gl_Position = vec4(posNDC * posClip.w, posClip.w);
+        
+            gTexCoords = offsets[i] * 0.5 + 0.5;
+            gColor = vColor[0];
+            gViewPos = centerViewSpace.xyz;
+            gRadius = radius;
             EmitVertex();
-        
-            // Emit vertex on the circle's edge
-            gl_Position = projection * (centerViewSpace + vec4(radius * cos(angle), radius * sin(angle), 0.0, 0.0));
-            color = vColor[0];
-            EmitVertex();
-        
-            // Emit next vertex on the circle's edge
-            gl_Position = projection * (centerViewSpace + vec4(radius * cos(nextAngle), radius * sin(nextAngle), 0.0, 0.0));
-            color = vColor[0];
-            EmitVertex();
-        
-            EndPrimitive();
         }
+        EndPrimitive();
     }
     )glsl";
 
-	const char* pointShader_F = R"glsl(
+
+    const char* pointShader_F = R"glsl(
     #version 330 core
+    in vec2 gTexCoords;
+    in vec4 gColor;
+    in vec3 gViewPos;
+    in float gRadius;
     out vec4 FragColor;
-    in vec4 color;
+
     void main() {
-        FragColor = color;
+        // Calculate the distance from the center
+        vec2 centeredTexCoords = gTexCoords * 2.0 - 1.0;
+        float dist = length(centeredTexCoords);
+    
+        // SDF for a circle
+        float sdf = dist - 1.0;
+    
+        // Apply anti-aliasing
+        float alpha = 1.0 - smoothstep(-0.01, 0.01, sdf);
+    
+        // Discard fragments outside the circle
+        if (alpha < 0.01) discard;
+    
+        FragColor = vec4(gColor.rgb, gColor.a * alpha);
     }
     )glsl";
 #pragma endregion
