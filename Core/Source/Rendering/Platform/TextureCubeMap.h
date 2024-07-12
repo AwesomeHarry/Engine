@@ -38,7 +38,7 @@ namespace Engine {
 			: BaseTexture(TextureType::TexCubeMap, spec) {}
 		~TextureCubeMap() = default;
 
-		void SetData(const std::vector<uint8_t*>& data);
+		void SetData(const std::vector<float*>& data);
 		void SetData(const CubeMapData& data);
 
 		struct Utils {

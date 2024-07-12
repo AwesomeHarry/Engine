@@ -43,6 +43,7 @@ namespace Engine {
 		BackgroundType backgroundType = BackgroundType::Color;
 		glm::vec3 backgroundColor = glm::vec3(0.06f, 0.06f, 0.06f);
 		std::shared_ptr<TextureCubeMap> skyboxCubemap = nullptr;
+		float skyboxExposure = 1.0f;
 	#pragma endregion
 
 	#pragma region Output

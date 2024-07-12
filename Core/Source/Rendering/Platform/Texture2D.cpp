@@ -16,14 +16,14 @@ std::shared_ptr<Texture2D> Texture2D::Utils::FromFile(const std::string& path) {
 
 	stbi_set_flip_vertically_on_load(true);
 	int channels;
-	unsigned char* data = stbi_load(path.c_str(), &spec.width, &spec.height, &channels, 0);
+	float* data = stbi_loadf(path.c_str(), &spec.width, &spec.height, &channels, 0);
 	if (!data) {
 		ENGINE_WARN("Failed to load texture from path: {}", path);
 		return nullptr;
 	}
 
-	if (channels == 3)	spec.format = ImageFormat::RGB8;
-	else if (channels == 4) spec.format = ImageFormat::RGBA8;
+	if (channels == 3)	spec.format = ImageFormat::RGB32F;
+	else if (channels == 4) spec.format = ImageFormat::RGBA32F;
 	else {
 		ENGINE_ERROR("Unsupported number of channels: {}", channels);
 		stbi_image_free(data);

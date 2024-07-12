@@ -103,6 +103,14 @@
     <ClInclude Include="Source\FPSCameraController.h" />
     <ClInclude Include="Source\SRP.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\nx.hdr" />
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\ny.hdr" />
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\nz.hdr" />
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\px.hdr" />
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\py.hdr" />
+    <None Include="..\..\..\..\..\Users\lukew\Downloads\Standard-Cube-Map\pz.hdr" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

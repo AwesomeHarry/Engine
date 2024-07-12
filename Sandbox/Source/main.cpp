@@ -95,8 +95,12 @@ const char* textureFragmentShaderSrc = R"(
 out vec4 FragColor;
 in vec2 uv;
 uniform sampler2D tex0;
+uniform float exposure = 1.0;
 void main() {
-	FragColor = texture(tex0, uv);
+	vec3 hdrColor = texture(tex0, uv).rgb;
+	vec3 exposed = vec3(1.0) - exp(-hdrColor * exposure);
+	vec3 mapped = pow(exposed, vec3(1.0 / 2.2));
+	FragColor = vec4(mapped, 1.0);
 }
 )";
 
@@ -111,6 +115,7 @@ private:
 	OrbitCameraController _orbitCameraController;
 
 	Engine::Entity _cube;
+	std::shared_ptr<Engine::Shader> textureShader;
 
 	bool _renderWireframe = false;
 public:
@@ -140,7 +145,7 @@ public:
 
 		auto material = std::make_shared<Engine::Material>(shader);
 
-		auto textureShader = std::make_shared<Engine::Shader>();
+		textureShader = std::make_shared<Engine::Shader>();
 		textureShader->AttachVertexShader(textureVertexShaderSrc);
 		textureShader->AttachFragmentShader(textureFragmentShaderSrc);
 		textureShader->Link();
@@ -149,7 +154,7 @@ public:
 
 		auto textureMaterial = std::make_shared<Engine::Material>(textureShader);
 
-		auto texture = Engine::Texture2D::Utils::FromFile("Resources/Skyboxes/Meadow/px.png");
+		auto texture = Engine::Texture2D::Utils::FromFile("Resources/Skyboxes/quarry_cloudy_4k.hdr");
 		textureMaterial->AddTexture(texture, 0);
 
 		/* Manual Mesh */
@@ -241,12 +246,12 @@ public:
 		{
 			/* Cubemap */
 			Engine::CubeMapPaths paths;
-			paths.positiveX = "Resources/Skyboxes/HdriTest/FullRes/px.png";
-			paths.negativeX = "Resources/Skyboxes/HdriTest/FullRes/nx.png";
-			paths.positiveY = "Resources/Skyboxes/HdriTest/FullRes/py.png";
-			paths.negativeY = "Resources/Skyboxes/HdriTest/FullRes/ny.png";
-			paths.positiveZ = "Resources/Skyboxes/HdriTest/FullRes/pz.png";
-			paths.negativeZ = "Resources/Skyboxes/HdriTest/FullRes/nz.png";
+			paths.positiveX = "Resources/Skyboxes/Cloudy/px.hdr";
+			paths.negativeX = "Resources/Skyboxes/Cloudy/nx.hdr";
+			paths.positiveY = "Resources/Skyboxes/Cloudy/py.hdr";
+			paths.negativeY = "Resources/Skyboxes/Cloudy/ny.hdr";
+			paths.positiveZ = "Resources/Skyboxes/Cloudy/pz.hdr";
+			paths.negativeZ = "Resources/Skyboxes/Cloudy/nz.hdr";
 			auto cubemap = Engine::TextureCubeMap::Utils::FromFile(paths.GetArray());
 
 			/* Add Camera */
@@ -280,6 +285,10 @@ public:
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
+
+		static float exposure = 1.0f;
+		ImGui::DragFloat("Exposure", &exposure, 0.1f, 0.1f, 10.0f);
+		textureShader->SetUniform("exposure", exposure);
 
 		/* Update Scene */
 		_scene->UpdateScene(ts);

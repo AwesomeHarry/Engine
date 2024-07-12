@@ -33,11 +33,21 @@ out vec4 FragColor;
 in vec3 TexCoords;
 
 uniform samplerCube skybox;
+uniform float exposure = 1.0f;
+
+const float gamma = 2.2;
 
 void main()
 {
-    FragColor = texture(skybox, TexCoords);
-    //FragColor = vec4(TexCoords,1.0);
+    vec3 hdrColor = texture(skybox, TexCoords).rgb;
+
+    // Exposure tone mapping
+    vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+
+    // Gamma correction
+    mapped = pow(mapped, vec3(1.0 / gamma));
+
+    FragColor = vec4(mapped, 1.0);
 }
 )";
 
@@ -147,6 +157,7 @@ public:
 			_skyboxShader->SetUniform("skybox", 0);
 			_skyboxShader->SetUniform("projection", cameraData.projection);
 			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
+			_skyboxShader->SetUniform("exposure", camera.skyboxExposure);
 			camera.skyboxCubemap->Bind(0);
 
 			glDepthMask(GL_FALSE);

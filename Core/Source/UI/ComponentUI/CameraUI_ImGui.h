@@ -29,6 +29,14 @@ namespace Engine {
 		}
 	}
 
+	std::string BackgroundTypeToString(CameraComponent::BackgroundType type) {
+		switch (type) {
+		case CameraComponent::BackgroundType::Color: return "Color";
+		case CameraComponent::BackgroundType::Skybox: return "Skybox";
+		default: return "Unknown";
+		}
+	}
+
 	class CameraUI_ImGui {
 	public:
 		static void RenderUI(CameraComponent& camera) {
@@ -72,8 +80,13 @@ namespace Engine {
 				}
 
 				if (ImGui::CollapsingHeader("Environment")) {
-					//ImGui::Text("Background Type: %s", BackgroundTypeToString(camera.backgroundType));
-					ImGui::ColorEdit3("Background Color", &camera.backgroundColor[0]);
+					ImGui::Text("Background Type: %s", BackgroundTypeToString(camera.backgroundType).c_str());
+					if (camera.backgroundType == CameraComponent::BackgroundType::Skybox) {
+						//ImGui::Text("Skybox Cubemap: %s", camera.skyboxCubemap ? camera.skyboxCubemap->GetName().c_str() : "None");
+						ImGui::DragFloat("Skybox Exposure", &camera.skyboxExposure, 0.1f);
+					}
+					else if (camera.backgroundType == CameraComponent::BackgroundType::Color)
+						ImGui::ColorEdit3("Background Color", &camera.backgroundColor[0]);
 				}
 
 				if (ImGui::CollapsingHeader("Output")) {
