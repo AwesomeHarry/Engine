@@ -124,7 +124,7 @@
     <ClInclude Include="Source\Rendering\Platform\Buffer\IndexBufferObject.h" />
     <ClInclude Include="Source\Rendering\Platform\Mesh.h" />
     <ClInclude Include="Source\Rendering\Platform\Shader.h" />
-    <ClInclude Include="Source\Rendering\Platform\Texture.h" />
+    <ClInclude Include="Source\Rendering\Platform\BaseTexture.h" />
     <ClInclude Include="Source\Rendering\Platform\Buffer\VertexArrayObject.h" />
     <ClInclude Include="Source\Rendering\Platform\Buffer\VertexBufferObject.h" />
     <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h" />
@@ -141,12 +141,16 @@
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
     <ClInclude Include="Source\ECS\Components\Native\TransformComponent.h" />
     <ClInclude Include="Source\Rendering\Platform\Buffer\UniformBufferObject.h" />
+    <ClInclude Include="Source\Rendering\Platform\Texture2D.h" />
+    <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp" />
     <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp" />
     <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\TextureCubeMap.cpp" />
     <ClCompile Include="Source\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />
     <ClCompile Include="Source\Core\Application\Window.cpp" />
@@ -157,7 +161,7 @@
     <ClCompile Include="Source\Rendering\Platform\Buffer\IndexBufferObject.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Mesh.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Shader.cpp" />
-    <ClCompile Include="Source\Rendering\Platform\Texture.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexArrayObject.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexBufferObject.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />

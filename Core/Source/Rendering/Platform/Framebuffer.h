@@ -1,5 +1,5 @@
 #pragma once
-#include "Texture.h"
+#include "Texture2D.h"
 #include <vector>
 #include <memory>
 
@@ -7,7 +7,7 @@ namespace Engine {
     class Framebuffer {
     public:
         struct Attachment {
-            std::shared_ptr<Texture> texture;
+            std::shared_ptr<Texture2D> texture;
             ImageFormat format;
         };
 
@@ -26,8 +26,8 @@ namespace Engine {
 
         void Resize(uint32_t width, uint32_t height);
 
-        std::shared_ptr<Texture> GetColorAttachment(uint32_t index = 0) const;
-        std::shared_ptr<Texture> GetDepthAttachment() const;
+        std::shared_ptr<Texture2D> GetColorAttachment(uint32_t index = 0) const;
+        std::shared_ptr<Texture2D> GetDepthAttachment() const;
 
         const FramebufferSpec& GetSpecification() const { return _specification; }
 

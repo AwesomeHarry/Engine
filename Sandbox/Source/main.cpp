@@ -90,7 +90,7 @@ public:
 			Engine::Framebuffer::FramebufferSpec fbSpec;
 			fbSpec.width = 1280;
 			fbSpec.height = 720;
-			fbSpec.attachments = { Engine::ImageFormat::RGB32F };
+			fbSpec.attachments = { Engine::ImageFormat::RGB8 };
 			fbSpec.includeDepthStencil = true;
 
 			auto mainFramebuffer = std::make_shared<Engine::Framebuffer>(fbSpec);
@@ -165,30 +165,27 @@ public:
 		{
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Monkeh");
-			glm::vec3 scale;
-			{
-				auto model = Engine::GltfIO::LoadFile("Resources/Suzanne/glTF/Suzanne.gltf");
-				//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
+			auto model = Engine::GltfIO::LoadFile("Resources/Stanford_Dragon/LowRes.gltf");
+			//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
 
-				const auto& mesh = model.meshes[0];
-				for (const auto& primitive : mesh.primitives) {
-					auto vertexArray = Engine::GltfIO::LoadPrimitive(model, primitive);
-					gltfMesh->AddSubmesh(vertexArray);
-				}
-
-				auto s = model.nodes[0].scale;
-				scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
+			const auto& mesh = model.meshes[0];
+			for (const auto& primitive : mesh.primitives) {
+				auto vertexArray = Engine::GltfIO::LoadPrimitive(model, primitive);
+				gltfMesh->AddSubmesh(vertexArray);
 			}
+
+			auto s = model.nodes[0].scale;
+			glm::vec3 scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
 
 			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
 			entity.GetTransform().scale = scale;
 			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
 			entity.AddComponent<Engine::MeshRendererComponent>(shader);
+
 			auto& bb = entity.AddComponent<Engine::BoundingBoxComponent>();
 			bb.GrowToInclude(*gltfMesh);
 
 			_monkeh = entity;
-
 		}
 
 		/* Camera */
@@ -286,14 +283,14 @@ public:
 		auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
 		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
 		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1}});
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1}});
+		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
 
 		/* Render Scene */
 		_scene->RenderScene();
