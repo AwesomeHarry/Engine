@@ -33,7 +33,7 @@ BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
 	glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 	glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
