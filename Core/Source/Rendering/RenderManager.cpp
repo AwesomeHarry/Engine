@@ -90,6 +90,8 @@ void RenderManager::setContext() {
 	else
 		glDisable(GL_DEPTH_TEST);
 
+	glDepthFunc(GL_LEQUAL);
+
 	if (_graphicsContext.EnableBlend)
 		glEnable(GL_BLEND);
 	else

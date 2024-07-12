@@ -12,6 +12,8 @@
 #include "Rendering/BaseRenderPipeline.h"
 #include "Rendering/BufferBit.h"
 #include "Rendering/Platform/Framebuffer.h"
+#include "Rendering/Platform/Texture2D.h"
+#include "Rendering/Platform/TextureCubeMap.h"
 
 #include "TransformComponent.h"
 
@@ -37,8 +39,10 @@ namespace Engine {
 	#pragma endregion
 
 	#pragma region Environment
-		// backgroundType = BackgroundType::Color;
+		enum class BackgroundType { Color, Skybox };
+		BackgroundType backgroundType = BackgroundType::Color;
 		glm::vec3 backgroundColor = glm::vec3(0.06f, 0.06f, 0.06f);
+		std::shared_ptr<TextureCubeMap> skyboxCubemap = nullptr;
 	#pragma endregion
 
 	#pragma region Output

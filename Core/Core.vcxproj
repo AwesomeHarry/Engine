@@ -94,6 +94,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Rendering\Platform\Material.h" />
     <ClInclude Include="Source\ECS\Components\Native\BoundingBoxComponent.h" />
     <ClInclude Include="Source\Rendering\BufferBit.h" />
     <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h" />

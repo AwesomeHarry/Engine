@@ -7,10 +7,11 @@ namespace Engine {
 	public:
 		static void RenderUI(MeshRendererComponent& meshRenderer) {
 			if (ImGui::TreeNodeEx("Mesh Renderer", ImGuiTreeNodeFlags_Framed)) {
-				auto& shader = meshRenderer.shader;
+				auto& material = *meshRenderer.material;
+				auto& shader = material.GetShader();
 				ImGui::Text("Uniforms:");
 
-				auto& uniforms = shader->GetUniforms();
+				auto& uniforms = shader.GetUniforms();
 				for (auto& [name, location] : uniforms) {
 					ImGui::Text(name.c_str());
 					ImGui::SameLine();
@@ -18,7 +19,7 @@ namespace Engine {
 				}
 
 				ImGui::Text("Uniform Blocks:");
-				auto& uniformBlocks = shader->GetUniformBlocks();
+				auto& uniformBlocks = shader.GetUniformBlocks();
 				for (auto& [name, location] : uniformBlocks) {
 					ImGui::Text(name.c_str());
 					ImGui::SameLine();

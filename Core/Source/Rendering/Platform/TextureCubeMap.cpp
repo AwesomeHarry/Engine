@@ -6,21 +6,25 @@
 using namespace Engine;
 
 void TextureCubeMap::SetData(const std::vector<uint8_t*>& data) {
-	Bind();
+	BindInternal();
 	for (uint32_t i = 0; i < data.size(); i++) {
 		SetDataInternal(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, data[i]);
 	}
 	Unbind();
 }
 
+void Engine::TextureCubeMap::SetData(const CubeMapData& data) {
+	SetData(data.GetArray());
+}
+
 std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const std::vector<std::string>& paths) {
 	TextureSpec spec;
 	std::vector<uint8_t*> cubemapData;
 
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(false);
 	for (const auto& path : paths) {
-		int width, height, channels;
-		unsigned char* data = stbi_load(path.c_str(), &width, &height, &channels, 0);
+		int channels;
+		unsigned char* data = stbi_load(path.c_str(), &spec.width, &spec.height, &channels, 0);
 		if (!data) {
 			ENGINE_WARN("Failed to load texture from path: {}", path);
 			return nullptr;

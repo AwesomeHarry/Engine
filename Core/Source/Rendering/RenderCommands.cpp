@@ -4,6 +4,7 @@
 
 #include "Rendering/Platform/Mesh.h"
 #include "Rendering/Platform/Shader.h"
+#include "Rendering/Platform/Material.h"
 
 using namespace Engine;
 
@@ -30,18 +31,32 @@ void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 	glPolygonMode(GL_FRONT_AND_BACK, (uint32_t)wireframeMode);
 }
 
-void RenderCommands::RenderMesh(const Mesh& mesh, const Shader& shader) {
-	shader.Bind();
+#include "Rendering/Platform/Texture2D.h"
+
+void RenderCommands::RenderMesh(const Mesh& mesh, const Material& material) {
+	material.Bind();
 	for (size_t i = 0; i < mesh.GetSubmeshCount(); i++) {
 		auto& vertexArray = mesh.GetSubmesh(i);
 
 		vertexArray.Bind();
-
 		if (vertexArray.HasIndices())
 			glDrawElements((uint32_t)vertexArray.GetDrawMode(), vertexArray.GetCount(), (GLenum)vertexArray.GetIndexBuffer().GetType(), 0);
 		else
 			glDrawArrays((uint32_t)vertexArray.GetDrawMode(), 0, vertexArray.GetCount());
 	}
+	material.Unbind();
+}
+
+void RenderCommands::RenderMesh(const VertexArrayObject& vertexArray, const Shader& shader) {
+	shader.Bind();
+	vertexArray.Bind();
+
+	if (vertexArray.HasIndices())
+		glDrawElements((uint32_t)vertexArray.GetDrawMode(), vertexArray.GetCount(), (GLenum)vertexArray.GetIndexBuffer().GetType(), 0);
+	else
+		glDrawArrays((uint32_t)vertexArray.GetDrawMode(), 0, vertexArray.GetCount());
+
+	vertexArray.Unbind();
 	shader.Unbind();
 }
 

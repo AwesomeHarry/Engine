@@ -10,6 +10,8 @@
 
 #include "Rendering/Platform/Mesh.h"
 #include "Rendering/Platform/Shader.h"
+#include "Rendering/Platform/Texture2D.h"
+#include "Rendering/Platform/TextureCubeMap.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 
 #include "Util/Mesh/GltfIO.h"
@@ -54,6 +56,8 @@ const char* fragmentShaderSource = R"glsl(
 #version 330 core
 out vec4 FragColor;
 
+uniform sampler2D tex0;
+
 in vec3 pos;
 in vec3 nor;
 in vec4 tan;
@@ -62,11 +66,39 @@ in vec2 tex;
 void main()
 {
     //FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-    FragColor = vec4(normalize(nor), 1.0);
+    //FragColor = vec4(normalize(nor), 1.0);
+	FragColor = texture(tex0, tex);
 }
 )glsl";
 
 #pragma endregion
+
+const char* textureVertexShaderSrc = R"(
+#version 330 core
+layout(location = 0) in vec3 aPos;
+layout(location = 1) in vec2 aTex;
+layout (std140) uniform CameraData {
+	mat4 projection;
+	mat4 view;
+};
+uniform mat4 model;
+out vec2 uv;
+void main() {
+    vec3 pos = vec3(model * vec4(aPos, 1.0));
+    gl_Position = projection * view * vec4(pos, 1.0);
+	uv = aTex;
+}
+)";
+
+const char* textureFragmentShaderSrc = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 uv;
+uniform sampler2D tex0;
+void main() {
+	FragColor = texture(tex0, uv);
+}
+)";
 
 class SandboxLayer : public Engine::Layer {
 private:
@@ -77,6 +109,8 @@ private:
 	Engine::Entity _camera;
 	FPSCameraController _fpsCameraController;
 	OrbitCameraController _orbitCameraController;
+
+	Engine::Entity _cube;
 
 	bool _renderWireframe = false;
 public:
@@ -103,6 +137,20 @@ public:
 		shader->AttachFragmentShader(fragmentShaderSource);
 		shader->Link();
 		shader->BindUniformBlock("CameraData", 0);
+
+		auto material = std::make_shared<Engine::Material>(shader);
+
+		auto textureShader = std::make_shared<Engine::Shader>();
+		textureShader->AttachVertexShader(textureVertexShaderSrc);
+		textureShader->AttachFragmentShader(textureFragmentShaderSrc);
+		textureShader->Link();
+		textureShader->BindUniformBlock("CameraData", 0);
+		textureShader->SetUniform("tex0", 0);
+
+		auto textureMaterial = std::make_shared<Engine::Material>(textureShader);
+
+		auto texture = Engine::Texture2D::Utils::FromFile("Resources/Skyboxes/Meadow/px.png");
+		textureMaterial->AddTexture(texture, 0);
 
 		/* Manual Mesh */
 		{
@@ -149,6 +197,7 @@ public:
 
 				vertexArray = std::make_shared<Engine::VertexArrayObject>();
 				vertexArray->AddVertexBuffer(vertexBuffer);
+				vertexArray->AddVertexBuffer(texcoordBuffer);
 				vertexArray->SetIndexBuffer(indexBuffer);
 				vertexArray->Compute();
 
@@ -156,9 +205,9 @@ public:
 			}
 
 			/* Add mesh to scene */
-			//Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
-			//entity.AddComponent<Engine::MeshFilterComponent>(mesh);
-			//entity.AddComponent<Engine::MeshRendererComponent>(shader);
+			Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
+			entity.AddComponent<Engine::MeshFilterComponent>(mesh);
+			entity.AddComponent<Engine::MeshRendererComponent>(textureMaterial);
 		}
 
 		/* Gltf Mesh */
@@ -179,17 +228,27 @@ public:
 
 			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
 			entity.GetTransform().scale = scale;
-			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
-			entity.AddComponent<Engine::MeshRendererComponent>(shader);
+			//entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
+			entity.AddComponent<Engine::MeshRendererComponent>(material);
 
-			auto& bb = entity.AddComponent<Engine::BoundingBoxComponent>();
-			bb.GrowToInclude(*gltfMesh);
+			//auto& bb = entity.AddComponent<Engine::BoundingBoxComponent>();
+			//bb.GrowToInclude(*gltfMesh);
 
 			_monkeh = entity;
 		}
 
 		/* Camera */
 		{
+			/* Cubemap */
+			Engine::CubeMapPaths paths;
+			paths.positiveX = "Resources/Skyboxes/HdriTest/FullRes/px.png";
+			paths.negativeX = "Resources/Skyboxes/HdriTest/FullRes/nx.png";
+			paths.positiveY = "Resources/Skyboxes/HdriTest/FullRes/py.png";
+			paths.negativeY = "Resources/Skyboxes/HdriTest/FullRes/ny.png";
+			paths.positiveZ = "Resources/Skyboxes/HdriTest/FullRes/pz.png";
+			paths.negativeZ = "Resources/Skyboxes/HdriTest/FullRes/nz.png";
+			auto cubemap = Engine::TextureCubeMap::Utils::FromFile(paths.GetArray());
+
 			/* Add Camera */
 			_camera = _scene->CreateEntity("Camera");
 			_camera.GetTransform().position.z += 5.0f;
@@ -197,6 +256,8 @@ public:
 			cc.renderPipeline = _standardRenderPipeline;
 			cc.type = Engine::CameraType::Perspective;
 			cc.farPlane = 1000000;
+			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
+			cc.skyboxCubemap = cubemap;
 			/*_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
 				cc.aspectRatio = _window->GetAspect();
 			});*/
@@ -212,9 +273,7 @@ public:
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		{
-			//_fpsCameraController.OnUpdate(_camera.GetTransform(), ts);
 			_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
-			//auto& cc = _camera.GetComponent<Engine::CameraComponent>();
 		}
 
 		/* Render Axis */
@@ -222,75 +281,21 @@ public:
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
 
-
-		/* {
-			static glm::vec2 _prevMousePosition = { 0,0 };
-			glm::vec2 mousePosition = _inputManager->GetMousePosition();
-			glm::vec2 diff = mousePosition - _prevMousePosition;
-			glm::vec2 mouseDelta = { diff.x, -diff.y };
-			_prevMousePosition = mousePosition;
-
-			auto& transform = _camera.GetTransform();
-
-			static float mouseSensitivity = 0.25f;
-			static float cameraSpeed = 5.0f;
-			static glm::vec3 cameraFront = { 0,0,-1 };
-			static glm::vec3 cameraUp = { 0,1,0 };
-
-			cameraFront = transform.GetForwardDirection();
-			cameraUp = transform.GetUpDirection();
-
-			if (_inputManager->IsButtonPressed(Engine::MouseButton::Right)) {
-				_inputManager->SetCursorMode(Engine::CursorMode::Disabled);
-
-				float newRotationX = transform.rotation.x - mouseDelta.y * mouseSensitivity;
-				float newRotationY = transform.rotation.y + mouseDelta.x * mouseSensitivity;
-				newRotationX = glm::clamp(newRotationX, -89.0f, 89.0f);
-
-				float newRotationZ = transform.rotation.z;
-				float speed = cameraSpeed * ts;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::E))
-					newRotationZ += speed * 3.0f;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::Q))
-					newRotationZ -= speed * 3.0f;
-
-				transform.rotation = { newRotationX, newRotationY, newRotationZ };
-
-				glm::vec3 cameraRight = glm::normalize(glm::cross(cameraFront, cameraUp));
-
-				glm::vec3 newCameraPosition = transform.position;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::W))
-					newCameraPosition += cameraFront * speed;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::S))
-					newCameraPosition -= cameraFront * speed;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::A))
-					newCameraPosition -= cameraRight * speed;
-				if (_inputManager->IsKeyPressed(Engine::Keycode::D))
-					newCameraPosition += cameraRight * speed;
-				transform.position = newCameraPosition;
-			}
-			else
-				_inputManager->SetCursorMode(Engine::CursorMode::Normal);
-
-			auto& cc = _camera.GetComponent<Engine::CameraComponent>();
-			cc.view = cc.CalculateViewMatrix(transform);
-		}*/
-
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
 		/* Render Bounding Box */
-		auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
-		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
-		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
+		//auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
+		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
+		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
 
 		/* Render Scene */
 		_scene->RenderScene();

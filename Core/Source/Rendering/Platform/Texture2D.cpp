@@ -6,7 +6,7 @@
 using namespace Engine;
 
 void Texture2D::SetData(const void* data) {
-	Bind();
+	BindInternal();
 	SetDataInternal(GL_TEXTURE_2D, data);
 	Unbind();
 }

@@ -8,14 +8,108 @@
 #include "Rendering/RenderManager.h"
 #include "ECS/Components/Native/Components.h"
 
+#pragma region Skybox Shader
+const char* skyboxVertexShader = R"(
+#version 330 core
+layout (location = 0) in vec3 aPos;
+
+out vec3 TexCoords;
+
+uniform mat4 projection;
+uniform mat4 view;
+
+void main()
+{
+    TexCoords = aPos;
+    vec4 pos = projection * view * vec4(aPos, 1.0);
+    gl_Position = pos.xyww;
+}
+)";
+
+const char* skyboxFragmentShader = R"(
+#version 330 core
+out vec4 FragColor;
+
+in vec3 TexCoords;
+
+uniform samplerCube skybox;
+
+void main()
+{
+    FragColor = texture(skybox, TexCoords);
+    //FragColor = vec4(TexCoords,1.0);
+}
+)";
+
+#pragma endregion
+
 class SRP : public Engine::BaseRenderPipeline {
 private:
 	struct CameraData { glm::mat4 projection; glm::mat4 view; };
 	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
+	std::shared_ptr<Engine::Shader> _skyboxShader;
+	std::shared_ptr<Engine::VertexArrayObject> _skyboxVao;
 public:
 	virtual void Initialize(std::shared_ptr<Engine::Framebuffer> mainFramebuffer) {
 		Engine::BaseRenderPipeline::Initialize(mainFramebuffer);
 		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0, Engine::BufferUsage::Dynamic);
+		_skyboxShader = std::make_shared<Engine::Shader>();
+		_skyboxShader->AttachFragmentShader(skyboxFragmentShader);
+		_skyboxShader->AttachVertexShader(skyboxVertexShader);
+		_skyboxShader->Link();
+	#pragma region Skybox Data
+		float skyboxVertices[] = {
+			// positions          
+			-1.0f,  1.0f, -1.0f,
+			-1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f, -1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+
+			-1.0f, -1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f,
+			-1.0f, -1.0f,  1.0f,
+
+			-1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f, -1.0f,
+			 1.0f,  1.0f,  1.0f,
+			 1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f,  1.0f,
+			-1.0f,  1.0f, -1.0f,
+
+			-1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f, -1.0f,
+			 1.0f, -1.0f, -1.0f,
+			-1.0f, -1.0f,  1.0f,
+			 1.0f, -1.0f,  1.0f
+		};
+	#pragma endregion
+		_skyboxVao = std::make_shared<Engine::VertexArrayObject>();
+		auto skyboxVbo = std::make_shared<Engine::VertexBufferObject>(Engine::BufferUsage::Static);
+		skyboxVbo->SetData(skyboxVertices, 36, {
+			{ "aPos", Engine::LType::Float, 3 }
+						   });
+		_skyboxVao->AddVertexBuffer(skyboxVbo);
+		_skyboxVao->Compute();
 	}
 
 	void RenderScene(Engine::Scene& scene) {
@@ -47,6 +141,19 @@ public:
 		RenderOpaqueObjects(scene);
 		RenderDebugMeshes(scene, viewportSize);
 
+		// Render Skybox
+		if (camera.backgroundType == Engine::CameraComponent::BackgroundType::Skybox) {
+			_skyboxShader->Bind();
+			_skyboxShader->SetUniform("skybox", 0);
+			_skyboxShader->SetUniform("projection", cameraData.projection);
+			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
+			camera.skyboxCubemap->Bind(0);
+
+			glDepthMask(GL_FALSE);
+			Engine::RenderCommands::RenderMesh(*_skyboxVao, *_skyboxShader);
+			glDepthMask(GL_TRUE);
+		}
+
 		framebuffer->Unbind();
 	}
 
@@ -61,13 +168,13 @@ public:
 				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
-				auto& shader = *renderer.shader;
+				auto& material = *renderer.material;
 				auto& mesh = *filter.mesh;
 
 				glm::mat4 model = transform.GetTransformMatrix();
-				shader.SetUniform("model", model);
+				material.GetShader().SetUniform("model", model);
 
-				Engine::RenderCommands::RenderMesh(mesh, shader);
+				Engine::RenderCommands::RenderMesh(mesh, material);
 			}
 		}
 

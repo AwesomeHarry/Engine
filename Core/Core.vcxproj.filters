@@ -119,6 +119,7 @@
     <ClInclude Include="Source\Rendering\BufferBit.h" />
     <ClInclude Include="Source\Rendering\Platform\Texture2D.h" />
     <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h" />
+    <ClInclude Include="Source\Rendering\Platform\Material.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">

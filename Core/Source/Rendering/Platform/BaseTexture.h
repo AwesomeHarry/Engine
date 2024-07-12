@@ -20,8 +20,8 @@ namespace Engine {
 		BaseTexture(TextureType type, const TextureSpec& spec);
 		~BaseTexture();
 
-		void Bind(uint32_t slot);
-		void Unbind();
+		void Bind(uint32_t slot) const;
+		void Unbind() const;
 
 		inline uint32_t GetID() const { return _id; }
 		inline uint32_t GetWidth() const { return _width; }
@@ -30,7 +30,7 @@ namespace Engine {
 		inline uint32_t GetDataFormat() const { return _dataFormat; }
 		inline uint32_t GetDataType() const { return _dataType; }
 	protected:
-		void Bind();
+		void BindInternal() const;
 		void SetDataInternal(uint32_t target, const void* data);
 		uint32_t TextureTypeToOpenGLTextureType(TextureType type);
 	protected:
