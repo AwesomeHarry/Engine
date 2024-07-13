@@ -220,10 +220,6 @@ public:
 			auto cubemap = Engine::TextureCubeMap::Utils::FromFile(paths.GetArray());
 
 			cc.skyboxCubemap = cubemap;
-
-			/*_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
-				cc.aspectRatio = _window->GetAspect();
-			});*/
 		}
 
 		_fpsCameraController = FPSCameraController(_inputManager);

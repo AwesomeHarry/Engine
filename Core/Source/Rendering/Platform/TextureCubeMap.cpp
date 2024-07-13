@@ -5,7 +5,7 @@
 
 using namespace Engine;
 
-void TextureCubeMap::SetData(const std::vector<float*>& data) {
+void TextureCubeMap::SetData(const std::vector<void*>& data) {
 	BindInternal();
 	for (uint32_t i = 0; i < data.size(); i++) {
 		SetDataInternal(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, data[i]);
@@ -14,7 +14,7 @@ void TextureCubeMap::SetData(const std::vector<float*>& data) {
 }
 
 void Engine::TextureCubeMap::SetData(const CubeMapData& data) {
-	//SetData(data.GetArray());
+	SetData(data.GetArray());
 }
 
 std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const std::vector<std::string>& paths) {

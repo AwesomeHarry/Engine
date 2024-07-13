@@ -7,14 +7,14 @@
 
 namespace Engine {
 	struct CubeMapData {
-		uint8_t* positiveX;
-		uint8_t* negativeX;
-		uint8_t* positiveY;
-		uint8_t* negativeY;
-		uint8_t* positiveZ;
-		uint8_t* negativeZ;
+		void* positiveX;
+		void* negativeX;
+		void* positiveY;
+		void* negativeY;
+		void* positiveZ;
+		void* negativeZ;
 
-		std::vector<uint8_t*> GetArray() const {
+		std::vector<void*> GetArray() const {
 			return { positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ };
 		}
 	};
@@ -38,7 +38,7 @@ namespace Engine {
 			: BaseTexture(TextureType::TexCubeMap, spec) {}
 		~TextureCubeMap() = default;
 
-		void SetData(const std::vector<float*>& data);
+		void SetData(const std::vector<void*>& data);
 		void SetData(const CubeMapData& data);
 
 		struct Utils {
