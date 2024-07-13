@@ -20,7 +20,7 @@ BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
 	_id(0),
 	_internalFormat(0), _dataFormat(0), _dataType(0) {
 
-	_internalFormat = Utils::ImageFormatToOpenGLDataFormat(spec.format);
+	_internalFormat = Utils::ImageFormatToOpenGLInternalFormat(spec.format);
 	_dataFormat = Utils::ImageFormatToOpenGLDataFormat(spec.format);
 	_dataType = Utils::ImageFormatToOpenGLDataType(spec.format);
 
@@ -55,7 +55,6 @@ void BaseTexture::SetDataInternal(uint32_t target, const void* data) {
 	}
 }
 
-
 uint32_t BaseTexture::TextureTypeToOpenGLTextureType(TextureType type) {
 	switch (type) {
 	case TextureType::Tex2D: return GL_TEXTURE_2D;
@@ -64,4 +63,52 @@ uint32_t BaseTexture::TextureTypeToOpenGLTextureType(TextureType type) {
 
 	ENGINE_ERROR("Unsupported texture type");
 	return 0;
+}
+
+#include <stb_image.h>
+
+namespace Engine::Texture::Utils {
+	bool hasExtension(const std::string& filepath, const std::string& extension) {
+		if (filepath.length() >= extension.length())
+			return 0 == filepath.compare(filepath.length() - extension.length(), extension.length(), extension);
+		return false;
+	}
+
+	FileTextureData LoadFromFile(const std::string& path) {
+		FileTextureData data;
+		int channels;
+		if (hasExtension(path, ".hdr")) {
+			float* fdata = stbi_loadf(path.c_str(), &data.width, &data.height, &channels, 0);
+			if (fdata) {
+				data.data = fdata;
+				switch (channels) {
+				case 3: data.format = ImageFormat::RGB32F; break;
+				case 4: data.format = ImageFormat::RGBA32F; break;
+				default:
+					ENGINE_ERROR("Unsupported number of channels: {}", channels);
+					stbi_image_free(fdata);
+					break;
+				}
+				return data;
+			}
+		}
+		else {
+			unsigned char* udata = stbi_load(path.c_str(), &data.width, &data.height, &channels, 0);
+			if (udata) {
+				data.data = udata;
+				switch (channels) {
+				case 3: data.format = ImageFormat::RGB8; break;
+				case 4: data.format = ImageFormat::RGBA8; break;
+				default:
+					ENGINE_ERROR("Unsupported number of channels: {}", channels);
+					stbi_image_free(udata);
+					break;
+				}
+				return data;
+			}
+		}
+
+		ENGINE_ERROR("Failed to load texture from path: {}", path);
+		return { 0, 0, ImageFormat::RGBA8, nullptr };
+	}
 }

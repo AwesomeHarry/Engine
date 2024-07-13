@@ -40,3 +40,15 @@ namespace Engine {
 		uint32_t _internalFormat, _dataFormat, _dataType;
 	};
 }
+
+#include <string>
+
+namespace Engine::Texture::Utils {
+	struct FileTextureData {
+		int32_t width, height;
+		ImageFormat format;
+		void* data;
+	};
+
+	FileTextureData LoadFromFile(const std::string& path);
+}

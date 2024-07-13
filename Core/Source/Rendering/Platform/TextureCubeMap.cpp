@@ -23,30 +23,13 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const std::vecto
 
 	stbi_set_flip_vertically_on_load(false);
 	for (const auto& path : paths) {
-		int channels;
-		float* data = stbi_loadf(path.c_str(), &spec.width, &spec.height, &channels, 0);
+		auto fileData = Texture::Utils::LoadFromFile(path);
 
-		float min=100, max=0;
-		for (int i = 0; i < 100000; i++) {
-			if (data[i] < min) min = data[i];
-			if (data[i] > max) max = data[i];
-		}
-		ENGINE_TRACE("Min: {}, Max: {}", min, max);
+		spec.width = fileData.width;
+		spec.height = fileData.height;
+		spec.format = fileData.format;
 
-		if (!data) {
-			ENGINE_WARN("Failed to load texture from path: {}", path);
-			return nullptr;
-		}
-
-		if (channels == 3) spec.format = ImageFormat::RGB16F;
-		else if (channels == 4) spec.format = ImageFormat::RGBA16F;
-		else {
-			ENGINE_ERROR("Unsupported number of channels: {}", channels);
-			stbi_image_free(data);
-			return nullptr;
-		}
-
-		cubemapData.push_back(data);
+		cubemapData.push_back(reinterpret_cast<float*>(fileData.data));
 	}
 
 	auto texture = std::make_shared<TextureCubeMap>(spec);
