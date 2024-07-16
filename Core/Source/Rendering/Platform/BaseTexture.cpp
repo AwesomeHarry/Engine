@@ -32,9 +32,9 @@ BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
 
 	glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_REPEAT);
 
 	glBindTexture(GL_TEXTURE_2D, 0);
 }
@@ -82,8 +82,8 @@ namespace Engine::Texture::Utils {
 			if (fdata) {
 				data.data = fdata;
 				switch (channels) {
-				case 3: data.format = ImageFormat::RGB32F; break;
-				case 4: data.format = ImageFormat::RGBA32F; break;
+				case 3: data.format = ImageFormat::RGB16F; break;
+				case 4: data.format = ImageFormat::RGBA16F; break;
 				default:
 					ENGINE_ERROR("Unsupported number of channels: {}", channels);
 					stbi_image_free(fdata);
@@ -97,6 +97,7 @@ namespace Engine::Texture::Utils {
 			if (udata) {
 				data.data = udata;
 				switch (channels) {
+				case 1: data.format = ImageFormat::R8; break;
 				case 3: data.format = ImageFormat::RGB8; break;
 				case 4: data.format = ImageFormat::RGBA8; break;
 				default:
@@ -107,8 +108,5 @@ namespace Engine::Texture::Utils {
 				return data;
 			}
 		}
-
-		ENGINE_ERROR("Failed to load texture from path: {}", path);
-		return { 0, 0, ImageFormat::RGBA8, nullptr };
 	}
 }

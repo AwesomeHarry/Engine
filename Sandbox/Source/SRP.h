@@ -126,6 +126,7 @@ public:
 
 	virtual void RenderScene(Engine::Scene& scene, Engine::Entity& cameraEntity) override {
 		auto& camera = cameraEntity.GetComponent<Engine::CameraComponent>();
+		auto& cameraTransform = cameraEntity.GetTransform();
 		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _mainFb : camera.renderFramebuffer;
 
 		framebuffer->Bind();
@@ -137,13 +138,13 @@ public:
 		glm::vec2 viewportSize = { framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 		float aspect = viewportSize.x / viewportSize.y;
 		cameraData.projection = camera.GetProjectionMatrix(aspect);
-		cameraData.view = camera.CalculateViewMatrix(cameraEntity.GetTransform());
+		cameraData.view = camera.CalculateViewMatrix(cameraTransform);
 
 		_cameraDataUbo->Bind();
 		_cameraDataUbo->SetData(&cameraData, sizeof(CameraData), 0);
 
 
-		RenderOpaqueObjects(scene);
+		RenderOpaqueObjects(scene, cameraTransform);
 		RenderDebugMeshes(scene, viewportSize);
 
 		// Render Skybox
@@ -163,7 +164,7 @@ public:
 		framebuffer->Unbind();
 	}
 
-	void RenderOpaqueObjects(Engine::Scene& scene) {
+	void RenderOpaqueObjects(Engine::Scene& scene, Engine::TransformComponent& cameraTransform) {
 		auto& reg = scene.GetRegistry();
 
 		/* Render Meshes */
@@ -177,8 +178,42 @@ public:
 				auto& material = *renderer.material;
 				auto& mesh = *filter.mesh;
 
-				glm::mat4 model = transform.GetTransformMatrix();
-				material.GetShader().SetUniform("model", model);
+				auto& shader = material.GetShader();
+
+				shader.SetUniform("model", transform.GetTransformMatrix());
+
+				// Material Properties
+				{
+					shader.SetUniform("viewPosition", cameraTransform.GetPosition());
+
+					static glm::vec3 lightDir = glm::vec3(0.0f, -1.0f, 0.0f);
+					if (ImGui::DragFloat3("Light Direction", &lightDir.x, 0.01f)) {}
+					shader.SetUniform("lightDirection", lightDir);
+
+					static float roughness = 0.5f;
+					if (ImGui::DragFloat("Roughness", &roughness, 0.025f, 0.0f, 1.0f)) {}
+					shader.SetUniform("roughness", roughness);
+
+					static glm::vec3 surfaceColor = glm::vec3(1.0);
+					ImGui::ColorEdit3("Surface Color", &surfaceColor.x);
+					shader.SetUniform("surfaceColor", surfaceColor);
+
+					static glm::vec3 lightColor = glm::vec3(1.0);
+					ImGui::ColorEdit3("Light Color", &lightColor.x);
+					shader.SetUniform("lightColor", lightColor);
+
+					static glm::vec3 ambientColor = glm::vec3(.05);
+					ImGui::ColorEdit3("Ambient Color", &ambientColor.x);
+					shader.SetUniform("ambientColor", ambientColor);
+
+					static float texScale = 1.0f;
+					ImGui::DragFloat("Texture Scale", &texScale, 0.01f, 0.0f);
+					shader.SetUniform("texScale", texScale);
+
+					static int debugMode = 0;
+					if (ImGui::DragInt("Debug Mode", &debugMode, 0.01f, 0))
+						shader.SetUniform("debugMode", debugMode);
+				}
 
 				Engine::RenderCommands::RenderMesh(mesh, material);
 			}

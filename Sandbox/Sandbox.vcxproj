@@ -90,18 +90,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\BoundingBox.h" />
+    <ClInclude Include="Source\FPSCameraController.h" />
+    <ClInclude Include="Source\OrbitCameraController.h" />
+    <ClInclude Include="Source\SRP.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="Source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Core\Core.vcxproj">
       <Project>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="Source\BoundingBox.h" />
-    <ClInclude Include="Source\OrbitCameraController.h" />
-    <ClInclude Include="Source\FPSCameraController.h" />
-    <ClInclude Include="Source\SRP.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

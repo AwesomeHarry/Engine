@@ -29,45 +29,122 @@
 
 const char* vertexShaderSource = R"glsl(
 #version 330 core
+
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNor;
 layout(location = 2) in vec4 aTan;
 layout(location = 3) in vec2 aTex;
+
 layout (std140) uniform CameraData {
 	mat4 projection;
 	mat4 view;
 };
 uniform mat4 model;
-out vec3 pos;
-out vec3 nor;
-out vec4 tan;
-out vec2 tex;
+
+out vec3 vPos;
+out vec3 vNor;
+out vec2 vTex;
+
 void main()
 {
-	tan=aTan;
-	tex=aTex;
-    nor = mat3(transpose(inverse(model))) * aNor;
-    pos = vec3(model * vec4(aPos, 1.0));
-    gl_Position = projection * view * vec4(pos, 1.0);
+	vTex=aTex;
+    vNor = mat3(transpose(inverse(model))) * aNor;
+    vPos = vec3(model * vec4(aPos, 1.0));
+
+    gl_Position = projection * view * vec4(vPos, 1.0);
 }
 )glsl";
 
 const char* fragmentShaderSource = R"glsl(
 #version 330 core
+
 out vec4 FragColor;
 
-uniform sampler2D tex0;
+in vec3 vPos;
+in vec3 vNor;
+in vec2 vTex;
 
-in vec3 pos;
-in vec3 nor;
-in vec4 tan;
-in vec2 tex;
+uniform vec3 viewPosition;
+uniform vec3 lightDirection;
+uniform float roughness = 0.01;
+
+uniform vec3 surfaceColor = vec3(1.0);
+uniform vec3 lightColor = vec3(1.0);
+uniform vec3 ambientColor = vec3(0.05);
+
+uniform float texScale = 1.0;
+
+uniform int debugMode = 0;
+
+const float PI = 3.1415926535;
+
+vec3 fresnelSchlick(float VdotH, vec3 F0) 
+{
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+}
+
+float distributionGGX(float NdotH, float roughness)
+{
+	float r2 = roughness * roughness;
+	float d = (NdotH * r2 - NdotH) * NdotH + 1.0;
+	return r2 / (d * d * PI);
+}
+
+float geometeryGGX(float NdotL, float NdotV, float roughness)
+{
+	float r2 = roughness * roughness;
+	
+	float Gl = 2 * NdotL / (NdotL + sqrt(r2 + (1.0 - r2) * NdotL * NdotL));
+	float Gv = 2 * NdotV / (NdotV + sqrt(r2 + (1.0 - r2) * NdotV * NdotV));
+	
+	return Gl * Gv;
+}
+
+vec3 triplanarMapping(sampler2D tex, vec3 pos, vec3 normal)
+{
+    vec3 blendWeights = abs(normal);
+    blendWeights = blendWeights / (blendWeights.x + blendWeights.y + blendWeights.z);
+    
+    vec2 uvX = pos.zy * texScale;
+    vec2 uvY = pos.xz * texScale;
+    vec2 uvZ = pos.xy * texScale;
+    
+    vec3 colorX = texture(tex, uvX).rgb;
+    vec3 colorY = texture(tex, uvY).rgb;
+    vec3 colorZ = texture(tex, uvZ).rgb;
+    
+    return colorX * blendWeights.x + colorY * blendWeights.y + colorZ * blendWeights.z;
+}
 
 void main()
 {
-    //FragColor = vec4(1.0, 0.5, 0.2, 1.0);
-    //FragColor = vec4(normalize(nor), 1.0);
-	FragColor = texture(tex0, tex);
+	vec3 N = normalize(vNor);
+    float materialRoughness = roughness;
+	vec3 L = normalize(-lightDirection);
+    vec3 V = normalize(viewPosition - vPos);
+    
+	vec3 H = normalize(V + L);
+
+	float NdotH = max(dot(N, H), 0.0);
+	float VdotH = max(dot(V, H), 0.0);
+	float NdotL = max(dot(N, L), 0.0);
+	float NdotV = max(dot(N, V), 0.0);
+
+    vec3 F0 = vec3(0.04);
+    vec3 fresnel = fresnelSchlick(VdotH, F0);
+	float distribution = distributionGGX(NdotH, materialRoughness);
+	float geometery = geometeryGGX(NdotL, NdotV, materialRoughness);
+
+    vec3 specular = fresnel * distribution * geometery / max(4.0 * NdotL * NdotV, 0.00001);
+
+	vec3 sColor = surfaceColor;
+	vec3 diffuse = ambientColor + sColor / PI;
+
+	// Lighting eqn
+	vec3 color = (diffuse + specular) * lightColor * NdotL;
+
+    color = pow(color, vec3(1.0/2.2)); // Gamma correction
+    FragColor = vec4(color, 1.0);
 }
 )glsl";
 
@@ -175,8 +252,9 @@ public:
 		{
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Monkeh");
-			auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/LowRes.gltf");
-			//auto model = Engine::GltfIO::LoadFile("Resources/Sponza_Complex/sponza_complex.gltf");
+			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/LowRes.gltf");
+			auto model = Engine::GltfIO::LoadFile("Resources/Models/Sponza_Complex/Sponza_C omplex.gltf");
+			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
 
 			const auto& mesh = model.meshes[0];
 			for (const auto& primitive : mesh.primitives) {
@@ -244,17 +322,17 @@ public:
 		_scene->UpdateScene(ts);
 
 		/* Render Bounding Box */
-		auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
-		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
-		_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
+		//auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
+		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
+		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
+		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
 
 		/* Render Scene */
 		_scene->RenderScene();

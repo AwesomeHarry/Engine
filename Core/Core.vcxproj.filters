@@ -9,31 +9,34 @@
     <ClInclude Include="Source\Core\Application\Layer.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Core\Logging\LoggingManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\GraphicsContext.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\BaseRenderPipeline.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\RenderCommands.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\RenderManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Core\Application\Root.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Core\Application\Window.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Core\Input\InputCommon.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Input\InputSystem.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Core\Logging\LoggingManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ECS\Components\Native\BaseComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Native\BoundingBoxComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Native\CameraComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ECS\Components\Native\Components.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Native\DebugShapeManager.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\ECS\Components\Native\MeshFilterComponent.h">
@@ -45,6 +48,9 @@
     <ClInclude Include="Source\ECS\Components\Native\NameComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\ECS\Components\Native\TransformComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\ECS\Scene\Entity.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -54,19 +60,25 @@
     <ClInclude Include="Source\Logging\Logging.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rendering\BaseRenderPipeline.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\BufferBit.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\GraphicsContext.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\BaseTexture.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Rendering\Platform\Buffer\BufferCommon.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rendering\Platform\Buffer\IndexBufferObject.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Rendering\Platform\Mesh.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\Platform\Shader.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\Platform\BaseTexture.h">
+    <ClInclude Include="Source\Rendering\Platform\Buffer\UniformBufferObject.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rendering\Platform\Buffer\VertexArrayObject.h">
@@ -75,7 +87,46 @@
     <ClInclude Include="Source\Rendering\Platform\Buffer\VertexBufferObject.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\Framebuffer.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\ImageFormat.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\Material.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\Mesh.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\Shader.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\Texture2D.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\RenderCommands.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Rendering\RenderManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\EntityPropertiesUI_ImGui.h">
@@ -99,39 +150,30 @@
     <ClInclude Include="Source\Util\FileIO.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\Util\FlagSet.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Util\Math\Transform.h">
+      <Filter>Source</Filter>
+    </ClInclude>
     <ClInclude Include="Source\Util\Mesh\GltfIO.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\TransformComponent.h" />
-    <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h" />
-    <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h" />
-    <ClInclude Include="Source\Rendering\Platform\Buffer\UniformBufferObject.h" />
-    <ClInclude Include="Source\ECS\Components\Native\CameraComponent.h" />
-    <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h" />
-    <ClInclude Include="Source\Core\Input\InputSystem.h" />
-    <ClInclude Include="Source\Core\Input\InputCommon.h" />
-    <ClInclude Include="Source\Rendering\Platform\Framebuffer.h" />
-    <ClInclude Include="Source\Rendering\Platform\ImageFormat.h" />
-    <ClInclude Include="Source\ECS\Components\Native\DebugShapeManager.h" />
-    <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h" />
-    <ClInclude Include="Source\ECS\Components\Native\BoundingBoxComponent.h" />
-    <ClInclude Include="Source\Util\Math\Transform.h" />
-    <ClInclude Include="Source\Rendering\BufferBit.h" />
-    <ClInclude Include="Source\Rendering\Platform\Texture2D.h" />
-    <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h" />
-    <ClInclude Include="Source\Rendering\Platform\Material.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\RenderCommands.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Core\Application\Root.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Core\Application\Window.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Input\InputSystem.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\ECS\Components\Native\MeshRendererComponent.cpp">
@@ -140,16 +182,16 @@
     <ClCompile Include="Source\ECS\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Buffer\IndexBufferObject.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Mesh.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Shader.cpp">
+    <ClCompile Include="Source\Rendering\IRenderPipeline.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Buffer\IndexBufferObject.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Buffer\UniformBufferObject.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexArrayObject.cpp">
@@ -158,18 +200,32 @@
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexBufferObject.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Framebuffer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Mesh.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Shader.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\TextureCubeMap.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\RenderCommands.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\RenderManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Buffer\UniformBufferObject.cpp" />
-    <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
-    <ClCompile Include="Source\Rendering\Platform\Framebuffer.cpp" />
-    <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp" />
-    <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
-    <ClCompile Include="Source\Rendering\RenderManager.cpp" />
-    <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp" />
-    <ClCompile Include="Source\Util\FlagSet.h" />
-    <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp" />
-    <ClCompile Include="Source\Rendering\Platform\TextureCubeMap.cpp" />
   </ItemGroup>
 </Project>

@@ -24,6 +24,6 @@ std::shared_ptr<Texture2D> Texture2D::Utils::FromFile(const std::string& path) {
 	auto texture = std::make_shared<Texture2D>(spec);
 	texture->SetData(fileData.data);
 
-	stbi_image_free(fileData.data);
+	free(fileData.data);
 	return texture;
 }

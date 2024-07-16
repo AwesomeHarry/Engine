@@ -19,7 +19,7 @@ void Engine::TextureCubeMap::SetData(const CubeMapData& data) {
 
 std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const std::vector<std::string>& paths) {
 	TextureSpec spec;
-	std::vector<float*> cubemapData;
+	std::vector<void*> cubemapData;
 
 	stbi_set_flip_vertically_on_load(false);
 	for (const auto& path : paths) {
@@ -29,7 +29,7 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const std::vecto
 		spec.height = fileData.height;
 		spec.format = fileData.format;
 
-		cubemapData.push_back(reinterpret_cast<float*>(fileData.data));
+		cubemapData.push_back(fileData.data);
 	}
 
 	auto texture = std::make_shared<TextureCubeMap>(spec);

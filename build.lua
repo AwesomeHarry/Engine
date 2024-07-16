@@ -77,7 +77,7 @@ project "tiny_gltf"
     filter "configurations:Release"
         defines { "NDEBUG" }
         optimize "On"
-        
+
 group ""
 
 project "Core"
