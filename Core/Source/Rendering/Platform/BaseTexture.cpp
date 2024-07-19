@@ -6,8 +6,8 @@
 using namespace Engine;
 
 void BaseTexture::Bind(uint32_t slot) const {
-	BindInternal();
 	glActiveTexture(GL_TEXTURE0 + slot);
+	BindInternal();
 }
 
 void BaseTexture::Unbind() const {

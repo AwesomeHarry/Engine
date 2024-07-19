@@ -11,10 +11,10 @@ void Texture2D::SetData(const void* data) {
 	Unbind();
 }
 
-std::shared_ptr<Texture2D> Texture2D::Utils::FromFile(const std::string& path) {
+std::shared_ptr<Texture2D> Texture2D::Utils::FromFile(const std::string& path, bool flipV) {
 	TextureSpec spec;
 
-	stbi_set_flip_vertically_on_load(true);
+	stbi_set_flip_vertically_on_load(flipV);
 	auto fileData = Texture::Utils::LoadFromFile(path);
 
 	spec.width = fileData.width;

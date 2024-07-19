@@ -13,7 +13,7 @@ namespace Engine {
 		void SetData(const void* data);
 
 		struct Utils {
-			static std::shared_ptr<Texture2D> FromFile(const std::string& path);
+			static std::shared_ptr<Texture2D> FromFile(const std::string& path, bool flipV = true);
 		};
 	};
 }

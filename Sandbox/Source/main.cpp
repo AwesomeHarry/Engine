@@ -32,8 +32,7 @@ const char* vertexShaderSource = R"glsl(
 
 layout(location = 0) in vec3 aPos;
 layout(location = 1) in vec3 aNor;
-layout(location = 2) in vec4 aTan;
-layout(location = 3) in vec2 aTex;
+layout(location = 2) in vec2 aTex;
 
 layout (std140) uniform CameraData {
 	mat4 projection;
@@ -47,7 +46,7 @@ out vec2 vTex;
 
 void main()
 {
-	vTex=aTex;
+	vTex = aTex;
     vNor = mat3(transpose(inverse(model))) * aNor;
     vPos = vec3(model * vec4(aPos, 1.0));
 
@@ -64,87 +63,133 @@ in vec3 vPos;
 in vec3 vNor;
 in vec2 vTex;
 
-uniform vec3 viewPosition;
-uniform vec3 lightDirection;
-uniform float roughness = 0.01;
+uniform vec3 cameraPosition;
+uniform vec3 lightPosition;
+uniform vec3 lightColor;
+uniform vec3 albedo;
+uniform vec3 emission;
+uniform float roughness;
+uniform float metallic;
 
-uniform vec3 surfaceColor = vec3(1.0);
-uniform vec3 lightColor = vec3(1.0);
-uniform vec3 ambientColor = vec3(0.05);
+uniform bool useAlbedoMap;
+uniform sampler2D albedoMap;
 
-uniform float texScale = 1.0;
+uniform bool useEmissionMap;
+uniform sampler2D emissionMap;
 
-uniform int debugMode = 0;
+uniform bool useNormalMap;
+uniform sampler2D normalMap;
+
+uniform bool useRoughnessMap;
+uniform sampler2D roughnessMap;
 
 const float PI = 3.1415926535;
 
-vec3 fresnelSchlick(float VdotH, vec3 F0) 
+vec3 GetNormalFromMap()
 {
-    return F0 + (1.0 - F0) * pow(clamp(1.0 - VdotH, 0.0, 1.0), 5.0);
+    vec3 tangentNormal = texture(normalMap, vTex).xyz * 2.0 - 1.0;
+
+    vec3 Q1  = dFdx(vPos);
+    vec3 Q2  = dFdy(vPos);
+    vec2 st1 = dFdx(vTex);
+    vec2 st2 = dFdy(vTex);
+
+    vec3 N = normalize(vNor);
+    vec3 T  = normalize(Q1 * st2.t - Q2 * st1.t);
+    vec3 B  = -normalize(cross(N, T));
+    mat3 TBN = mat3(T, B, N);
+
+    return normalize(TBN * tangentNormal);
 }
 
-float distributionGGX(float NdotH, float roughness)
+// GGX / Trowbridge-Reitz Normal Distribution Function
+float D(float alpha, vec3 N, vec3 H)
 {
-	float r2 = roughness * roughness;
-	float d = (NdotH * r2 - NdotH) * NdotH + 1.0;
-	return r2 / (d * d * PI);
+	float a2 = alpha * alpha;
+
+	float numerator = a2;
+
+	float NdotH = max(dot(N, H), 0.0);
+	float denominator = PI * pow(NdotH * NdotH * (a2 - 1.0) + 1.0, 2.0);
+	denominator = max(denominator, 0.000001);
+
+	return numerator / denominator;
 }
 
-float geometeryGGX(float NdotL, float NdotV, float roughness)
+// Schlick-Beckmann Geometry Shadowing Function
+float G1(float alpha, vec3 N, vec3 X)
 {
-	float r2 = roughness * roughness;
-	
-	float Gl = 2 * NdotL / (NdotL + sqrt(r2 + (1.0 - r2) * NdotL * NdotL));
-	float Gv = 2 * NdotV / (NdotV + sqrt(r2 + (1.0 - r2) * NdotV * NdotV));
-	
-	return Gl * Gv;
+	float NdotX = max(dot(N, X), 0.0);
+	float numerator = NdotX;
+
+	float k = alpha / 2.0;
+	float denominator = NdotX * (1.0 - k) + k;
+	denominator = max(denominator, 0.000001);
+
+	return numerator / denominator;
 }
 
-vec3 triplanarMapping(sampler2D tex, vec3 pos, vec3 normal)
+// Smith Model
+float G(float alpha, vec3 N, vec3 V, vec3 L)
 {
-    vec3 blendWeights = abs(normal);
-    blendWeights = blendWeights / (blendWeights.x + blendWeights.y + blendWeights.z);
-    
-    vec2 uvX = pos.zy * texScale;
-    vec2 uvY = pos.xz * texScale;
-    vec2 uvZ = pos.xy * texScale;
-    
-    vec3 colorX = texture(tex, uvX).rgb;
-    vec3 colorY = texture(tex, uvY).rgb;
-    vec3 colorZ = texture(tex, uvZ).rgb;
-    
-    return colorX * blendWeights.x + colorY * blendWeights.y + colorZ * blendWeights.z;
+	return G1(alpha, N, V) * G1(alpha, N, L);
+}
+
+// Fresnel-Schlick Function
+vec3 F(vec3 F0, vec3 V, vec3 H)
+{
+	float VdotH = max(dot(V, H), 0.0);
+	return F0 + (vec3(1.0) - F0) * pow(1.0 - VdotH, 5.0);
 }
 
 void main()
 {
-	vec3 N = normalize(vNor);
-    float materialRoughness = roughness;
-	vec3 L = normalize(-lightDirection);
-    vec3 V = normalize(viewPosition - vPos);
-    
+	vec3 N;
+	if (useNormalMap)
+		N = GetNormalFromMap();
+	else
+		N = normalize(vNor);
+
+	vec3 V = normalize(cameraPosition - vPos);
+	// For directional lights
+	vec3 L = normalize(lightPosition);
+
 	vec3 H = normalize(V + L);
+	
+	vec3 F0 = vec3(0.04);
+	vec3 fresnel = F(F0, V, H);
 
-	float NdotH = max(dot(N, H), 0.0);
-	float VdotH = max(dot(V, H), 0.0);
-	float NdotL = max(dot(N, L), 0.0);
-	float NdotV = max(dot(N, V), 0.0);
+	vec3 Ks = fresnel;
+	vec3 Kd = vec3(1.0) - Ks;
 
-    vec3 F0 = vec3(0.04);
-    vec3 fresnel = fresnelSchlick(VdotH, F0);
-	float distribution = distributionGGX(NdotH, materialRoughness);
-	float geometery = geometeryGGX(NdotL, NdotV, materialRoughness);
+	float materialRoughness = roughness;
+	float materialMetallic = metallic;
+	if (useRoughnessMap) {
+		materialRoughness += texture(roughnessMap, vTex).g;
+		materialMetallic += texture(roughnessMap, vTex).b;
+	}
+	
+    Kd *= 1.0 - materialMetallic;
 
-    vec3 specular = fresnel * distribution * geometery / max(4.0 * NdotL * NdotV, 0.00001);
+	vec3 lambert = albedo / PI;
+	if (useAlbedoMap)
+		lambert *= texture(albedoMap,vTex).rgb;
 
-	vec3 sColor = surfaceColor;
-	vec3 diffuse = ambientColor + sColor / PI;
+	vec3 cookTorranceNumerator = D(materialRoughness, N, H) * G(materialRoughness, N, V, L) * fresnel;
+	float cookTorranceDenominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
+	cookTorranceDenominator = max(cookTorranceDenominator, 0.000001);
+	vec3 cookTorrance = cookTorranceNumerator / cookTorranceDenominator;
 
-	// Lighting eqn
-	vec3 color = (diffuse + specular) * lightColor * NdotL;
+	vec3 BRDF = Kd * lambert + cookTorrance;
+	
+	vec3 emissionColor = emission;
+	if (useEmissionMap)
+		emissionColor += texture(emissionMap, vTex).rgb;
 
-    color = pow(color, vec3(1.0/2.2)); // Gamma correction
-    FragColor = vec4(color, 1.0);
+	vec3 ambientLight = vec3(0.03) * albedo;
+
+	vec3 outgoingLight = ambientLight + emissionColor + BRDF * lightColor * max(dot(L, N), 0.0);
+	FragColor = vec4(outgoingLight, 1.0);
 }
 )glsl";
 
@@ -155,7 +200,7 @@ private:
 	std::shared_ptr<Engine::Scene> _scene;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
-	Engine::Entity _monkeh;
+	Engine::Entity testEntity;
 	Engine::Entity _camera;
 	FPSCameraController _fpsCameraController;
 	OrbitCameraController _orbitCameraController;
@@ -181,7 +226,7 @@ public:
 			_standardRenderPipeline->Initialize(mainFramebuffer);
 		}
 
-		/* Create Shader for test scene */
+		/* Create Shader & Material for test scene */
 		auto shader = std::make_shared<Engine::Shader>();
 		shader->AttachVertexShader(vertexShaderSource);
 		shader->AttachFragmentShader(fragmentShaderSource);
@@ -189,6 +234,23 @@ public:
 		shader->BindUniformBlock("CameraData", 0);
 
 		auto material = std::make_shared<Engine::Material>(shader);
+
+		// Attach textures
+		auto albedo = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_albedo.jpg", false);
+		material->AddTexture(albedo, "albedoMap", 0);
+		shader->SetUniform("useAlbedoMap", true);
+
+		auto emission = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_emissive.jpg", false);
+		material->AddTexture(emission, "emissionMap", 1);
+		shader->SetUniform("useEmissionMap", true);
+
+		auto normalMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_normal.jpg", false);
+		material->AddTexture(normalMap, "normalMap", 2);
+		shader->SetUniform("useNormalMap", true);
+		
+		auto roughnessMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_metalRoughness.jpg", false);
+		material->AddTexture(roughnessMap, "roughnessMap", 3);
+		shader->SetUniform("useRoughnessMap", true);
 
 		/* Manual Mesh */
 		{
@@ -198,10 +260,10 @@ public:
 			#pragma region Data
 
 				glm::vec3 vertices[] = {
-					{-0.5f,	-0.5f, 0},
-					{ 0.5f,	-0.5f, 0},
-					{-0.5f,	 0.5f, 0},
-					{ 0.5f,	 0.5f, 0}
+					{-0.5f,	-0.5f, 0}, {0,0,0},
+					{ 0.5f,	-0.5f, 0}, {0,0,0},
+					{-0.5f,	 0.5f, 0}, {0,0,0},
+					{ 0.5f,	 0.5f, 0}, {0,0,0}
 				};
 
 				glm::vec2 texCoords[] = {
@@ -223,6 +285,7 @@ public:
 				auto vertexBuffer = std::make_shared<Engine::VertexBufferObject>();
 				vertexBuffer->SetData(vertices, 4, {
 					{ "POSITION", Engine::LType::Float, 3},
+					{ "NORMAL", Engine::LType::Float, 3},
 									  });
 
 				auto texcoordBuffer = std::make_shared<Engine::VertexBufferObject>();
@@ -243,17 +306,18 @@ public:
 			}
 
 			/* Add mesh to scene */
-			//Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
-			//entity.AddComponent<Engine::MeshFilterComponent>(mesh);
-			//entity.AddComponent<Engine::MeshRendererComponent>(material);
+			Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
+			entity.AddComponent<Engine::MeshFilterComponent>(mesh);
+			entity.AddComponent<Engine::MeshRendererComponent>(material);
+			entity.GetTransform().position.x += 1.5;
 		}
 
 		/* Gltf Mesh */
 		{
 			/* Import Gltf Mesh */
-			auto gltfMesh = std::make_shared<Engine::Mesh>("Monkeh");
-			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/LowRes.gltf");
-			auto model = Engine::GltfIO::LoadFile("Resources/Models/Sponza_Complex/Sponza_C omplex.gltf");
+			auto gltfMesh = std::make_shared<Engine::Mesh>("Test");
+			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/FullRes.gltf");
+			auto model = Engine::GltfIO::LoadFile("Resources/Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
 			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
 
 			const auto& mesh = model.meshes[0];
@@ -265,15 +329,13 @@ public:
 			auto s = model.nodes[0].scale;
 			glm::vec3 scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
 
-			Engine::Entity entity = _scene->CreateEntity("GLTF Mesh");
-			entity.GetTransform().scale = scale;
-			entity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
-			entity.AddComponent<Engine::MeshRendererComponent>(material);
+			testEntity = _scene->CreateEntity("GLTF Mesh");
+			auto& t = testEntity.GetTransform();
+			t.scale = scale;
+			t.rotation.x += 90;
 
-			auto& bb = entity.AddComponent<Engine::BoundingBoxComponent>();
-			bb.GrowToInclude(*gltfMesh);
-
-			_monkeh = entity;
+			testEntity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
+			testEntity.AddComponent<Engine::MeshRendererComponent>(material);
 		}
 
 		/* Camera */
@@ -309,9 +371,7 @@ public:
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
-		{
-			_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
-		}
+		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
 
 		/* Render Axis */
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
@@ -320,19 +380,6 @@ public:
 
 		/* Update Scene */
 		_scene->UpdateScene(ts);
-
-		/* Render Bounding Box */
-		//auto& bb = _monkeh.GetComponent<Engine::BoundingBoxComponent>();
-		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 0, 0, 1), true);
-		//_scene->GetDebugRenderer().DrawCube(bb.GetCenter(), bb.GetSize(), glm::vec4(1, 1, 1, 0.2), false);
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.min.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.min.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.min.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.min.y,bb.max.z},5.0f,{1,1,1,1} });
-		//_scene->GetDebugRenderer().DrawPoint({ {bb.max.x,bb.max.y,bb.max.z},5.0f,{1,1,1,1} });
 
 		/* Render Scene */
 		_scene->RenderScene();

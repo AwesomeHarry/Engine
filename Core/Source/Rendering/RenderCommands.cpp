@@ -35,6 +35,7 @@ void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 
 void RenderCommands::RenderMesh(const Mesh& mesh, const Material& material) {
 	material.Bind();
+
 	for (size_t i = 0; i < mesh.GetSubmeshCount(); i++) {
 		auto& vertexArray = mesh.GetSubmesh(i);
 

@@ -184,35 +184,48 @@ public:
 
 				// Material Properties
 				{
-					shader.SetUniform("viewPosition", cameraTransform.GetPosition());
+					shader.SetUniform("cameraPosition", cameraTransform.GetPosition());
 
-					static glm::vec3 lightDir = glm::vec3(0.0f, -1.0f, 0.0f);
-					if (ImGui::DragFloat3("Light Direction", &lightDir.x, 0.01f)) {}
-					shader.SetUniform("lightDirection", lightDir);
+					static glm::vec3 lightPosition = { 1.0f, 1.0f, 0.0f };
+					ImGui::DragFloat3("Light Position", &lightPosition.x, 0.1f);
+					shader.SetUniform("lightPosition", lightPosition);
 
-					static float roughness = 0.5f;
-					if (ImGui::DragFloat("Roughness", &roughness, 0.025f, 0.0f, 1.0f)) {}
-					shader.SetUniform("roughness", roughness);
-
-					static glm::vec3 surfaceColor = glm::vec3(1.0);
-					ImGui::ColorEdit3("Surface Color", &surfaceColor.x);
-					shader.SetUniform("surfaceColor", surfaceColor);
-
-					static glm::vec3 lightColor = glm::vec3(1.0);
+					static glm::vec3 lightColor = { 1.0f, 1.0f, 1.0f };
 					ImGui::ColorEdit3("Light Color", &lightColor.x);
 					shader.SetUniform("lightColor", lightColor);
 
-					static glm::vec3 ambientColor = glm::vec3(.05);
-					ImGui::ColorEdit3("Ambient Color", &ambientColor.x);
-					shader.SetUniform("ambientColor", ambientColor);
+					static glm::vec3 albedo = { 1.0f, 1.0f, 1.0f };
+					ImGui::ColorEdit3("Albedo", &albedo.x);
+					shader.SetUniform("albedo", albedo);
 
-					static float texScale = 1.0f;
-					ImGui::DragFloat("Texture Scale", &texScale, 0.01f, 0.0f);
-					shader.SetUniform("texScale", texScale);
+					static bool useAlbedoMap = true;
+					ImGui::Checkbox("Use Albedo Map", &useAlbedoMap);
+					shader.SetUniform("useAlbedoMap", useAlbedoMap);
 
-					static int debugMode = 0;
-					if (ImGui::DragInt("Debug Mode", &debugMode, 0.01f, 0))
-						shader.SetUniform("debugMode", debugMode);
+					static glm::vec3 emission = { 0.0f, 0.0f, 0.0f };
+					ImGui::ColorEdit3("Emission", &emission.x);
+					shader.SetUniform("emission", emission);
+
+					static bool useEmissionMap = true;
+					ImGui::Checkbox("Use Emission Map", &useEmissionMap);
+					shader.SetUniform("useEmissionMap", useEmissionMap);
+
+					static bool useNormalMap = true;
+					ImGui::Checkbox("Use Normal Map", &useNormalMap);
+					shader.SetUniform("useNormalMap", useNormalMap);
+
+					static float roughness = 0.0f;
+					ImGui::DragFloat("Roughness", &roughness, 0.01f, 0.0f, 1.0f);
+					shader.SetUniform("roughness", roughness);
+					
+					static float metallic = 0.0f;
+					ImGui::DragFloat("Metallic", &metallic, 0.01f, 0.0f, 1.0f);
+					shader.SetUniform("metallic", metallic);
+
+					static bool useRoughnessMap = true;
+					ImGui::Checkbox("Use Roughness Map", &useRoughnessMap);
+					shader.SetUniform("useRoughnessMap", useRoughnessMap);
+
 				}
 
 				Engine::RenderCommands::RenderMesh(mesh, material);
