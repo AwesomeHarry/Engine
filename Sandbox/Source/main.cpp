@@ -200,6 +200,8 @@ private:
 	std::shared_ptr<Engine::Scene> _scene;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
+	std::shared_ptr<Engine::Material> _standardLit;
+
 	Engine::Entity testEntity;
 	Engine::Entity _camera;
 	FPSCameraController _fpsCameraController;
@@ -233,24 +235,31 @@ public:
 		shader->Link();
 		shader->BindUniformBlock("CameraData", 0);
 
-		auto material = std::make_shared<Engine::Material>(shader);
+		_standardLit = std::make_shared<Engine::Material >(shader);
 
 		// Attach textures
 		auto albedo = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_albedo.jpg", false);
-		material->AddTexture(albedo, "albedoMap", 0);
-		shader->SetUniform("useAlbedoMap", true);
+		_standardLit->AddTexture(albedo, "albedoMap", 0);
 
 		auto emission = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_emissive.jpg", false);
-		material->AddTexture(emission, "emissionMap", 1);
-		shader->SetUniform("useEmissionMap", true);
+		_standardLit->AddTexture(emission, "emissionMap", 1);
 
 		auto normalMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_normal.jpg", false);
-		material->AddTexture(normalMap, "normalMap", 2);
-		shader->SetUniform("useNormalMap", true);
+		_standardLit->AddTexture(normalMap, "normalMap", 2);
 		
 		auto roughnessMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_metalRoughness.jpg", false);
-		material->AddTexture(roughnessMap, "roughnessMap", 3);
-		shader->SetUniform("useRoughnessMap", true);
+		_standardLit->AddTexture(roughnessMap, "roughnessMap", 3);
+
+		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
+		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
+		_standardLit->SetUniform("albedo", glm::vec3(1, 1, 1));
+		_standardLit->SetUniform("roughness", 0.0f);
+		_standardLit->SetUniform("metallic", 0.0f);
+
+		_standardLit->SetUniform("useAlbedoMap", true);
+		_standardLit->SetUniform("useEmissionMap", true);
+		_standardLit->SetUniform("useNormalMap", true);
+		_standardLit->SetUniform("useRoughnessMap", true);
 
 		/* Manual Mesh */
 		{
@@ -308,7 +317,7 @@ public:
 			/* Add mesh to scene */
 			Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
 			entity.AddComponent<Engine::MeshFilterComponent>(mesh);
-			entity.AddComponent<Engine::MeshRendererComponent>(material);
+			entity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
 			entity.GetTransform().position.x += 1.5;
 		}
 
@@ -335,7 +344,7 @@ public:
 			t.rotation.x += 90;
 
 			testEntity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
-			testEntity.AddComponent<Engine::MeshRendererComponent>(material);
+			testEntity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
 		}
 
 		/* Camera */
@@ -380,6 +389,8 @@ public:
 
 		/* Update Scene */
 		_scene->UpdateScene(ts);
+
+		_standardLit->SetUniform("cameraPosition", _camera.GetTransform().position);
 
 		/* Render Scene */
 		_scene->RenderScene();

@@ -89,66 +89,99 @@ void Shader::preloadUniforms() {
 		std::string uniformName(uniformNameBuffer.data(), nameLength);
 		uint32_t location = glGetUniformLocation(_id, uniformName.c_str());
 
-		_uniformsMap[uniformName] = location;
+		UniformType utype;
+		switch (type) {
+		case GL_BOOL: utype = UniformType::Bool; break;
+		case GL_INT: utype = UniformType::Int; break;
+		case GL_FLOAT: utype = UniformType::Float; break;
+		case GL_FLOAT_VEC2: utype = UniformType::Vec2; break;
+		case GL_FLOAT_VEC3: utype = UniformType::Vec3; break;
+		case GL_FLOAT_VEC4: utype = UniformType::Vec4; break;
+		case GL_FLOAT_MAT2: utype = UniformType::Mat2; break;
+		case GL_FLOAT_MAT3: utype = UniformType::Mat3; break;
+		case GL_FLOAT_MAT4: utype = UniformType::Mat4; break;
+		case GL_SAMPLER_2D: utype = UniformType::Sampler2D; break;
+		case GL_SAMPLER_CUBE: utype = UniformType::SamplerCube; break;
+		default:
+			ENGINE_WARN("Uniform type not supported!");
+			utype = UniformType::Int;
+		}
+
+		_uniformsMap[uniformName] = UniformInfo{
+			uniformName,
+			location,
+			utype
+		};
 	}
 }
 
-bool Shader::findUniform(const std::string& name) {
+// Checks if uniform exists
+bool Shader::uniformExists(const std::string& name) {
 	if (_uniformsMap.find(name) == _uniformsMap.end()) {
 		ENGINE_ERROR("Uniform {} not found!", name);
 		return false;
 	}
-
 	return true;
 }
 
-#define CHECK_UNIFORM_EXISTS {if (!findUniform(name)) return false; else glUseProgram(_id);}
+// Requires name to exist
+int Shader::getUniformLocation(const std::string& name) {
+	return _uniformsMap[name].location;
+}
+
+#define CHECK_UNIFORM_EXISTS {if (!uniformExists(name)) return false; else glUseProgram(_id);}
+
+bool Shader::SetUniform(const std::string& name, bool value) {
+	CHECK_UNIFORM_EXISTS;
+	glUniform1i(getUniformLocation(name), value);
+	return true;
+}
 
 bool Shader::SetUniform(const std::string& name, int value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniform1i(_uniformsMap[name], value);
+	glUniform1i(getUniformLocation(name), value);
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, float value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniform1f(_uniformsMap[name], value);
+	glUniform1f(getUniformLocation(name), value);
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::vec2 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniform2fv(_uniformsMap[name], 1, glm::value_ptr(value));
+	glUniform2fv(getUniformLocation(name), 1, glm::value_ptr(value));
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::vec3 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniform3fv(_uniformsMap[name], 1, glm::value_ptr(value));
+	glUniform3fv(getUniformLocation(name), 1, glm::value_ptr(value));
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::vec4 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniform4fv(_uniformsMap[name], 1, glm::value_ptr(value));
+	glUniform4fv(getUniformLocation(name), 1, glm::value_ptr(value));
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::mat2 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniformMatrix2fv(_uniformsMap[name], 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix2fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::mat3 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniformMatrix3fv(_uniformsMap[name], 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix3fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	return true;
 }
 
 bool Shader::SetUniform(const std::string& name, glm::mat4 value) {
 	CHECK_UNIFORM_EXISTS;
-	glUniformMatrix4fv(_uniformsMap[name], 1, GL_FALSE, glm::value_ptr(value));
+	glUniformMatrix4fv(getUniformLocation(name), 1, GL_FALSE, glm::value_ptr(value));
 	return true;
 }
 

@@ -45,6 +45,7 @@ void RenderCommands::RenderMesh(const Mesh& mesh, const Material& material) {
 		else
 			glDrawArrays((uint32_t)vertexArray.GetDrawMode(), 0, vertexArray.GetCount());
 	}
+
 	material.Unbind();
 }
 

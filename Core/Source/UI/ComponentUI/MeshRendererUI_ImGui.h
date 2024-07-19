@@ -11,12 +11,9 @@ namespace Engine {
 				auto& shader = material.GetShader();
 				ImGui::Text("Uniforms:");
 
-				auto& uniforms = shader.GetUniforms();
-				for (auto& [name, location] : uniforms) {
-					ImGui::Text(name.c_str());
-					ImGui::SameLine();
-					ImGui::Text("%d", location);
-				}
+				Engine::MaterialUtils::DrawAllUniformWidgets(material);
+
+				ImGui::Separator();
 
 				ImGui::Text("Uniform Blocks:");
 				auto& uniformBlocks = shader.GetUniformBlocks();
