@@ -2,3 +2,4 @@
 Binaries/
 Binaries-Intermediate/
 **.vcxproj*
+**.sln
