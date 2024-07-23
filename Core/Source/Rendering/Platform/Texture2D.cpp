@@ -5,18 +5,30 @@
 
 using namespace Engine;
 
-void Texture2D::SetData(const void* data) {
+Texture2D::Texture2D(const TextureSpec& spec)
+	: BaseTexture(TextureType::Tex2D, spec) {
+	BindInternal();
+
+	//SetDataInternal(GL_TEXTURE_2D, nullptr);
+	glTexImage2D(GL_TEXTURE_2D, 0, _internalFormat, _width, _height, 0, _dataFormat, _dataType, nullptr);
+
+	glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
+}
+
+void Texture2D::SetData(void* data) {
 	BindInternal();
 	SetDataInternal(GL_TEXTURE_2D, data);
 	Unbind();
 }
 
 std::shared_ptr<Texture2D> Texture2D::Utils::FromFile(const std::string& path, bool flipV) {
-	TextureSpec spec;
-
 	stbi_set_flip_vertically_on_load(flipV);
 	auto fileData = Texture::Utils::LoadFromFile(path);
 
+	TextureSpec spec;
 	spec.width = fileData.width;
 	spec.height = fileData.height;
 	spec.format = fileData.format;

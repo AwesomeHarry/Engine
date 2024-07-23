@@ -147,6 +147,7 @@ public:
 		RenderOpaqueObjects(scene, cameraTransform);
 		RenderDebugMeshes(scene, viewportSize);
 
+
 		// Render Skybox
 		if (camera.backgroundType == Engine::CameraComponent::BackgroundType::Skybox) {
 			_skyboxShader->Bind();

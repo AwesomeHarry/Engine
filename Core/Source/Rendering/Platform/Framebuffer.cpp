@@ -57,6 +57,19 @@ void Framebuffer::Resize(uint32_t width, uint32_t height) {
     Invalidate();
 }
 
+void Framebuffer::ModifyColorAttachment(int index, TextureTarget target, BaseTexture& texture) {
+    if (index > _colorAttachments.size() - 1) {
+        ENGINE_WARN("Failed to modify attachment, index outside valid range.")
+        return;
+    }
+
+    Bind();
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, Utils::TextureTargetToOpenGLTarget(target), texture.GetID(), 0);
+    Unbind();
+}
+
+void Framebuffer::ModifyDepthAttachment(TextureTarget target, BaseTexture& texture) {}
+
 std::shared_ptr<Texture2D> Framebuffer::GetColorAttachment(uint32_t index) const {
     if (index < _colorAttachments.size())
         return _colorAttachments[index].texture;
@@ -67,7 +80,7 @@ std::shared_ptr<Texture2D> Framebuffer::GetDepthAttachment() const {
     return _depthAttachment.texture;
 }
 
-void Engine::Framebuffer::Invalidate() {
+void Framebuffer::Invalidate() {
     if (_id) {
         glDeleteFramebuffers(1, &_id);
         _colorAttachments.clear();
@@ -136,4 +149,26 @@ void Engine::Framebuffer::Invalidate() {
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
+}
+
+int Engine::Utils::TextureTargetToOpenGLTarget(TextureTarget target) {
+    switch (target) {
+    case TextureTarget::Texture2D:
+        return GL_TEXTURE_2D;
+    case TextureTarget::CubemapPosX:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_X;
+    case TextureTarget::CubemapNegX:
+        return GL_TEXTURE_CUBE_MAP_NEGATIVE_X;
+    case TextureTarget::CubemapPosY:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_Y;
+    case TextureTarget::CubemapNegY:
+        return GL_TEXTURE_CUBE_MAP_NEGATIVE_Y;
+    case TextureTarget::CubemapPosZ:
+        return GL_TEXTURE_CUBE_MAP_POSITIVE_Z;
+    case TextureTarget::CubemapNegZ:
+        return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
+    default:
+        ENGINE_ERROR("Invalid texture target");
+        return -1;
+    }
 }

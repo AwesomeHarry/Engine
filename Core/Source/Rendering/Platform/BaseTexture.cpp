@@ -5,17 +5,8 @@
 
 using namespace Engine;
 
-void BaseTexture::Bind(uint32_t slot) const {
-	glActiveTexture(GL_TEXTURE0 + slot);
-	BindInternal();
-}
-
-void BaseTexture::Unbind() const {
-	glBindTexture(_type, 0);
-}
-
 BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
-	: _type(TextureTypeToOpenGLTextureType(type)),
+	: _format(spec.format), _type(TextureTypeToOpenGLTextureType(type)),
 	_width(spec.width), _height(spec.height),
 	_id(0),
 	_internalFormat(0), _dataFormat(0), _dataType(0) {
@@ -25,29 +16,26 @@ BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
 	_dataType = Utils::ImageFormatToOpenGLDataType(spec.format);
 
 	glGenTextures(1, &_id);
-	glBindTexture(_type, _id);
-
-	if (type == TextureType::Tex2D)
-		glTexImage2D(GL_TEXTURE_2D, 0, _internalFormat, _width, _height, 0, _dataFormat, _dataType, nullptr);
-
-	glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-	glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_REPEAT);
-
-	glBindTexture(GL_TEXTURE_2D, 0);
 }
 
 BaseTexture::~BaseTexture() {
 	glDeleteTextures(1, &_id);
 }
 
+void BaseTexture::Bind(uint32_t slot) const {
+	glActiveTexture(GL_TEXTURE0 + slot);
+	BindInternal();
+}
+
+void BaseTexture::Unbind() const {
+	glBindTexture(_type, 0);
+}
+
 void BaseTexture::BindInternal() const {
 	glBindTexture(_type, _id);
 }
 
-void BaseTexture::SetDataInternal(uint32_t target, const void* data) {
+void BaseTexture::SetDataInternal(uint32_t target, void* data) {
 	glTexImage2D(target, 0, _internalFormat, _width, _height, 0, _dataFormat, _dataType, data);
 	GLenum error = glGetError();
 	if (error != GL_NO_ERROR) {

@@ -6,43 +6,40 @@
 #include <string>
 
 namespace Engine {
-	struct CubeMapData {
-		void* positiveX;
-		void* negativeX;
-		void* positiveY;
-		void* negativeY;
-		void* positiveZ;
-		void* negativeZ;
+	class Texture2D;
 
-		std::vector<void*> GetArray() const {
-			return { positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ };
-		}
-	};
+	enum class CubeMapIndex {
+		PositiveX = 0, NegativeX = 1,
+		PositiveY = 2, NegativeY = 3,
+		PositiveZ = 4, NegativeZ = 5,
 
-	struct CubeMapPaths {
-		std::string positiveX;
-		std::string negativeX;
-		std::string positiveY;
-		std::string negativeY;
-		std::string positiveZ;
-		std::string negativeZ;
-
-		std::vector<std::string> GetArray() const {
-			return { positiveX, negativeX, positiveY, negativeY, positiveZ, negativeZ };
-		}
+		First = PositiveX
 	};
 
 	class TextureCubeMap : public BaseTexture {
 	public:
-		TextureCubeMap(const TextureSpec& spec)
-			: BaseTexture(TextureType::TexCubeMap, spec) {}
+		TextureCubeMap(const TextureSpec& spec);
 		~TextureCubeMap() = default;
 
-		void SetData(const std::vector<void*>& data);
-		void SetData(const CubeMapData& data);
+		void SetData(CubeMapIndex index, void* data);
 
 		struct Utils {
-			static std::shared_ptr<TextureCubeMap> FromFile(const std::vector<std::string>& paths);
+			struct CubeMapPaths {
+				std::string positiveX;
+				std::string negativeX;
+				std::string positiveY;
+				std::string negativeY;
+				std::string positiveZ;
+				std::string negativeZ;
+			};
+
+			static std::shared_ptr<TextureCubeMap> FromFile(const CubeMapPaths& paths);
+
+			enum class Texture2DCubemapFormat {
+				Equirectangle
+			};
+
+			static std::shared_ptr<TextureCubeMap> FromTexture2D(std::shared_ptr<Texture2D> texture, Texture2DCubemapFormat format);
 		};
 	};
 }

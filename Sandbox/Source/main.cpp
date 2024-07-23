@@ -235,7 +235,7 @@ public:
 		shader->Link();
 		shader->BindUniformBlock("CameraData", 0);
 
-		_standardLit = std::make_shared<Engine::Material >(shader);
+		_standardLit = std::make_shared<Engine::Material>(shader);
 
 		// Attach textures
 		auto albedo = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_albedo.jpg", false);
@@ -246,7 +246,7 @@ public:
 
 		auto normalMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_normal.jpg", false);
 		_standardLit->AddTexture(normalMap, "normalMap", 2);
-		
+
 		auto roughnessMap = Engine::Texture2D::Utils::FromFile("Resources/Models/DamagedHelmet/gltf/Default_metalRoughness.jpg", false);
 		_standardLit->AddTexture(roughnessMap, "roughnessMap", 3);
 
@@ -326,14 +326,18 @@ public:
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Test");
 			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/FullRes.gltf");
+			spdlog::stopwatch sw;
 			auto model = Engine::GltfIO::LoadFile("Resources/Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
+			ENGINE_TRACE("Load Model: {}", sw);
 			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
 
+			sw.reset();
 			const auto& mesh = model.meshes[0];
 			for (const auto& primitive : mesh.primitives) {
 				auto vertexArray = Engine::GltfIO::LoadPrimitive(model, primitive);
 				gltfMesh->AddSubmesh(vertexArray);
 			}
+			ENGINE_TRACE("Load Primitives: {}", sw);
 
 			auto s = model.nodes[0].scale;
 			glm::vec3 scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
@@ -359,23 +363,23 @@ public:
 			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
 
 			/* Cubemap */
-			Engine::CubeMapPaths paths;
-			paths.positiveX = "Resources/Skyboxes/Berlin/LowRes/px.hdr";
-			paths.negativeX = "Resources/Skyboxes/Berlin/LowRes/nx.hdr";
-			paths.positiveY = "Resources/Skyboxes/Berlin/LowRes/py.hdr";
-			paths.negativeY = "Resources/Skyboxes/Berlin/LowRes/ny.hdr";
-			paths.positiveZ = "Resources/Skyboxes/Berlin/LowRes/pz.hdr";
-			paths.negativeZ = "Resources/Skyboxes/Berlin/LowRes/nz.hdr";
-			auto cubemap = Engine::TextureCubeMap::Utils::FromFile(paths.GetArray());
+			{
+				spdlog::stopwatch sw;
+				std::string path = "Resources/Skyboxes/kloofendal_48d_partly_cloudy_puresky_4k.hdr";
+				auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
+				ENGINE_TRACE("HDR Load: {}", sw);
 
-			cc.skyboxCubemap = cubemap;
+				sw.reset();
+				cc.skyboxCubemap = Engine::TextureCubeMap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubeMap::Utils::Texture2DCubemapFormat::Equirectangle);
+				ENGINE_TRACE("Cubemap Load: {}", sw);
+			}
 		}
 
 		_fpsCameraController = FPSCameraController(_inputManager);
 		_orbitCameraController = OrbitCameraController(_inputManager);
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
 			_orbitCameraController.OnScroll((float)e.yOffset);
-		});
+															 });
 	}
 
 	void OnUpdate(float ts) override {

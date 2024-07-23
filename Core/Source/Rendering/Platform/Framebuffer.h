@@ -4,6 +4,20 @@
 #include <memory>
 
 namespace Engine {
+    enum class TextureTarget {
+        Texture2D = 0,
+        CubemapPosX = 1,
+        CubemapNegX = 2,
+        CubemapPosY = 3,
+        CubemapNegY = 4,
+        CubemapPosZ = 5,
+        CubemapNegZ = 6
+    };
+
+    namespace Utils {
+        int TextureTargetToOpenGLTarget(TextureTarget target);
+    }
+
     class Framebuffer {
     public:
         struct Attachment {
@@ -25,6 +39,9 @@ namespace Engine {
         void Unbind();
 
         void Resize(uint32_t width, uint32_t height);
+
+        void ModifyColorAttachment(int index, TextureTarget target, BaseTexture& texture);
+        void ModifyDepthAttachment(TextureTarget target, BaseTexture& texture);
 
         std::shared_ptr<Texture2D> GetColorAttachment(uint32_t index = 0) const;
         std::shared_ptr<Texture2D> GetDepthAttachment() const;
