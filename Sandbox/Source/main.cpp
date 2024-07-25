@@ -326,18 +326,14 @@ public:
 			/* Import Gltf Mesh */
 			auto gltfMesh = std::make_shared<Engine::Mesh>("Test");
 			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Stanford_Dragon/FullRes.gltf");
-			spdlog::stopwatch sw;
 			auto model = Engine::GltfIO::LoadFile("Resources/Models/DamagedHelmet/gltf/DamagedHelmet.gltf");
-			ENGINE_TRACE("Load Model: {}", sw);
 			//auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
 
-			sw.reset();
 			const auto& mesh = model.meshes[0];
 			for (const auto& primitive : mesh.primitives) {
 				auto vertexArray = Engine::GltfIO::LoadPrimitive(model, primitive);
 				gltfMesh->AddSubmesh(vertexArray);
 			}
-			ENGINE_TRACE("Load Primitives: {}", sw);
 
 			auto s = model.nodes[0].scale;
 			glm::vec3 scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
@@ -364,14 +360,10 @@ public:
 
 			/* Cubemap */
 			{
-				spdlog::stopwatch sw;
 				std::string path = "Resources/Skyboxes/kloofendal_48d_partly_cloudy_puresky_4k.hdr";
 				auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
-				ENGINE_TRACE("HDR Load: {}", sw);
 
-				sw.reset();
 				cc.skyboxCubemap = Engine::TextureCubeMap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubeMap::Utils::Texture2DCubemapFormat::Equirectangle);
-				ENGINE_TRACE("Cubemap Load: {}", sw);
 			}
 		}
 

@@ -51,6 +51,8 @@ void Scene::UpdateScene(float ts) {
 
 void Scene::RenderScene() {
 	auto cameraGroup = _registry.group<Engine::TransformComponent, Engine::CameraComponent>();
+
+	// Cameras are sorted from least priority to highest priority
 	cameraGroup.sort<Engine::CameraComponent>([](const Engine::CameraComponent& a, const Engine::CameraComponent& b) {
 		return a.priority < b.priority;
 	});
@@ -59,6 +61,11 @@ void Scene::RenderScene() {
 		auto& transform = cameraGroup.get<Engine::TransformComponent>(entity);
 		auto& camera = cameraGroup.get<Engine::CameraComponent>(entity);
 
-		camera.renderPipeline->RenderScene(*this, Entity{ entity,this });
+		Entity cameraEntity = { entity,this };
+
+		if (!camera.renderPipeline)
+			ENGINE_ERROR("No IRenderPipeline set for Camera: ", cameraEntity.GetName());
+
+		camera.renderPipeline->RenderScene(*this, cameraEntity);
 	}
 }
