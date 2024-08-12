@@ -2,6 +2,7 @@
 #include "BaseTexture.h"
 #include <string>
 #include <memory>
+#include <Logging/Logging.h>
 
 namespace Engine {
 	class Texture2D : public BaseTexture {

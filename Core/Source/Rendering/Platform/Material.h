@@ -1,96 +1,60 @@
 #pragma once
 
-#include "Texture2D.h"
-#include "Shader.h"
-
-#include <glad/glad.h>
-#include <variant>
-#include <imgui.h>
+#include <string>
+#include <memory>
 #include <map>
+#include <unordered_map>
+
+#include <variant>
+#include <glm/glm.hpp>
+
+#include "Shader.h"
+#include "Texture2D.h"
+
+#include <imgui.h>
 
 namespace Engine {
-	class Material {
+	class Material : public std::enable_shared_from_this<Material> {
 	public:
-		Material(std::shared_ptr<Shader> shader)
-			: _shader(shader) {
-			auto& uniformInfos = _shader->GetUniformInfos();
-			for (const auto& [name, info] : uniformInfos) {
-				switch (info.type) {
-				case UniformType::Bool: SetUniform(name, false); break;
-				case UniformType::Int: SetUniform(name, 0); break;
-				case UniformType::Float: SetUniform(name, 0.0f); break;
-				case UniformType::Vec2: SetUniform(name, glm::vec2(0.0f)); break;
-				case UniformType::Vec3: SetUniform(name, glm::vec3(0.0f)); break;
-				case UniformType::Vec4: SetUniform(name, glm::vec4(0.0f)); break;
-				case UniformType::Mat2: SetUniform(name, glm::mat2(1.0f)); break;
-				case UniformType::Mat3: SetUniform(name, glm::mat3(1.0f)); break;
-				case UniformType::Mat4: SetUniform(name, glm::mat4(1.0f)); break;
-				}
-			}
-		}
-		~Material() {}
+		Material(std::shared_ptr<Shader> shader);
+		~Material();
 
-		void Bind() const {
-			// Bind Textures
-			for (auto& [bindingPoint, texture] : _textureMap)
-				texture->Bind(bindingPoint);
+		void Bind() const;
+		void Unbind() const;
 
-			// Set Uniforms
-			for (const auto& [name, uniform] : _uniformMap) {
-				std::visit([this, name = name](auto&& arg) {
-					_shader->SetUniform(name, arg);
-				}, uniform.value);
-			}
+		void SetShader(std::shared_ptr<Shader> shader);
+		Shader& GetShader();
+		const Shader& GetShader() const;
 
-			// Bind Shader for further use
-			_shader->Bind();
-		}
+		void AddTexture(std::shared_ptr<Texture2D> texture, const std::string& uniformName, uint32_t index);
+		void UpdateTexture(const std::string& uniformName, std::shared_ptr<Texture2D> newTexture);
+		Texture2D& GetTexture(uint32_t index);
+		uint32_t GetTextureCount();
 
-		void Unbind() const {
-			_shader->Unbind();
-		}
-
-		void SetShader(std::shared_ptr<Shader> shader) { _shader = shader; }
-		const Shader& GetShader() const { return *_shader; }
-
-		void AddTexture(std::shared_ptr<Texture2D> texture, const std::string& uniformName, uint32_t index) {
-			_textureMap.emplace(index, texture);
-			SetUniform(uniformName, (int)index);
-			auto it = _uniformMap.find(uniformName);
-			it->second.isSampler = true;
-		}
-
-		Texture2D& GetTexture(uint32_t index) { return *_textureMap[index]; }
-		uint32_t GetTextureCount() { return _textureMap.size(); }
-
-		void SetUniform(const std::string& name, bool value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, int value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, float value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::vec2& value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::vec3& value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::vec4& value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::mat2& value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::mat3& value) { _uniformMap[name].value = value; }
-		void SetUniform(const std::string& name, const glm::mat4& value) { _uniformMap[name].value = value; }
+		void SetUniform(const std::string& name, bool value);
+		void SetUniform(const std::string& name, int value);
+		void SetUniform(const std::string& name, float value);
+		void SetUniform(const std::string& name, const glm::vec2& value);
+		void SetUniform(const std::string& name, const glm::vec3& value);
+		void SetUniform(const std::string& name, const glm::vec4& value);
+		void SetUniform(const std::string& name, const glm::mat2& value);
+		void SetUniform(const std::string& name, const glm::mat3& value);
+		void SetUniform(const std::string& name, const glm::mat4& value);
 
 		template<typename T>
-		T GetUniform(const std::string& name) const {
-			auto it = _uniformMap.find(name);
-			if (it != _uniformMap.end()) {
-				return std::get<T>(it->second.value);
-			}
-			ENGINE_ERROR("Uniform not found: {}", name);
-		}
+		T GetUniform(const std::string& name) const;
+
+		std::shared_ptr<Material> Copy();
 	private:
 		std::shared_ptr<Shader> _shader;
-		std::unordered_map<uint32_t, std::shared_ptr<Texture2D>> _textureMap;
 		using UniformValue = std::variant<bool, int, float, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4>;
 		struct Uniform {
 			UniformValue value;
 			bool isSampler;
 		};
 		std::map<std::string, Uniform> _uniformMap;
-		
+		std::unordered_map<uint32_t, std::shared_ptr<Texture2D>> _textureMap;
+
 		friend class MaterialUtils;
 	};
 

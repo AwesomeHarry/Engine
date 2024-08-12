@@ -16,5 +16,6 @@ namespace Engine {
 			_mainFb = mainFramebuffer;
 		}
 		virtual void RenderScene(Scene& scene, Engine::Entity& cameraEntity) = 0;
+		virtual void OnResize(uint32_t newWidth, uint32_t newHeight) {}
 	};
 }

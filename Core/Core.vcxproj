@@ -154,7 +154,6 @@
     <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp" />
     <ClCompile Include="Source\ECS\Components\Native\MeshRendererComponent.cpp" />
     <ClCompile Include="Source\ECS\Scene\Scene.cpp" />
-    <ClCompile Include="Source\Rendering\IRenderPipeline.cpp" />
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\IndexBufferObject.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Buffer\UniformBufferObject.cpp" />
@@ -162,6 +161,7 @@
     <ClCompile Include="Source\Rendering\Platform\Buffer\VertexBufferObject.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Framebuffer.cpp" />
     <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\Material.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Mesh.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Shader.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp" />

@@ -8,7 +8,6 @@ namespace Engine {
 		static void RenderUI(MeshRendererComponent& meshRenderer) {
 			if (ImGui::TreeNodeEx("Mesh Renderer", ImGuiTreeNodeFlags_Framed)) {
 				auto& material = *meshRenderer.material;
-				auto& shader = material.GetShader();
 				ImGui::Text("Uniforms:");
 
 				Engine::MaterialUtils::DrawAllUniformWidgets(material);
@@ -16,6 +15,7 @@ namespace Engine {
 				ImGui::Separator();
 
 				ImGui::Text("Uniform Blocks:");
+				auto& shader = material.GetShader();
 				auto& uniformBlocks = shader.GetUniformBlocks();
 				for (auto& [name, location] : uniformBlocks) {
 					ImGui::Text(name.c_str());

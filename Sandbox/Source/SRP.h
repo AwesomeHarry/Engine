@@ -40,15 +40,53 @@ const float gamma = 2.2;
 void main()
 {
     vec3 hdrColor = texture(skybox, TexCoords).rgb;
-    vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
-    mapped = pow(mapped, vec3(1.0 / gamma));
-    FragColor = vec4(mapped, 1.0);
+	hdrColor *= exposure;
+    FragColor = vec4(hdrColor, 1.0);
+
+    //vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
+    //mapped = pow(mapped, vec3(1.0 / gamma));
+}
+)";
+
+#pragma endregion
+
+#pragma region Post Process Shader
+
+const char* postProcessVertexShader = R"(
+#version 330 core
+layout (location = 0) in vec2 aPos;
+out vec2 vTex;
+void main()
+{
+	vTex = aPos;
+	gl_Position = vec4(aPos * 2.0 - vec2(1.0), 0.0, 1.0);
+}
+)";
+
+const char* postProcessFragmentShader = R"(
+#version 330 core
+out vec4 FragColor;
+in vec2 vTex;
+uniform sampler2D screenMap;
+uniform float exposure;
+void main()
+{
+	vec3 inColor = texture(screenMap, vTex).rgb;
+	vec3 exposureMapped = vec3(1.0) - exp(-inColor * exposure);
+	vec3 gammaMapped = pow(exposureMapped, vec3(1.0 / 2.2));
+
+	FragColor = vec4(gammaMapped, 1.0);
 }
 )";
 
 #pragma endregion
 
 class SRP : public Engine::BaseRenderPipeline {
+public:
+	std::shared_ptr<Engine::Framebuffer> _windowFramebuffer;
+	std::shared_ptr<Engine::Mesh> _fullscreenQuadMesh;
+	std::shared_ptr<Engine::Material> _postProcessMaterial;
+
 private:
 	struct CameraData { glm::mat4 projection; glm::mat4 view; };
 	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
@@ -57,6 +95,32 @@ private:
 public:
 	virtual void Initialize(std::shared_ptr<Engine::Framebuffer> mainFramebuffer) {
 		Engine::BaseRenderPipeline::Initialize(mainFramebuffer);
+
+		Engine::Framebuffer::FramebufferSpec fbSpec;
+		fbSpec.width = 1280;
+		fbSpec.height = 720;
+		fbSpec.attachments = { Engine::ImageFormat::RGB16F };
+		fbSpec.includeDepthStencil = true;
+		_windowFramebuffer = std::make_shared<Engine::Framebuffer>(fbSpec);
+
+		float fullscreenQuadVertices[] = { 0,0, 1,0, 0,1, 1,1 };
+		auto fullscreenQuadVbo = std::make_shared<Engine::VertexBufferObject>(Engine::BufferUsage::Static);
+		fullscreenQuadVbo->SetData(fullscreenQuadVertices, 4, { { "POSITION",Engine::LType::Float,2 } });
+		auto fullscreenQuadVao = std::make_shared<Engine::VertexArrayObject>();
+		fullscreenQuadVao->AddVertexBuffer(fullscreenQuadVbo);
+		fullscreenQuadVao->Compute();
+		fullscreenQuadVao->SetDrawMode(Engine::DrawMode::TriangleStrip);
+		_fullscreenQuadMesh = std::make_shared<Engine::Mesh>("Fullscreen Quad");
+		_fullscreenQuadMesh->AddSubmesh(fullscreenQuadVao);
+
+		auto postProcessShader = std::make_shared<Engine::Shader>();
+		postProcessShader->AttachVertexShader(postProcessVertexShader);
+		postProcessShader->AttachFragmentShader(postProcessFragmentShader);
+		postProcessShader->Link();
+		_postProcessMaterial = std::make_shared<Engine::Material>(postProcessShader);
+		_postProcessMaterial->SetUniform("exposure", 1.0f);
+		_postProcessMaterial->AddTexture(_windowFramebuffer->GetColorAttachment(0), "screenMap", 0);
+
 		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0, Engine::BufferUsage::Dynamic);
 		_skyboxShader = std::make_shared<Engine::Shader>();
 		_skyboxShader->AttachFragmentShader(skyboxFragmentShader);
@@ -117,32 +181,35 @@ public:
 		_skyboxVao->Compute();
 	}
 
-	void RenderScene(Engine::Scene& scene) {
-		/* Set render targets from cameras */
-		/* RenderOpaqueObjects(scene, camera); */
-		/* RenderTransparentObjects(scene, camera); */
-		/* ApplyPostProcessing(); */
+	virtual void OnResize(uint32_t newWidth, uint32_t newHeight) override {
+		_mainFb->Resize(newWidth, newHeight);
+		_windowFramebuffer->Resize(newWidth, newHeight);
+		_postProcessMaterial->UpdateTexture("screenMap", _windowFramebuffer->GetColorAttachment(0));
 	}
+
+	/* Set render target from camera */
+	/* RenderOpaqueObjects(scene, camera); */
+	/* RenderTransparentObjects(scene, camera); */
+	/* ApplyPostProcessing(); */
 
 	virtual void RenderScene(Engine::Scene& scene, Engine::Entity& cameraEntity) override {
 		auto& camera = cameraEntity.GetComponent<Engine::CameraComponent>();
 		auto& cameraTransform = cameraEntity.GetTransform();
-		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _mainFb : camera.renderFramebuffer;
-
-		framebuffer->Bind();
-
-		Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b);
-		Engine::RenderCommands::ClearBuffers(camera.clearFlags);
-
+		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _windowFramebuffer : camera.renderFramebuffer;
 		CameraData cameraData;
 		glm::vec2 viewportSize = { framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 		float aspect = viewportSize.x / viewportSize.y;
 		cameraData.projection = camera.GetProjectionMatrix(aspect);
 		cameraData.view = camera.CalculateViewMatrix(cameraTransform);
 
+		framebuffer->Bind();
+
+		glEnable(GL_DEPTH_TEST);
+		Engine::RenderCommands::SetClearColor(camera.backgroundColor.r, camera.backgroundColor.g, camera.backgroundColor.b);
+		Engine::RenderCommands::ClearBuffers(camera.clearFlags);
+
 		_cameraDataUbo->Bind();
 		_cameraDataUbo->SetData(&cameraData, sizeof(CameraData), 0);
-
 
 		RenderOpaqueObjects(scene, cameraTransform);
 		RenderDebugMeshes(scene, viewportSize);
@@ -163,6 +230,16 @@ public:
 		}
 
 		framebuffer->Unbind();
+
+		// Apply Post Processing
+		Engine::MaterialUtils::DrawUniformWidget(*_postProcessMaterial, "exposure");
+
+		_mainFb->Bind();
+		Engine::RenderCommands::SetClearColor(0.2f, 0.5f, 0.1f);
+		glDisable(GL_DEPTH_TEST);
+		Engine::RenderCommands::ClearBuffers(FlagSet(Engine::BufferBit::Color));
+		Engine::RenderCommands::RenderMesh(*_fullscreenQuadMesh, *_postProcessMaterial);
+		_mainFb->Unbind();
 	}
 
 	void RenderOpaqueObjects(Engine::Scene& scene, Engine::TransformComponent& cameraTransform) {

@@ -207,8 +207,6 @@ private:
 	FPSCameraController _fpsCameraController;
 	OrbitCameraController _orbitCameraController;
 
-	Engine::Entity _cube;
-
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
@@ -256,10 +254,10 @@ public:
 		_standardLit->SetUniform("roughness", 0.0f);
 		_standardLit->SetUniform("metallic", 0.0f);
 
-		_standardLit->SetUniform("useAlbedoMap", true);
-		_standardLit->SetUniform("useEmissionMap", true);
-		_standardLit->SetUniform("useNormalMap", true);
-		_standardLit->SetUniform("useRoughnessMap", true);
+		_standardLit->SetUniform("useAlbedoMap", false);
+		_standardLit->SetUniform("useEmissionMap", false);
+		_standardLit->SetUniform("useNormalMap", false);
+		_standardLit->SetUniform("useRoughnessMap", false);
 
 		/* Manual Mesh */
 		{
@@ -315,10 +313,10 @@ public:
 			}
 
 			/* Add mesh to scene */
-			Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
-			entity.AddComponent<Engine::MeshFilterComponent>(mesh);
-			entity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
-			entity.GetTransform().position.x += 1.5;
+			//Engine::Entity entity = _scene->CreateEntity("Manual Mesh");
+			//entity.AddComponent<Engine::MeshFilterComponent>(mesh);
+			//entity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			//entity.GetTransform().position.x += 1.5;
 		}
 
 		/* Gltf Mesh */
@@ -338,14 +336,36 @@ public:
 			auto s = model.nodes[0].scale;
 			glm::vec3 scale = s.size() > 0 ? glm::vec3(s[0], s[1], s[2]) : glm::vec3(1.0f);
 
-			testEntity = _scene->CreateEntity("GLTF Mesh");
-			auto& t = testEntity.GetTransform();
-			t.scale = scale;
-			t.rotation.x += 90;
+			//testEntity = _scene->CreateEntity("GLTF Mesh");
+			//auto& t = testEntity.GetTransform();
+			//t.scale = scale;
+			//t.rotation.x += 90;
 
-			testEntity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
-			testEntity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			//testEntity.AddComponent<Engine::MeshFilterComponent>(gltfMesh);
+			//testEntity.AddComponent<Engine::MeshRendererComponent>(_standardLit);
 		}
+
+		auto mesh = std::make_shared<Engine::Mesh>("Sphere");
+		auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
+		const auto& prim = model.meshes[0].primitives[0];
+		mesh->AddSubmesh(Engine::GltfIO::LoadPrimitive(model, prim));
+
+		auto s = _scene->CreateEntity();
+		s.AddComponent<Engine::MeshFilterComponent>(mesh);
+		s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+
+		/*for (int i = 0; i < 5; i++) {
+			for (int j = 0; j < 3; j++) {
+				auto s = _scene->CreateEntity();
+				s.AddComponent<Engine::MeshFilterComponent>(mesh);
+				auto& mr = s.AddComponent<Engine::MeshRendererComponent>(_standardLit->Copy());
+				auto& t = s.GetTransform();
+				t.position.x = i * 2.0f;
+				t.position.y = j * 2.0f;
+
+				mr.material->SetUniform("roughness", (float)i * 2.0f * 0.1f);
+			}
+		}*/
 
 		/* Camera */
 		{
@@ -362,7 +382,6 @@ public:
 			{
 				std::string path = "Resources/Skyboxes/kloofendal_48d_partly_cloudy_puresky_4k.hdr";
 				auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
-
 				cc.skyboxCubemap = Engine::TextureCubeMap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubeMap::Utils::Texture2DCubemapFormat::Equirectangle);
 			}
 		}
@@ -372,6 +391,9 @@ public:
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
 			_orbitCameraController.OnScroll((float)e.yOffset);
 															 });
+		//_window->Subscribe<Engine::WindowResizeEvent>([&](const Engine::WindowResizeEvent& e) {
+		//	_standardRenderPipeline->OnResize(e.width, e.height);
+		//});
 	}
 
 	void OnUpdate(float ts) override {
@@ -399,16 +421,16 @@ public:
 				ImGui::Begin("Scene");
 				auto s = ImGui::GetContentRegionAvail();
 				auto& mainFramebuffer = _standardRenderPipeline->GetMainFramebuffer();
-				if (mainFramebuffer.GetSpecification().width != (uint32_t)s.x ||
-					mainFramebuffer.GetSpecification().height != (uint32_t)s.y) {
-					mainFramebuffer.Resize(s.x, s.y);
-				}
+				if (mainFramebuffer.GetSpecification().width != s.x ||
+					mainFramebuffer.GetSpecification().height != s.y)
+					_standardRenderPipeline->OnResize(s.x, s.y);
 				ImGui::Image((ImTextureID)(intptr_t)mainFramebuffer.GetColorAttachment(0)->GetID(), s, { 0,1 }, { 1,0 });
 				ImGui::End();
 				ImGui::PopStyleVar();
 			}
 
-			ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->GetMainFramebuffer().GetDepthAttachment()->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
+			ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->_windowFramebuffer->GetColorAttachment(0)->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
+			//ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->GetMainFramebuffer().GetDepthAttachment()->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
 
 			ImGui::Begin("Window");
 			Engine::WindowInfoUI_ImGui::RenderUI(*_window);

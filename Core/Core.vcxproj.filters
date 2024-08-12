@@ -182,9 +182,6 @@
     <ClCompile Include="Source\ECS\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\IRenderPipeline.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -227,5 +224,6 @@
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Material.cpp" />
   </ItemGroup>
 </Project>
