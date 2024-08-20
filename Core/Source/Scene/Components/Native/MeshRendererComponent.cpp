@@ -1,7 +1,7 @@
 #include "MeshRendererComponent.h"
 
 #include "Logging/Logging.h"
-#include "ECS/Scene/Entity.h"
+#include "Scene/Entity.h"
 #include "MeshFilterComponent.h"
 
 using namespace Engine;

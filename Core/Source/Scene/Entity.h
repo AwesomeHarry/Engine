@@ -3,10 +3,10 @@
 #include <entt/entt.hpp>
 #include "Logging/Logging.h"
 
-#include "ECS/Scene/Scene.h"
+#include "Scene/Scene.h"
 
-#include "ECS/Components/Native/NameComponent.h"
-#include "ECS/Components/Native/TransformComponent.h"
+#include "Scene/Components/Native/NameComponent.h"
+#include "Scene/Components/Native/TransformComponent.h"
 
 namespace Engine {
 	class Entity {

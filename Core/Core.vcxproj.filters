@@ -24,37 +24,37 @@
     <ClInclude Include="Source\Core\Logging\LoggingManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\BaseComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\BaseComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\BoundingBoxComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\BoundingBoxComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\CameraComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\CameraComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\Components.h">
+    <ClInclude Include="Source\Scene\Components\Native\Components.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\DebugShapeManager.h">
+    <ClInclude Include="Source\Scene\Components\Native\DebugShapeManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\MeshFilterComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\MeshFilterComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\MeshRendererComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\MeshRendererComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\NameComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\NameComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\TransformComponent.h">
+    <ClInclude Include="Source\Scene\Components\Native\TransformComponent.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Scene\Entity.h">
+    <ClInclude Include="Source\Scene\Entity.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Scene\Scene.h">
+    <ClInclude Include="Source\Scene\Scene.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Logging\Logging.h">
@@ -160,6 +160,7 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\MaterialUI_ImGui.h" />
+    <ClInclude Include="Source\Scene\SceneSerializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -174,13 +175,13 @@
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp">
+    <ClCompile Include="Source\Scene\Components\Native\DebugShapeManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Components\Native\MeshRendererComponent.cpp">
+    <ClCompile Include="Source\Scene\Components\Native\MeshRendererComponent.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Scene\Scene.cpp">
+    <ClCompile Include="Source\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp">
@@ -229,5 +230,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp" />
+    <ClCompile Include="Source\Scene\SceneSerializer.cpp" />
   </ItemGroup>
 </Project>

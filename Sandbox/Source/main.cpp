@@ -5,8 +5,8 @@
 
 #include "Core/Application/Root.h"
 
-#include "ECS/Scene/Scene.h"
-#include "ECS/Scene/Entity.h"
+#include "Scene/Scene.h"
+#include "Scene/Entity.h"
 
 #include "Rendering/Platform/Mesh.h"
 #include "Rendering/Platform/Shader.h"
@@ -57,48 +57,10 @@ public:
 			_standardRenderPipeline->Initialize(mainFramebuffer);
 		}
 
-		/* Create Shader & Material for test scene */
-		auto shader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.vert","Resources/Shaders/PBR.frag");
-		shader->BindUniformBlock("CameraData", 0);
-
-		_standardLit = std::make_shared<Engine::Material>(shader);
-
-		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
-		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
-		_standardLit->SetUniform("albedo", glm::vec3(1, 1, 1));
-		_standardLit->SetUniform("roughness", 0.0f);
-		_standardLit->SetUniform("metallic", 0.0f);
-
-		Engine::UI::MaterialUI::CustomUniformWidgets["lightPosition"] = { Engine::UI::MaterialUI::WidgetType::None };
-		Engine::UI::MaterialUI::CustomUniformWidgets["lightColor"] = { Engine::UI::MaterialUI::WidgetType::Color };
-		Engine::UI::MaterialUI::CustomUniformWidgets["albedo"] = { Engine::UI::MaterialUI::WidgetType::Color };
-		Engine::UI::MaterialUI::CustomUniformWidgets["roughness"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
-		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
-
-		_standardLit->SetUniform("useAlbedoMap", false);
-		_standardLit->SetUniform("useEmissionMap", false);
-		_standardLit->SetUniform("useNormalMap", false);
-		_standardLit->SetUniform("useRoughnessMap", false);
-
-		auto mesh = std::make_shared<Engine::Mesh>("Sphere");
-		auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
-		const auto& prim = model.meshes[0].primitives[0];
-		mesh->AddSubmesh(Engine::GltfIO::LoadPrimitive(model, prim));
-
-		auto s = _scene->CreateEntity();
-		s.AddComponent<Engine::MeshFilterComponent>(mesh);
-		s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
-
-		auto s2 = _scene->CreateEntity();
-		s2.AddComponent<Engine::MeshFilterComponent>(mesh);
-		auto& mr = s2.AddComponent<Engine::MeshRendererComponent>(_standardLit);
-		mr.materialInstance->SetUniform("albedo", glm::vec3(1, 0, 0));
-
 		/* Camera */
 		std::string path = "Resources/Skyboxes/brown_photostudio_06_4k.hdr";
 		auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
 		auto skyboxCubemap = Engine::TextureCubeMap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubeMap::Utils::Texture2DCubemapFormat::Equirectangle);
-		
 
 		// Irradiance Map
 		std::shared_ptr<Engine::TextureCubeMap> irradianceCubemap;
@@ -171,7 +133,7 @@ public:
 
 			auto irradianceShader = Engine::Shader::Utils::FromFile("Resources/Shaders/SkyboxConvolution.vert", "Resources/Shaders/SkyboxConvolution.frag");
 			auto irradianceMaterial = std::make_shared<Engine::Material>(irradianceShader);
-			irradianceMaterial->AddTexture(skyboxCubemap, "environmentMap", 0);
+			irradianceMaterial->SetTexture(skyboxCubemap, "environmentMap");
 			irradianceMaterial->SetUniform("projection", captureProjection);
 			auto irradianceMaterialInstance = irradianceMaterial->CreateInstance();
 
@@ -215,19 +177,73 @@ public:
 			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
 
 			/* Cubemap */
-			cc.skyboxCubemap = irradianceCubemap;
+			cc.skyboxCubemap = skyboxCubemap;
 		}
 
+		// Camera Controls
 		_fpsCameraController = FPSCameraController(_inputManager);
 		_orbitCameraController = OrbitCameraController(_inputManager);
 		_window->Subscribe<Engine::WindowMouseScrolledEvent>([&](const Engine::WindowMouseScrolledEvent& e) {
 			_orbitCameraController.OnScroll((float)e.yOffset);
 		});
+
+		/* Create Shader & Material for test scene */
+		auto shader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.vert","Resources/Shaders/PBR.frag");
+		shader->BindUniformBlock("CameraData", 0);
+
+		_standardLit = std::make_shared<Engine::Material>(shader);
+
+		_standardLit->SetUniform("albedo", glm::vec3(1, 1, 1));
+		_standardLit->SetUniform("metallic", 0.0f);
+		_standardLit->SetUniform("roughness", 0.4f);
+		_standardLit->SetUniform("ao", 1.0f);
+
+		Engine::UI::MaterialUI::CustomUniformWidgets["albedo"] = { Engine::UI::MaterialUI::WidgetType::Color };
+		Engine::UI::MaterialUI::CustomUniformWidgets["roughness"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
+		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
+		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
+
+		_standardLit->SetTexture(irradianceCubemap, "irradianceMap");
+
+		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
+		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
+
+		Engine::UI::MaterialUI::CustomUniformWidgets["lightColor"] = { Engine::UI::MaterialUI::WidgetType::Color };
+
+		//_standardLit->SetUniform("useAlbedoMap", false);
+		//_standardLit->SetUniform("useEmissionMap", false);
+		//_standardLit->SetUniform("useNormalMap", false);
+		//_standardLit->SetUniform("useRoughnessMap", false);
+
+		auto mesh = std::make_shared<Engine::Mesh>("Sphere");
+		auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
+		const auto& prim = model.meshes[0].primitives[0];
+		mesh->AddSubmesh(Engine::GltfIO::LoadPrimitive(model, prim));
+
+		{
+			auto s = _scene->CreateEntity();
+			s.AddComponent<Engine::MeshFilterComponent>(mesh);
+			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			mr.materialInstance->SetUniform("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
+		}
+
+		{
+			auto s2 = _scene->CreateEntity("Light");
+			s2.AddComponent<Engine::MeshFilterComponent>(mesh);
+			auto& mr = s2.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			mr.materialInstance->SetUniform("albedo", glm::vec3(300));
+			s2.GetTransform().position = { 12,10,0 };
+		}
 	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
+
+		auto s2 = _scene->GetEntity("Light");
+		auto& mr = s2.GetComponent<Engine::MeshRendererComponent>();
+		mr.sharedMaterial->SetUniform("lightPosition", s2.GetTransform().position);
+		mr.sharedMaterial->SetUniform("lightColor", std::get<glm::vec3>(mr.materialInstance->GetUniform("albedo").value()));
 
 		/* Render Axis */
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
@@ -237,7 +253,7 @@ public:
 		/* Update Scene */
 		_scene->UpdateScene(ts);
 
-		_standardLit->SetUniform("cameraPosition", _camera.GetTransform().position);
+		_standardLit->SetUniform("camPos", _camera.GetTransform().position);
 
 		/* Render Scene */
 		_scene->RenderScene();

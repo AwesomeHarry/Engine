@@ -1,6 +1,6 @@
 #include "Scene.h"
 
-#include "ECS/Components/Native/Components.h"
+#include "Scene/Components/Native/Components.h"
 #include "Entity.h"
 
 using namespace Engine;

@@ -1,6 +1,6 @@
 #pragma once
 #include "Core/Input/InputSystem.h"
-#include <ECS/Components/Native/TransformComponent.h>
+#include "Scene/Components/Native/TransformComponent.h"
 #include <glm/glm.hpp>
 
 class OrbitCameraController {

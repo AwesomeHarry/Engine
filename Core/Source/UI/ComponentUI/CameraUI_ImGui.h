@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include "ECS/Components/Native/CameraComponent.h"
+#include "Scene/Components/Native/CameraComponent.h"
 #include <string>
 
 namespace Engine {

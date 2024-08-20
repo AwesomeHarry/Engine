@@ -1,12 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "ECS/Scene/Scene.h"
+#include "Scene/Scene.h"
 #include "Rendering/BaseRenderPipeline.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Rendering/RenderManager.h"
-#include "ECS/Components/Native/Components.h"
+#include "Scene/Components/Native/Components.h"
 
 #pragma region Skybox Shader
 const char* skyboxVertexShader = R"(
@@ -91,6 +91,8 @@ private:
 
 	std::shared_ptr<Engine::VertexArrayObject> _fullscreenQuadVao;
 	std::shared_ptr<Engine::Shader> _postProcessShader;
+
+	float _exposure = 1.0f;
 public:
 	virtual void Initialize(std::shared_ptr<Engine::Framebuffer> mainFramebuffer) {
 		Engine::BaseRenderPipeline::Initialize(mainFramebuffer);
@@ -229,8 +231,6 @@ public:
 		framebuffer->Unbind();
 
 		// Apply Post Processing
-		//Engine::MaterialUtils::DrawUniformWidget(*_postProcessMaterial, "exposure");
-
 		_mainFb->Bind();
 		Engine::RenderCommands::SetClearColor(0.2f, 0.5f, 0.1f);
 		glDisable(GL_DEPTH_TEST);
@@ -238,6 +238,9 @@ public:
 		_windowFramebuffer->GetColorAttachment(0)->Bind(0);
 		Engine::RenderCommands::RenderMesh(*_fullscreenQuadVao, *_postProcessShader);
 		_mainFb->Unbind();
+
+		if (ImGui::DragFloat("Scene Exposure", &_exposure, 0.05f, 0.0f, 100.0f))
+			_postProcessShader->SetUniform("exposure", _exposure);
 	}
 
 	void RenderOpaqueObjects(Engine::Scene& scene, Engine::TransformComponent& cameraTransform) {
@@ -254,7 +257,7 @@ public:
 				auto& material = *renderer.materialInstance;
 				auto& mesh = *filter.mesh;
 
-				material.GetShader().SetUniform("model", transform.GetTransformMatrix());
+				material.SetUniform("model", transform.GetTransformMatrix());
 
 				Engine::RenderCommands::RenderMesh(mesh, material);
 			}

@@ -1,6 +1,6 @@
 #pragma once
 #include <string>
-#include <unordered_map>
+#include <map>
 #include "Util/FileIO.h"
 #include "glm/glm.hpp"
 
@@ -45,8 +45,8 @@ namespace Engine {
 		bool BindUniformBlock(const std::string& blockName, uint32_t bindingPoint);
 
 		inline uint32_t GetHandle() const { return _id; }
-		inline const std::unordered_map<std::string, UniformInfo>& GetUniformInfos() const { return _uniformsMap; }
-		inline const std::unordered_map<std::string, uint32_t>& GetUniformBlocks() const { return _uniformBlockMap; }
+		inline const std::map<std::string, UniformInfo>& GetUniformInfos() const { return _uniformsMap; }
+		inline const std::map<std::string, uint32_t>& GetUniformBlocks() const { return _uniformBlockMap; }
 	private:
 		uint32_t compileShader(uint32_t type, const char* source);
 		void preloadUniforms();
@@ -58,7 +58,7 @@ namespace Engine {
 		};
 	private:
 		uint32_t _id;
-		std::unordered_map<std::string, UniformInfo> _uniformsMap;
-		std::unordered_map<std::string, uint32_t> _uniformBlockMap;
+		std::map<std::string, UniformInfo> _uniformsMap;
+		std::map<std::string, uint32_t> _uniformBlockMap;
 	};
 }

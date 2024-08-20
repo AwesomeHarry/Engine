@@ -1,5 +1,5 @@
 #pragma once
-#include "ECS/Components/Native/DebugShapeManager.h"
+#include "Scene/Components/Native/DebugShapeManager.h"
 #include <imgui.h>
 
 namespace Engine {

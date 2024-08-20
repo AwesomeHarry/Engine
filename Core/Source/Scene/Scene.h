@@ -1,6 +1,6 @@
 #pragma once
 #include <entt/entt.hpp>
-#include "ECS/Components/Native/DebugShapeManager.h"
+#include "Scene/Components/Native/DebugShapeManager.h"
 
 namespace Engine {
 	class Entity;

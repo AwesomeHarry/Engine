@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include "ECS/Components/Native/MeshRendererComponent.h"
+#include "Scene/Components/Native/MeshRendererComponent.h"
 #include "UI/MaterialUI_ImGui.h"
 
 namespace Engine {

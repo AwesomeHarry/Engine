@@ -1,138 +1,129 @@
 #version 330 core
-
 out vec4 FragColor;
-
 in vec3 vPos;
 in vec3 vNor;
 in vec2 vTex;
 
-uniform vec3 cameraPosition;
-uniform vec3 lightPosition;
-uniform vec3 lightColor;
+// material parameters
 uniform vec3 albedo;
-uniform vec3 emission;
-uniform float roughness;
 uniform float metallic;
+uniform float roughness;
+uniform float ao;
 
-uniform bool useAlbedoMap;
-uniform sampler2D albedoMap;
-
-uniform bool useEmissionMap;
-uniform sampler2D emissionMap;
-
-uniform bool useNormalMap;
-uniform sampler2D normalMap;
-
-uniform bool useRoughnessMap;
-uniform sampler2D roughnessMap;
-
+// IBL
 uniform samplerCube irradianceMap;
 
-const float PI = 3.1415926535;
+// lights
+uniform vec3 lightPosition;
+uniform vec3 lightColor;
 
-vec3 GetNormalFromMap()
+uniform vec3 camPos;
+
+const float PI = 3.14159265359;
+
+// ----------------------------------------------------------------------------
+float DistributionGGX(vec3 N, vec3 H, float roughness)
 {
-    vec3 tangentNormal = texture(normalMap, vTex).xyz * 2.0 - 1.0;
+    float a = roughness*roughness;
+    float a2 = a*a;
+    float NdotH = max(dot(N, H), 0.0);
+    float NdotH2 = NdotH*NdotH;
 
-    vec3 Q1  = dFdx(vPos);
-    vec3 Q2  = dFdy(vPos);
-    vec2 st1 = dFdx(vTex);
-    vec2 st2 = dFdy(vTex);
+    float nom   = a2;
+    float denom = (NdotH2 * (a2 - 1.0) + 1.0);
+    denom = PI * denom * denom;
 
-    vec3 N = normalize(vNor);
-    vec3 T  = normalize(Q1 * st2.t - Q2 * st1.t);
-    vec3 B  = -normalize(cross(N, T));
-    mat3 TBN = mat3(T, B, N);
-
-    return normalize(TBN * tangentNormal);
+    return nom / denom;
 }
-
-// GGX / Trowbridge-Reitz Normal Distribution Function
-float D(float alpha, vec3 N, vec3 H)
+// ----------------------------------------------------------------------------
+float GeometrySchlickGGX(float NdotV, float roughness)
 {
-	float a2 = alpha * alpha;
+    float r = (roughness + 1.0);
+    float k = (r*r) / 8.0;
 
-	float numerator = a2;
+    float nom   = NdotV;
+    float denom = NdotV * (1.0 - k) + k;
 
-	float NdotH = max(dot(N, H), 0.0);
-	float denominator = PI * pow(NdotH * NdotH * (a2 - 1.0) + 1.0, 2.0);
-	denominator = max(denominator, 0.000001);
-
-	return numerator / denominator;
+    return nom / denom;
 }
-
-// Schlick-Beckmann Geometry Shadowing Function
-float G1(float alpha, vec3 N, vec3 X)
+// ----------------------------------------------------------------------------
+float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness)
 {
-	float NdotX = max(dot(N, X), 0.0);
-	float numerator = NdotX;
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotL = max(dot(N, L), 0.0);
+    float ggx2 = GeometrySchlickGGX(NdotV, roughness);
+    float ggx1 = GeometrySchlickGGX(NdotL, roughness);
 
-	float k = alpha / 2.0;
-	float denominator = NdotX * (1.0 - k) + k;
-	denominator = max(denominator, 0.000001);
-
-	return numerator / denominator;
+    return ggx1 * ggx2;
 }
-
-// Smith Model
-float G(float alpha, vec3 N, vec3 V, vec3 L)
+// ----------------------------------------------------------------------------
+vec3 fresnelSchlick(float cosTheta, vec3 F0)
 {
-	return G1(alpha, N, V) * G1(alpha, N, L);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
-
-// Fresnel-Schlick Function
-vec3 F(vec3 F0, vec3 V, vec3 H)
-{
-	float VdotH = max(dot(V, H), 0.0);
-	return F0 + (vec3(1.0) - F0) * pow(1.0 - VdotH, 5.0);
-}
-
+// ----------------------------------------------------------------------------
 void main()
-{
-	vec3 N;
-	if (useNormalMap)
-		N = GetNormalFromMap();
-	else
-		N = normalize(vNor);
+{		
+    vec3 N = vNor;
+    vec3 V = normalize(camPos - vPos);
+    vec3 R = reflect(-V, N); 
 
-	vec3 V = normalize(cameraPosition - vPos);
-	// For directional lights
-	vec3 L = normalize(lightPosition);
+    // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
+    // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
+    vec3 F0 = vec3(0.04); 
+    F0 = mix(F0, albedo, metallic);
 
-	vec3 H = normalize(V + L);
-	
-	vec3 F0 = vec3(0.04);
-	vec3 fresnel = F(F0, V, H);
+    // reflectance equation
+    vec3 Lo = vec3(0.0);
 
-	vec3 Ks = fresnel;
-	vec3 Kd = vec3(1.0) - Ks;
+    {
+        // calculate per-light radiance
+        vec3 L = normalize(lightPosition - vPos);
+        vec3 H = normalize(V + L);
+        float dist = length(lightPosition - vPos);
+        float attenuation = 1.0 / (dist * dist);
+        vec3 radiance = lightColor * attenuation;
 
-	float materialRoughness = roughness;
-	float materialMetallic = metallic;
-	if (useRoughnessMap) {
-		materialRoughness += texture(roughnessMap, vTex).g;
-		materialMetallic += texture(roughnessMap, vTex).b;
-	}
-	
-    Kd *= 1.0 - materialMetallic;
+        // Cook-Torrance BRDF
+        float NDF = DistributionGGX(N, H, roughness);   
+        float G   = GeometrySmith(N, V, L, roughness);    
+        vec3 F    = fresnelSchlick(max(dot(H, V), 0.0), F0);        
+    
+        vec3 numerator    = NDF * G * F;
+        float denominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0) + 0.0001; // + 0.0001 to prevent divide by zero
+        vec3 specular = numerator / denominator;
+    
+         // kS is equal to Fresnel
+        vec3 kS = F;
+        // for energy conservation, the diffuse and specular light can't
+        // be above 1.0 (unless the surface emits light); to preserve this
+        // relationship the diffuse component (kD) should equal 1.0 - kS.
+        vec3 kD = vec3(1.0) - kS;
+        // multiply kD by the inverse metalness such that only non-metals 
+        // have diffuse lighting, or a linear blend if partly metal (pure metals
+        // have no diffuse light).
+        kD *= 1.0 - metallic;	                
+        
+        // scale light by NdotL
+        float NdotL = max(dot(N, L), 0.0);        
 
-	vec3 lambert = albedo / PI;
-	if (useAlbedoMap)
-		lambert *= texture(albedoMap,vTex).rgb;
+        // add to outgoing radiance Lo
+        Lo += (kD * albedo / PI + specular) * radiance * NdotL; // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+    }
 
-	vec3 cookTorranceNumerator = D(materialRoughness, N, H) * G(materialRoughness, N, V, L) * fresnel;
-	float cookTorranceDenominator = 4.0 * max(dot(N, V), 0.0) * max(dot(N, L), 0.0);
-	cookTorranceDenominator = max(cookTorranceDenominator, 0.000001);
-	vec3 cookTorrance = cookTorranceNumerator / cookTorranceDenominator;
 
-	vec3 BRDF = Kd * lambert + cookTorrance;
-	
-	vec3 emissionColor = emission;
-	if (useEmissionMap)
-		emissionColor += texture(emissionMap, vTex).rgb;
 
-	vec3 ambient = vec3(0.03);
 
-	vec3 outgoingLight = ambient + emissionColor + BRDF * lightColor * max(dot(L, N), 0.0);
-	FragColor = vec4(outgoingLight, 1.0);
+    // ambient lighting (we now use IBL as the ambient term)
+    vec3 kS = fresnelSchlick(max(dot(N, V), 0.0), F0);
+    vec3 kD = 1.0 - kS;
+    kD *= 1.0 - metallic;	  
+    vec3 irradiance = texture(irradianceMap, N).rgb;
+    vec3 diffuse      = irradiance * albedo;
+    vec3 ambient = (kD * diffuse) * ao;
+    // vec3 ambient = vec3(0.002);
+    
+    vec3 color = ambient + Lo;
+
+    FragColor = vec4(color , 1.0);
 }
