@@ -201,7 +201,7 @@ bool Shader::BindUniformBlock(const std::string& blockName, uint32_t bindingPoin
 /*      Shader Utils      */
 /* ====================== */
 
-std::shared_ptr<Shader> ShaderUtils::FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
+std::shared_ptr<Shader> Shader::Utils::FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath) {
 	// Read the shader source files
 	std::string vertexShaderSource = FileIO::ReadFile(vertexShaderPath);
 	std::string fragmentShaderSource = FileIO::ReadFile(fragmentShaderPath);

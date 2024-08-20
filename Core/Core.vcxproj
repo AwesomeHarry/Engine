@@ -94,6 +94,7 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\UI\MaterialUI_ImGui.h" />
     <ClInclude Include="Source\Core\Application\Layer.h" />
     <ClInclude Include="Source\Core\Application\Root.h" />
     <ClInclude Include="Source\Core\Application\Window.h" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />
     <ClCompile Include="Source\Core\Application\Window.cpp" />
     <ClCompile Include="Source\Core\Input\InputSystem.cpp" />

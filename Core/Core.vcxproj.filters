@@ -159,6 +159,7 @@
     <ClInclude Include="Source\Util\Mesh\GltfIO.h">
       <Filter>Source</Filter>
     </ClInclude>
+    <ClInclude Include="Source\UI\MaterialUI_ImGui.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -203,6 +204,9 @@
     <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Material.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\Mesh.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -224,6 +228,6 @@
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Material.cpp" />
+    <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp" />
   </ItemGroup>
 </Project>

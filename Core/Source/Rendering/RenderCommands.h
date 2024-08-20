@@ -13,7 +13,7 @@ namespace Engine {
 
 	class Mesh;
 	class Shader;
-	class Material;
+	class MaterialInstance;
 	class VertexArrayObject;
 
 	class RenderCommands {
@@ -24,7 +24,7 @@ namespace Engine {
 
 		static void SetWireframe(WireframeMode wireframeMode);
 
-		static void RenderMesh(const Mesh& mesh, const Material& material);
+		static void RenderMesh(const Mesh& mesh, const MaterialInstance& material);
 		static void RenderMesh(const VertexArrayObject& mesh, const Shader& shader);
 		static void RenderPoints(const VertexArrayObject& vertexArray, uint64_t count, const Shader& shader);
 	};

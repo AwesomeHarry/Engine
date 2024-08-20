@@ -52,14 +52,13 @@ namespace Engine {
 		void preloadUniforms();
 		bool uniformExists(const std::string& name);
 		int getUniformLocation(const std::string& name);
+	public:
+		struct Utils {
+			static std::shared_ptr<Shader> FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+		};
 	private:
 		uint32_t _id;
 		std::unordered_map<std::string, UniformInfo> _uniformsMap;
 		std::unordered_map<std::string, uint32_t> _uniformBlockMap;
-	};
-
-	class ShaderUtils {
-	public:
-		static std::shared_ptr<Shader> FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
 	};
 }

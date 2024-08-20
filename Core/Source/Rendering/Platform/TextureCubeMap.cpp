@@ -15,9 +15,9 @@ TextureCubeMap::TextureCubeMap(const TextureSpec& spec)
 
     glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_REPEAT);
+    glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
 void TextureCubeMap::SetData(CubeMapIndex index, void* data) {
@@ -201,7 +201,7 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromTexture2D(std::shared
 		auto equiToCubemapMaterial = std::make_shared<Engine::Material>(shader);
 		equiToCubemapMaterial->AddTexture(texture, "equirectangularMap", 0);
 		equiToCubemapMaterial->SetUniform("projection", captureProjection);
-
+		auto equiToCubemapMaterialInstance = equiToCubemapMaterial->CreateInstance();
 
 		uint32_t captureSize = texture->GetHeight() / 2.0f;
 
@@ -227,7 +227,7 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromTexture2D(std::shared
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetID(), 0);
 
 			Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
-			Engine::RenderCommands::RenderMesh(*cubeMesh, *equiToCubemapMaterial);
+			Engine::RenderCommands::RenderMesh(*cubeMesh, *equiToCubemapMaterialInstance);
 		}
 		captureFrambuffer->Unbind();
     }

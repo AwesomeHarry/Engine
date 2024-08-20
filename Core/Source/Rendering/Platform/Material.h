@@ -2,235 +2,133 @@
 
 #include <string>
 #include <memory>
+#include <variant>
 #include <map>
 #include <unordered_map>
+#include <optional>
 
-#include <variant>
 #include <glm/glm.hpp>
 
 #include "Shader.h"
 #include "Texture2D.h"
 
-#include <imgui.h>
-
 namespace Engine {
-	class Material : public std::enable_shared_from_this<Material> {
+	class MaterialInstance;
+
+	using UniformValue = std::variant<bool, int, float, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4>;
+
+	class BaseMaterial {
+	public:
+		virtual ~BaseMaterial() = default;
+
+		virtual void Bind() const = 0;
+		virtual void Unbind() const = 0;
+
+		virtual void SetShader(std::shared_ptr<Shader> shader) = 0;
+		virtual Shader& GetShader() = 0;
+		virtual const Shader& GetShader() const = 0;
+
+		virtual void AddTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName, uint32_t bindingPoint) = 0;
+		virtual void UpdateTexture(const std::string& uniformName, std::shared_ptr<BaseTexture> newTexture) = 0;
+		virtual BaseTexture& GetTexture(const std::string& name) = 0;
+		virtual uint32_t GetTextureCount() const = 0;
+
+		virtual void SetUniform(const std::string& name, bool value) = 0;
+		virtual void SetUniform(const std::string& name, int value) = 0;
+		virtual void SetUniform(const std::string& name, float value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::vec2& value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::vec3& value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::vec4& value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::mat2& value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::mat3& value) = 0;
+		virtual void SetUniform(const std::string& name, const glm::mat4& value) = 0;
+
+		virtual std::optional<UniformValue> GetUniform(const std::string& name) const = 0;
+		virtual std::vector<std::string> GetUniformNames() const = 0;
+	};
+
+	class Material : public BaseMaterial, public std::enable_shared_from_this<Material> {
 	public:
 		Material(std::shared_ptr<Shader> shader);
-		~Material();
+		~Material() override = default;
 
-		void Bind() const;
-		void Unbind() const;
+		void Bind() const override;
+		void Unbind() const override;
 
-		void SetShader(std::shared_ptr<Shader> shader);
-		Shader& GetShader();
-		const Shader& GetShader() const;
+		void SetShader(std::shared_ptr<Shader> shader) override;
+		Shader& GetShader() override { return *_shader; }
+		const Shader& GetShader() const override { return *_shader; }
 
-		void AddTexture(std::shared_ptr<Texture2D> texture, const std::string& uniformName, uint32_t index);
-		void UpdateTexture(const std::string& uniformName, std::shared_ptr<Texture2D> newTexture);
-		Texture2D& GetTexture(uint32_t index);
-		uint32_t GetTextureCount();
+		void AddTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName, uint32_t bindingPoint) override;
+		void UpdateTexture(const std::string& uniformName, std::shared_ptr<BaseTexture> newTexture) override;
+		BaseTexture& GetTexture(const std::string& name) override;
+		uint32_t GetTextureCount() const override;
 
-		void SetUniform(const std::string& name, bool value);
-		void SetUniform(const std::string& name, int value);
-		void SetUniform(const std::string& name, float value);
-		void SetUniform(const std::string& name, const glm::vec2& value);
-		void SetUniform(const std::string& name, const glm::vec3& value);
-		void SetUniform(const std::string& name, const glm::vec4& value);
-		void SetUniform(const std::string& name, const glm::mat2& value);
-		void SetUniform(const std::string& name, const glm::mat3& value);
-		void SetUniform(const std::string& name, const glm::mat4& value);
+		void SetUniform(const std::string& name, bool value) override;
+		void SetUniform(const std::string& name, int value) override;
+		void SetUniform(const std::string& name, float value) override;
+		void SetUniform(const std::string& name, const glm::vec2& value) override;
+		void SetUniform(const std::string& name, const glm::vec3& value) override;
+		void SetUniform(const std::string& name, const glm::vec4& value) override;
+		void SetUniform(const std::string& name, const glm::mat2& value) override;
+		void SetUniform(const std::string& name, const glm::mat3& value) override;
+		void SetUniform(const std::string& name, const glm::mat4& value) override;
 
-		template<typename T>
-		T GetUniform(const std::string& name) const;
+		std::optional<UniformValue> GetUniform(const std::string& name) const override;
+		std::vector<std::string> GetUniformNames() const override;
 
-		std::shared_ptr<Material> Copy();
-	private:
-		std::shared_ptr<Shader> _shader;
-		using UniformValue = std::variant<bool, int, float, glm::vec2, glm::vec3, glm::vec4, glm::mat2, glm::mat3, glm::mat4>;
+		std::shared_ptr<MaterialInstance> CreateInstance();
+	public:
 		struct Uniform {
 			UniformValue value;
 			bool isSampler;
 		};
+	private:
+		std::shared_ptr<Shader> _shader;
 		std::map<std::string, Uniform> _uniformMap;
-		std::unordered_map<uint32_t, std::shared_ptr<Texture2D>> _textureMap;
+		std::unordered_map<uint32_t, std::shared_ptr<BaseTexture>> _textureMap;
 
-		friend class MaterialUtils;
+		friend class MaterialInstance;
 	};
 
-	class MaterialUtils {
+	class MaterialInstance : public BaseMaterial {
 	public:
-		enum class WidgetType { None = 0, Drag, Input, Slider, Color };
+		MaterialInstance(std::shared_ptr<Material> baseMaterial);
+		~MaterialInstance() override = default;
 
-		static void DrawUniformWidget(Material& material, const std::string& uniformName, WidgetType type = WidgetType::Drag, float speed = 1.0f, float min = 0.0f, float max = 0.0f) {
-			if (type == WidgetType::None)
-				return;
+		void Bind() const override;
+		void Unbind() const override;
 
-			auto& uniformMap = material._uniformMap;
-			auto it = uniformMap.find(uniformName);
+		void SetShader(std::shared_ptr<Shader> shader) override;
+		Shader& GetShader() override;
+		const Shader& GetShader() const override;
 
-			if (it == uniformMap.end()) {
-				ImGui::Text("Uniform %s not found", uniformName.c_str());
-				return;
-			}
+		void AddTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName, uint32_t bindingPoint) override;
+		void UpdateTexture(const std::string& uniformName, std::shared_ptr<BaseTexture> newTexture) override;
+		BaseTexture& GetTexture(const std::string& name) override;
+		uint32_t GetTextureCount() const override;
 
-			if (it->second.isSampler) {
-				ImGui::Text("%s : %d", uniformName.c_str(), std::get<int>(it->second.value));
-				return;
-			}
+		void SetUniform(const std::string& name, bool value) override;
+		void SetUniform(const std::string& name, int value) override;
+		void SetUniform(const std::string& name, float value) override;
+		void SetUniform(const std::string& name, const glm::vec2& value) override;
+		void SetUniform(const std::string& name, const glm::vec3& value) override;
+		void SetUniform(const std::string& name, const glm::vec4& value) override;
+		void SetUniform(const std::string& name, const glm::mat2& value) override;
+		void SetUniform(const std::string& name, const glm::mat3& value) override;
+		void SetUniform(const std::string& name, const glm::mat4& value) override;
 
-			std::visit([&](auto&& arg) {
-				using T = std::decay_t<decltype(arg)>;
-				if constexpr (std::is_same_v<T, bool>) {
-					bool value = arg;
-					if (ImGui::Checkbox(uniformName.c_str(), &value))
-						material.SetUniform(uniformName, value);
-				}
-				else if constexpr (std::is_same_v<T, int>) {
-					int value = arg;
-					switch (type) {
-					case WidgetType::Drag:
-						if (ImGui::DragInt(uniformName.c_str(), &value, speed, (int)min, (int)max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Input:
-						ImGui::InputInt(uniformName.c_str(), &value);
-						if (ImGui::IsItemDeactivatedAfterEdit())
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Slider:
-						if (ImGui::SliderInt(uniformName.c_str(), &value, (int)min, (int)max))
-							material.SetUniform(uniformName, value);
-						break;
-					default:
-						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
-						break;
-					}
-				}
-				else if constexpr (std::is_same_v<T, float>) {
-					float value = arg;
-					switch (type) {
-					case WidgetType::Drag:
-						if (ImGui::DragFloat(uniformName.c_str(), &value, speed, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Input:
-						if (ImGui::InputFloat(uniformName.c_str(), &value))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Slider:
-						if (ImGui::SliderFloat(uniformName.c_str(), &value, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					default:
-						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
-						break;
-					}
-				}
-				else if constexpr (std::is_same_v<T, glm::vec2>) {
-					glm::vec2 value = arg;
-					switch (type) {
-					case WidgetType::Drag:
-						if (ImGui::DragFloat2(uniformName.c_str(), &value.x, speed, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Slider:
-						if (ImGui::SliderFloat2(uniformName.c_str(), &value.x, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Input:
-						if (ImGui::InputFloat2(uniformName.c_str(), &value.x))
-							material.SetUniform(uniformName, value);
-						break;
-					default:
-						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
-						break;
-					}
-				}
-				else if constexpr (std::is_same_v<T, glm::vec3>) {
-					glm::vec3 value = arg;
-					switch (type) {
-					case WidgetType::Drag:
-						if (ImGui::DragFloat3(uniformName.c_str(), &value.x, speed, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Color:
-						if (ImGui::ColorEdit3(uniformName.c_str(), &value.x))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Slider:
-						if (ImGui::SliderFloat3(uniformName.c_str(), &value.x, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Input:
-						if (ImGui::InputFloat3(uniformName.c_str(), &value.x))
-							material.SetUniform(uniformName, value);
-						break;
-					default:
-						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
-						break;
-					}
-				}
-				else if constexpr (std::is_same_v<T, glm::vec4>) {
-					glm::vec4 value = arg;
-					switch (type) {
-					case WidgetType::Drag:
-						if (ImGui::DragFloat4(uniformName.c_str(), &value.x, speed, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Color:
-						if (ImGui::ColorEdit4(uniformName.c_str(), &value.x))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Slider:
-						if (ImGui::SliderFloat4(uniformName.c_str(), &value.x, min, max))
-							material.SetUniform(uniformName, value);
-						break;
-					case WidgetType::Input:
-						if (ImGui::InputFloat4(uniformName.c_str(), &value.x))
-							material.SetUniform(uniformName, value);
-						break;
-					default:
-						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
-						break;
-					}
-				}
-			}, it->second.value);
-		}
+		void ResetUniform(const std::string& name);
 
-		static void DrawAllUniformWidgets(Material& material) {
-			auto& uniformMap = material._uniformMap;
-			if (ImGui::TreeNode("Material Uniforms")) {
-				for (const auto& [uniformName, uniformValue] : uniformMap) {
-					WidgetType widgetType = determineWidgetType(uniformName, uniformValue);
-					DrawUniformWidget(material, uniformName, widgetType);
-				}
-				ImGui::TreePop();
-			}
-		}
+		std::optional<UniformValue> GetUniform(const std::string& name) const override;
+		std::vector<std::string> GetUniformNames() const override;
+
+		std::shared_ptr<Material> GetBaseMaterial() const { return _baseMaterial; }
+		bool IsUniformOverridden(const std::string& name) const;
+		std::vector<std::string> GetOverriddenUniformNames() const;
 	private:
-		template<typename T>
-		static WidgetType determineWidgetType(const std::string& uniformName, const T& uniformValue) {
-			// Check if the name suggests it's a color
-			if (uniformName.find("color") != std::string::npos ||
-				uniformName.find("Color") != std::string::npos) {
-				return WidgetType::Color;
-			}
-			
-			// For vector types, prefer DRAG
-			if constexpr (std::is_same_v<T, glm::vec2> ||
-						  std::is_same_v<T, glm::vec3> ||
-						  std::is_same_v<T, glm::vec4>) {
-				return WidgetType::Drag;
-			}
-
-			// For scalars, prefer SLIDER
-			if constexpr (std::is_same_v<T, float> || std::is_same_v<T, int>) {
-				return WidgetType::Drag;
-			}
-
-			// Default to DEFAULT for other types
-			return WidgetType::Drag;
-		}
+		std::shared_ptr<Material> _baseMaterial;
+		std::map<std::string, Material::Uniform> _overriddenUniforms;
+		std::unordered_map<uint32_t, std::shared_ptr<BaseTexture>> _overriddenTextures;
 	};
 }
