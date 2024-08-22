@@ -11,11 +11,14 @@
 #include "Rendering/Platform/Buffer/VertexBufferObject.h"
 #include "Rendering/Platform/Buffer/IndexBufferObject.h"
 
+#include "Rendering/Platform/Mesh.h"
+
 namespace Engine {
 	class GltfIO {
 	public:
 		static tinygltf::Model LoadFile(const std::string& path);
 		static std::shared_ptr<VertexArrayObject> LoadPrimitive(const tinygltf::Model& model, const tinygltf::Primitive& primitive);
+		static void ExportMeshToGltf(const Mesh& mesh, const std::string& path);
 	private:
 		static uint32_t getNumComponents(uint32_t type);
 		static uint32_t getComponentByteSize(uint32_t componentType);
