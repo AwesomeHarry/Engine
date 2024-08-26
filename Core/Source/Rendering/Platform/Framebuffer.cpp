@@ -94,7 +94,7 @@ void Framebuffer::Invalidate() {
     if (_specification.attachments.size() > 0) {
         _colorAttachments.resize(_specification.attachments.size());
 
-        for (size_t i = 0; i < _specification.attachments.size(); i++) {
+        for (uint32_t i = 0; i < _specification.attachments.size(); i++) {
             TextureSpec textureSpec;
             textureSpec.width = _specification.width;
             textureSpec.height = _specification.height;
@@ -136,7 +136,7 @@ void Framebuffer::Invalidate() {
 
     if (_colorAttachments.size() > 0) {
         GLenum buffers[4] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1, GL_COLOR_ATTACHMENT2, GL_COLOR_ATTACHMENT3 };
-        glDrawBuffers(_colorAttachments.size(), buffers);
+        glDrawBuffers((uint32_t)_colorAttachments.size(), buffers);
     }
     else if (_colorAttachments.empty()) {
         // Only depth-pass

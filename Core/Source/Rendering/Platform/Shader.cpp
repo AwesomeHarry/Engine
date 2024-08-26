@@ -5,6 +5,16 @@
 
 using namespace Engine;
 
+uint32_t ShaderTypeToOpenGLType(ShaderStage type) {
+	switch (type) {
+	case ShaderStage::Vertex: return GL_VERTEX_SHADER;
+	case ShaderStage::Fragment: return GL_FRAGMENT_SHADER;
+	case ShaderStage::Geometry: return GL_GEOMETRY_SHADER;
+	}
+	ENGINE_ASSERT(false, "Invalid shader type!");
+	return 0;
+}
+
 Shader::Shader() {
 	_id = glCreateProgram();
 }
@@ -13,20 +23,10 @@ Shader::~Shader() {
 	glDeleteProgram(_id);
 }
 
-void Shader::AttachVertexShader(const std::string& src) {
-	GLuint shader = compileShader(GL_VERTEX_SHADER, src.c_str());
-	glAttachShader(_id, shader);
-	glDeleteShader(shader);
-}
-
-void Shader::AttachFragmentShader(const std::string& src) {
-	GLuint shader = compileShader(GL_FRAGMENT_SHADER, src.c_str());
-	glAttachShader(_id, shader);
-	glDeleteShader(shader);
-}
-
-void Shader::AttachGeometeryShader(const std::string& src) {
-	GLuint shader = compileShader(GL_GEOMETRY_SHADER, src.c_str());
+void Shader::AttachShader(ShaderStage type, const std::string& src) {
+	_shaderSources[type] = src;
+	auto glType = ShaderTypeToOpenGLType(type);
+	GLuint shader = compileShader(glType, src.c_str());
 	glAttachShader(_id, shader);
 	glDeleteShader(shader);
 }
@@ -56,6 +56,14 @@ void Shader::Unbind() const {
 	glUseProgram(0);
 }
 
+std::vector<ShaderStage> Engine::Shader::GetAttachedTypes() const {
+	std::vector<ShaderStage> types;
+	for (auto& [type, src] : _shaderSources) {
+		types.push_back(type);
+	}
+	return types;
+}
+
 uint32_t Shader::compileShader(uint32_t type, const char* source) {
 	GLuint shader = glCreateShader(type);
 	glShaderSource(shader, 1, &source, NULL);
@@ -80,7 +88,7 @@ void Shader::preloadUniforms() {
 	glGetProgramiv(_id, GL_ACTIVE_UNIFORM_MAX_LENGTH, &maxUniformNameLength);
 
 	std::vector<char> uniformNameBuffer(maxUniformNameLength);
-	for (size_t i = 0; i < numUniforms; i++) {
+	for (uint32_t i = 0; i < (uint32_t)numUniforms; i++) {
 		GLsizei nameLength = 0;
 		GLint size = 0;
 		GLenum type = 0;
@@ -206,12 +214,69 @@ std::shared_ptr<Shader> Shader::Utils::FromFile(const std::string& vertexShaderP
 	std::string vertexShaderSource = FileIO::ReadFile(vertexShaderPath);
 	std::string fragmentShaderSource = FileIO::ReadFile(fragmentShaderPath);
 
-	ENGINE_TRACE("Vertex Shader Source:\n{}", vertexShaderSource);
-	ENGINE_TRACE("Fragment Shader Source:\n{}", fragmentShaderSource);
-
 	auto shader = std::make_shared<Shader>();
-	shader->AttachVertexShader(vertexShaderSource);
-	shader->AttachFragmentShader(fragmentShaderSource);
+	shader->AttachShader(ShaderStage::Vertex, vertexShaderSource);
+	shader->AttachShader(ShaderStage::Fragment, fragmentShaderSource);
 	shader->Link();
 	return shader;
+}
+
+std::shared_ptr<Shader> Shader::Utils::FromFile(const std::string& filepath) {
+	auto shaderSources = ParseShader(filepath);
+	auto shader = std::make_shared<Shader>();
+
+	for (auto& [type, src] : shaderSources) {
+		shader->AttachShader(type, src);
+	}
+
+	shader->Link();
+	return shader;
+}
+
+const std::unordered_map<std::string, ShaderStage> stageMarkers = {
+	{"@vertex", ShaderStage::Vertex},
+	{"@fragment", ShaderStage::Fragment},
+	{"@geometry", ShaderStage::Geometry}
+};
+
+std::unordered_map<ShaderStage, std::string> Shader::Utils::ParseShader(const std::string& filepath) {
+	std::ifstream file(filepath);
+	if (!file.is_open()) {
+		ENGINE_ERROR("Failed to open file: {}", filepath);
+		return {};
+	}
+
+	std::unordered_map<ShaderStage, std::string> shaderSources;
+	ShaderStage currentStage = ShaderStage::Vertex;
+	std::stringstream currentShaderSource;
+
+	std::string line;
+	while (std::getline(file, line)) {
+		if (line.empty()) continue;
+
+		if (line[0] == '@') {
+			if (!currentShaderSource.str().empty()) {
+				shaderSources[currentStage] = currentShaderSource.str();
+				currentShaderSource.str("");
+				currentShaderSource.clear();
+			}
+
+			auto it = stageMarkers.find(line);
+			if (it != stageMarkers.end()) {
+				currentStage = it->second;
+			}
+			else {
+				ENGINE_WARN("Unknown shader stage marker: {}", line);
+			}
+		}
+		else {
+			currentShaderSource << line << '\n';
+		}
+	}
+
+	if (!currentShaderSource.str().empty()) {
+		shaderSources[currentStage] = currentShaderSource.str();
+	}
+
+	return shaderSources;
 }

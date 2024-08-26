@@ -338,9 +338,9 @@ namespace Engine {
         /* Points */
         {
             pointShader = std::make_shared<Shader>();
-            pointShader->AttachVertexShader(pointShader_V);
-            pointShader->AttachGeometeryShader(pointShader_G);
-            pointShader->AttachFragmentShader(pointShader_F);
+            pointShader->AttachShader(ShaderStage::Vertex, pointShader_V);
+            pointShader->AttachShader(ShaderStage::Geometry, pointShader_G);
+            pointShader->AttachShader(ShaderStage::Fragment, pointShader_F);
             pointShader->Link();
             pointShader->BindUniformBlock("CameraData", 0);
 
@@ -359,9 +359,9 @@ namespace Engine {
         /* Lines */
         {
             lineShader = std::make_shared<Shader>();
-            lineShader->AttachVertexShader(lineShader_V);
-            lineShader->AttachGeometeryShader(lineShader_G);
-            lineShader->AttachFragmentShader(lineShader_F);
+            lineShader->AttachShader(ShaderStage::Vertex, lineShader_V);
+            lineShader->AttachShader(ShaderStage::Geometry, lineShader_G);
+            lineShader->AttachShader(ShaderStage::Fragment, lineShader_F);
             lineShader->Link();
             lineShader->BindUniformBlock("CameraData", 0);
 
@@ -380,9 +380,9 @@ namespace Engine {
         /* Cubes */
         {
             quadShader = std::make_shared<Shader>();
-			quadShader->AttachVertexShader(quadShader_V);
-			quadShader->AttachGeometeryShader(quadShader_G);
-			quadShader->AttachFragmentShader(quadShader_F);
+			quadShader->AttachShader(ShaderStage::Vertex, quadShader_V);
+			quadShader->AttachShader(ShaderStage::Geometry, quadShader_G);
+			quadShader->AttachShader(ShaderStage::Fragment, quadShader_F);
             quadShader->Link();
             quadShader->BindUniformBlock("CameraData", 0);
 

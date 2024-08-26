@@ -93,7 +93,7 @@ std::shared_ptr<VertexArrayObject> GltfIO::LoadPrimitive(const tinygltf::Model& 
 		const unsigned char* data = &buffer.data[bufferView.byteOffset + accessor.byteOffset];
 
 		std::shared_ptr<IndexBufferObject> ibo = std::make_shared<IndexBufferObject>();
-		ibo->SetData(data, (LType)accessor.componentType, accessor.count);
+		ibo->SetData(data, (LType)accessor.componentType, (uint32_t)accessor.count);
 		vao->SetIndexBuffer(ibo);
 	}
 
@@ -166,12 +166,12 @@ void GltfIO::ExportMeshToGltf(const Mesh& mesh, const std::string& path) {
 	asset.version = "2.0";
 	asset.generator = "Mesh to GLTF Exporter";
 
-	for (int i = 0; i < mesh.GetSubmeshCount(); i++) {
+	for (uint32_t i = 0; i < mesh.GetSubmeshCount(); i++) {
 		const VertexArrayObject& vao = mesh.GetSubmesh(i);
 		tinygltf::Primitive primitive;
 
 		// Vertex Buffers
-		for (int j = 0; j < vao.GetVertexBufferCount(); j++) {
+		for (uint32_t j = 0; j < vao.GetVertexBufferCount(); j++) {
 			const VertexBufferObject& vbo = vao.GetVertexBuffer(j);
 			const VertexLayout& layout = vbo.GetLayout();
 
@@ -180,22 +180,22 @@ void GltfIO::ExportMeshToGltf(const Mesh& mesh, const std::string& path) {
 			tinygltf::Buffer buffer;
 
 			buffer.data = vbo.GetRawData();
-			bufferView.buffer = model.buffers.size();
+			bufferView.buffer = (uint32_t)model.buffers.size();
 			bufferView.byteOffset = 0;
-			bufferView.byteLength = buffer.data.size();
+			bufferView.byteLength = (uint32_t)buffer.data.size();
 
 			for (const auto& component : layout.GetComponents()) {
 				accessor.componentType = GetTinyGLTFComponentType(component.Type);
 				accessor.count = vbo.GetCount();
 				accessor.type = GetTinyGLTFType(component.Count);
-				accessor.bufferView = model.bufferViews.size();
+				accessor.bufferView = (uint32_t)model.bufferViews.size();
 				accessor.byteOffset = 0;
 
-				model.accessors.emplace_back(std::move(accessor));
-				model.bufferViews.emplace_back(std::move(bufferView));
-				model.buffers.emplace_back(std::move(buffer));
+				model.accessors.emplace_back(accessor);
+				model.bufferViews.emplace_back(bufferView);
+				model.buffers.emplace_back(buffer);
 
-				primitive.attributes[component.Name] = model.accessors.size() - 1;
+				primitive.attributes[component.Name] = (uint32_t)model.accessors.size() - 1;
 			}
 		}
 
@@ -207,21 +207,21 @@ void GltfIO::ExportMeshToGltf(const Mesh& mesh, const std::string& path) {
 			tinygltf::Buffer buffer;
 
 			buffer.data = ibo.GetRawData();
-			bufferView.buffer = model.buffers.size();
+			bufferView.buffer = (uint32_t)model.buffers.size();
 			bufferView.byteOffset = 0;
-			bufferView.byteLength = buffer.data.size();
+			bufferView.byteLength = (uint32_t)buffer.data.size();
 
 			accessor.componentType = GetTinyGLTFComponentType(ibo.GetType());
 			accessor.count = ibo.GetCount();
 			accessor.type = TINYGLTF_TYPE_SCALAR;
-			accessor.bufferView = model.bufferViews.size();
+			accessor.bufferView = (uint32_t)model.bufferViews.size();
 			accessor.byteOffset = 0;
 
 			model.accessors.emplace_back(std::move(accessor));
 			model.bufferViews.emplace_back(std::move(bufferView));
 			model.buffers.emplace_back(std::move(buffer));
 
-			primitive.indices = model.accessors.size() - 1;
+			primitive.indices = (uint32_t)model.accessors.size() - 1;
 		}
 
 		primitive.mode = GetTinyGLTFDrawMode(vao.GetDrawMode());

@@ -12,15 +12,15 @@ namespace Engine {
 
 				ImGui::Text("Mesh Name: %s", mesh.GetName().c_str());
 				if (ImGui::TreeNode("Mesh Info")) {
-					for (size_t submeshIndex = 0; submeshIndex < mesh.GetSubmeshCount(); submeshIndex++) {
+					for (uint32_t submeshIndex = 0; submeshIndex < mesh.GetSubmeshCount(); submeshIndex++) {
 						auto& va = mesh.GetSubmesh(submeshIndex);
 
-						if (ImGui::TreeNode((void*)submeshIndex, "Submesh %d", submeshIndex)) {
+						if (ImGui::TreeNode((void*)(intptr_t)submeshIndex, "Submesh %d", submeshIndex)) {
 							if (ImGui::TreeNode("Vertex Buffers")) {
-								for (size_t vaIndex = 0; vaIndex < va.GetVertexBufferCount(); vaIndex++) {
+								for (uint32_t vaIndex = 0; vaIndex < va.GetVertexBufferCount(); vaIndex++) {
 									auto& vb = va.GetVertexBuffer(vaIndex);
 
-									if (ImGui::TreeNode((void*)vaIndex, "Buffer %d", vaIndex)) {
+									if (ImGui::TreeNode((void*)(intptr_t)vaIndex, "Buffer %d", vaIndex)) {
 										if (ImGui::BeginTable("LayoutTable", 3, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg)) {
 											ImGui::TableSetupColumn("Name");
 											ImGui::TableSetupColumn("Type");

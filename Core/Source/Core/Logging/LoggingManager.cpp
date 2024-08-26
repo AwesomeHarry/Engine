@@ -4,7 +4,7 @@
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/sinks/base_sink.h>
 
-#include "Logging/Logging.h""
+#include "Logging/Logging.h"
 
 using namespace Engine;
 

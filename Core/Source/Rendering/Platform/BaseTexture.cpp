@@ -5,8 +5,28 @@
 
 using namespace Engine;
 
+uint32_t TextureTypeToOpenGLTextureType(TextureType type) {
+	switch (type) {
+	case TextureType::Tex2D: return GL_TEXTURE_2D;
+	case TextureType::TexCubemap: return GL_TEXTURE_CUBE_MAP;
+	}
+
+	ENGINE_ERROR("Unsupported texture type");
+	return 0;
+}
+
+TextureType OpenGLTextureTypeToTextureType(uint32_t type) {
+	switch (type) {
+	case GL_TEXTURE_2D: return TextureType::Tex2D;
+	case GL_TEXTURE_CUBE_MAP: return TextureType::TexCubemap;
+	}
+
+	ENGINE_ERROR("Unsupported texture type");
+	return TextureType::Tex2D;
+}
+
 BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
-	: _format(spec.format), _type(TextureTypeToOpenGLTextureType(type)),
+	: _format(spec.format), _type(type), _internalType(TextureTypeToOpenGLTextureType(type)),
 	_width(spec.width), _height(spec.height),
 	_id(0),
 	_internalFormat(0), _dataFormat(0), _dataType(0) {
@@ -28,11 +48,11 @@ void BaseTexture::Bind(uint32_t slot) const {
 }
 
 void BaseTexture::Unbind() const {
-	glBindTexture(_type, 0);
+	glBindTexture(_internalType, 0);
 }
 
 void BaseTexture::BindInternal() const {
-	glBindTexture(_type, _id);
+	glBindTexture(_internalType, _id);
 }
 
 void BaseTexture::SetDataInternal(uint32_t target, void* data) {
@@ -41,16 +61,6 @@ void BaseTexture::SetDataInternal(uint32_t target, void* data) {
 	if (error != GL_NO_ERROR) {
 		ENGINE_ERROR("OpenGL error when setting texture data");
 	}
-}
-
-uint32_t BaseTexture::TextureTypeToOpenGLTextureType(TextureType type) {
-	switch (type) {
-	case TextureType::Tex2D: return GL_TEXTURE_2D;
-	case TextureType::TexCubeMap: return GL_TEXTURE_CUBE_MAP;
-	}
-
-	ENGINE_ERROR("Unsupported texture type");
-	return 0;
 }
 
 #include <stb_image.h>
@@ -96,5 +106,7 @@ namespace Engine::Texture::Utils {
 				return data;
 			}
 		}
+
+		return data;
 	}
 }

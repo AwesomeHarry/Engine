@@ -1,31 +1,30 @@
-#include "TextureCubeMap.h"
+#include "TextureCubemap.h"
 #include <glad/glad.h>
 #include <stb_image.h>
 #include "Logging/Logging.h"
 
 using namespace Engine;
 
-TextureCubeMap::TextureCubeMap(const TextureSpec& spec)
-	: BaseTexture(TextureType::TexCubeMap, spec) {
+TextureCubemap::TextureCubemap(const TextureSpec& spec)
+	: BaseTexture(TextureType::TexCubemap, spec) {
     BindInternal();
 
-
-	for (size_t i = 0; i < 6; i++)
+	for (uint32_t i = 0; i < 6; i++)
         glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, _internalFormat, _width, _height, 0, _dataFormat, _dataType, nullptr);
 
-    glTexParameteri(_type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(_type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexParameteri(_type, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glTexParameteri(_internalType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(_internalType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(_internalType, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(_internalType, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(_internalType, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 }
 
-void TextureCubeMap::SetData(CubeMapIndex index, void* data) {
+void TextureCubemap::SetData(CubemapIndex index, void* data) {
 	BindInternal();
 	SetDataInternal(GL_TEXTURE_CUBE_MAP_POSITIVE_X + (int)index, data);
 }
 
-std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const CubeMapPaths& paths) {
+std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromFile(const CubemapPaths& paths) {
     TextureSpec spec;
     std::vector<Texture::Utils::FileTextureData> cubemapData;
     stbi_set_flip_vertically_on_load(false);
@@ -51,11 +50,11 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromFile(const CubeMapPat
     }
 
     // Create texture and set data
-    auto texture = std::make_shared<TextureCubeMap>(spec);
+    auto texture = std::make_shared<TextureCubemap>(spec);
     texture->BindInternal();
 
     for (int i = 0; i < 6; ++i) {
-        texture->SetData((CubeMapIndex)i, cubemapData[i].data);
+        texture->SetData((CubemapIndex)i, cubemapData[i].data);
     }
 
     // Free the image data
@@ -121,8 +120,8 @@ void main()
 
 #pragma endregion
 
-std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromTexture2D(std::shared_ptr<Texture2D> texture, Texture2DCubemapFormat format) {
-	std::shared_ptr<Engine::TextureCubeMap> cubemap;
+std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromTexture2D(std::shared_ptr<Texture2D> texture, Texture2DCubemapFormat format) {
+	std::shared_ptr<Engine::TextureCubemap> cubemap;
 
     switch (format) {
     case Texture2DCubemapFormat::Equirectangle:
@@ -194,8 +193,8 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromTexture2D(std::shared
 		cubeMesh->AddSubmesh(cubeVa);
 
 		auto shader = std::make_shared<Engine::Shader>();
-		shader->AttachVertexShader(equiToCubeVertex);
-		shader->AttachFragmentShader(equiToCubeFrag);
+		shader->AttachShader(ShaderStage::Vertex, equiToCubeVertex);
+		shader->AttachShader(ShaderStage::Fragment, equiToCubeFrag);
 		shader->Link();
 
 		auto equiToCubemapMaterial = std::make_shared<Engine::Material>(shader);
@@ -203,14 +202,14 @@ std::shared_ptr<TextureCubeMap> TextureCubeMap::Utils::FromTexture2D(std::shared
 		equiToCubemapMaterial->SetUniform("projection", captureProjection);
 		auto equiToCubemapMaterialInstance = equiToCubemapMaterial->CreateInstance();
 
-		uint32_t captureSize = texture->GetHeight() / 2.0f;
+		uint32_t captureSize = texture->GetHeight() / 2;
 
 		auto textureSpec = Engine::TextureSpec{
 			captureSize,
 			captureSize,
 			texture->GetFormat()
 		};
-		cubemap = std::make_shared<Engine::TextureCubeMap>(textureSpec);
+		cubemap = std::make_shared<Engine::TextureCubemap>(textureSpec);
 
 		auto framebufferSpec = Engine::Framebuffer::FramebufferSpec{
 			captureSize,

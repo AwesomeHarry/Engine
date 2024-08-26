@@ -27,17 +27,14 @@ namespace Engine {
 		void GrowToInclude(const Mesh& mesh) {
 			spdlog::stopwatch sw;
 			uint32_t sCount = mesh.GetSubmeshCount();
-			int c = 0;
-			for (size_t i = 0; i < sCount; i++) {
-				const auto& vbo = mesh.GetSubmesh(i).GetVertexBuffer(0);
+			for (uint32_t sIndex = 0; sIndex < sCount; sIndex++) {
+				const auto& vbo = mesh.GetSubmesh(sIndex).GetVertexBuffer(0);
 				const auto& points = vbo.GetData<glm::vec3>();
-				c += mesh.GetSubmesh(i).GetIndexBuffer().GetCount();
 
 				for (int i = 0; i < points.size(); i++) {
 					GrowToInclude(points[i]);
 				}
 			}
-			ENGINE_TRACE("{}:{}",c,sw);
 		}
 
 		glm::vec3 GetCenter() { return (min + max) / 2.0f; }

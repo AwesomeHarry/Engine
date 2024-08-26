@@ -5,17 +5,19 @@
 #include "glm/glm.hpp"
 
 namespace Engine {
-	enum UniformType {
-		Bool, Int, Float, 
-		Vec2, Vec3, Vec4, 
+	enum class ShaderStage { Vertex, Fragment, Geometry };
+
+	enum class UniformType {
+		Bool, Int, Float,
+		Vec2, Vec3, Vec4,
 		Mat2, Mat3, Mat4,
 		Sampler2D, SamplerCube
 	};
 
 	struct UniformInfo {
 		std::string name;
-		uint32_t location;
-		UniformType type;
+		uint32_t location = 0;
+		UniformType type = UniformType::Bool;
 	};
 
 	class Shader {
@@ -23,9 +25,7 @@ namespace Engine {
 		Shader();
 		~Shader();
 
-		void AttachVertexShader(const std::string& src);
-		void AttachFragmentShader(const std::string& src);
-		void AttachGeometeryShader(const std::string& src);
+		void AttachShader(ShaderStage type, const std::string& src);
 
 		void Link();
 
@@ -45,6 +45,11 @@ namespace Engine {
 		bool BindUniformBlock(const std::string& blockName, uint32_t bindingPoint);
 
 		inline uint32_t GetHandle() const { return _id; }
+
+		inline bool HasType(ShaderStage type) const { return _shaderSources.find(type) != _shaderSources.end(); }
+		inline const std::string& GetShaderSource(ShaderStage type) const { return _shaderSources.at(type); }
+		std::vector<ShaderStage> GetAttachedTypes() const;
+
 		inline const std::map<std::string, UniformInfo>& GetUniformInfos() const { return _uniformsMap; }
 		inline const std::map<std::string, uint32_t>& GetUniformBlocks() const { return _uniformBlockMap; }
 	private:
@@ -54,10 +59,13 @@ namespace Engine {
 		int getUniformLocation(const std::string& name);
 	public:
 		struct Utils {
-			static std::shared_ptr<Shader> FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+			/* Depreciated */ static std::shared_ptr<Shader> FromFile(const std::string& vertexShaderPath, const std::string& fragmentShaderPath);
+			static std::shared_ptr<Shader> FromFile(const std::string& filepath);
+			static std::unordered_map<ShaderStage, std::string> ParseShader(const std::string& filepath);
 		};
 	private:
 		uint32_t _id;
+		std::map<ShaderStage, std::string> _shaderSources;
 		std::map<std::string, UniformInfo> _uniformsMap;
 		std::map<std::string, uint32_t> _uniformBlockMap;
 	};

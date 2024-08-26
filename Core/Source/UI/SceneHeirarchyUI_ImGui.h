@@ -21,7 +21,7 @@ namespace Engine {
 				ImGuiTreeNodeFlags flags = ((_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
 
-				bool nodeOpened = ImGui::TreeNodeEx((void*)(uint32_t)entity, flags, name.c_str());
+				bool nodeOpened = ImGui::TreeNodeEx((void*)(intptr_t)(uint32_t)entity, flags, name.c_str());
 				if (ImGui::IsItemClicked(0) && !ImGui::IsItemToggledOpen())
 					_selectedEntity = entity;
 
