@@ -223,7 +223,7 @@ std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromTexture2D(std::shared
 		for (uint32_t i = 0; i < 6; i++) {
 			//captureFrambuffer->ModifyColorAttachment(0, (Engine::TextureTarget)((int)Engine::TextureTarget::CubemapPosX + i), *cubemap);
 			equiToCubemapMaterial->SetUniform("view", captureViews[i]);
-			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetID(), 0);
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetInstanceID(), 0);
 
 			Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
 			Engine::RenderCommands::RenderMesh(*cubeMesh, *equiToCubemapMaterialInstance);

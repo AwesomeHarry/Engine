@@ -23,7 +23,7 @@ namespace Engine {
 		void Bind(uint32_t slot) const;
 		void Unbind() const;
 
-		inline uint32_t GetID() const { return _id; }
+		inline uint32_t GetInstanceID() const { return _id; }
 		inline TextureType GetType() const { return _type; }
 		inline uint32_t GetWidth() const { return _width; }
 		inline uint32_t GetHeight() const { return _height; }

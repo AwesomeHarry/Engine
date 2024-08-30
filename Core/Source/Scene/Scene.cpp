@@ -10,7 +10,7 @@ Scene::Scene() {
 	{
 		Entity e = CreateEntity("Debug Shape Renderer");
 		e.AddComponent<DebugShapeManager>();
-		_debugShapeManager = e.GetID();
+		_debugShapeManager = e.GetInstanceID();
 	}
 }
 
@@ -28,7 +28,7 @@ Entity Scene::CreateEntity(const std::string& name) {
 }
 
 void Scene::DestroyEntity(Entity entity) {
-	_registry.destroy(entity.GetID());
+	_registry.destroy(entity.GetInstanceID());
 }
 
 Entity Engine::Scene::GetEntity(entt::entity handle) {

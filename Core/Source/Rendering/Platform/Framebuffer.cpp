@@ -64,7 +64,7 @@ void Framebuffer::ModifyColorAttachment(int index, TextureTarget target, BaseTex
     }
 
     Bind();
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, Utils::TextureTargetToOpenGLTarget(target), texture.GetID(), 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + index, Utils::TextureTargetToOpenGLTarget(target), texture.GetInstanceID(), 0);
     Unbind();
 }
 
@@ -104,7 +104,7 @@ void Framebuffer::Invalidate() {
             _colorAttachments[i].texture = texture;
             _colorAttachments[i].format = _specification.attachments[i];
 
-            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, _colorAttachments[i].texture->GetID(), 0);
+            glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0 + i, GL_TEXTURE_2D, _colorAttachments[i].texture->GetInstanceID(), 0);
 
             // Check if attachment was successful
             GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -124,7 +124,7 @@ void Framebuffer::Invalidate() {
         _depthAttachment.texture = std::make_shared<Texture2D>(depthSpec);
         _depthAttachment.format = ImageFormat::D24S8;
 
-        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _depthAttachment.texture->GetID(), 0);
+        glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_TEXTURE_2D, _depthAttachment.texture->GetInstanceID(), 0);
 
         // Check if depth-stencil attachment was successful
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);

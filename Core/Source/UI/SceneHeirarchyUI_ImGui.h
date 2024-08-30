@@ -16,7 +16,7 @@ namespace Engine {
 
 				auto& name = entity.GetName();
 
-				ImGui::PushID((uint32_t)entity.GetID());
+				ImGui::PushID((uint32_t)entity.GetInstanceID());
 
 				ImGuiTreeNodeFlags flags = ((_selectedEntity == entity) ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
 				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;

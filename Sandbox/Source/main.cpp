@@ -8,10 +8,6 @@
 #include "Scene/Scene.h"
 #include "Scene/Entity.h"
 
-#include "Rendering/Platform/Mesh.h"
-#include "Rendering/Platform/Shader.h"
-#include "Rendering/Platform/Texture2D.h"
-#include "Rendering/Platform/TextureCubeMap.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 
 #include "Util/Mesh/GltfIO.h"
@@ -25,6 +21,12 @@
 #include "OrbitCameraController.h"
 
 #include "SRP.h"
+
+#include "Scene/AssetManager.h"
+#include "Scene/SceneSerializer.h"
+
+std::shared_ptr<Texture2D> test_texture;
+
 
 class SandboxLayer : public Engine::Layer {
 private:
@@ -60,10 +62,10 @@ public:
 		/* Camera */
 		std::string path = "Resources/Skyboxes/brown_photostudio_06_4k.hdr";
 		auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
-		auto skyboxCubemap = Engine::TextureCubeMap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubeMap::Utils::Texture2DCubemapFormat::Equirectangle);
+		auto skyboxCubemap = Engine::TextureCubemap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubemap::Utils::Texture2DCubemapFormat::Equirectangle);
 
 		// Irradiance Map
-		std::shared_ptr<Engine::TextureCubeMap> irradianceCubemap;
+		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
 		{
 			glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 			glm::mat4 captureViews[] = {
@@ -144,7 +146,7 @@ public:
 				captureSize,
 				Engine::ImageFormat::RGB16F
 			};
-			irradianceCubemap = std::make_shared<Engine::TextureCubeMap>(textureSpec);
+			irradianceCubemap = std::make_shared<Engine::TextureCubemap>(textureSpec);
 
 			auto framebufferSpec = Engine::Framebuffer::FramebufferSpec{
 				captureSize,
@@ -158,7 +160,7 @@ public:
 			for (uint32_t i = 0; i < 6; i++) {
 				//captureFrambuffer->ModifyColorAttachment(0, (Engine::TextureTarget)((int)Engine::TextureTarget::CubemapPosX + i), *cubemap);
 				irradianceMaterial->SetUniform("view", captureViews[i]);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceCubemap->GetID(), 0);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceCubemap->GetInstanceID(), 0);
 
 				Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
 				Engine::RenderCommands::RenderMesh(*cubeMesh, *irradianceMaterialInstance);
@@ -188,7 +190,7 @@ public:
 		});
 
 		/* Create Shader & Material for test scene */
-		auto shader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.vert","Resources/Shaders/PBR.frag");
+		auto shader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.glsl");
 		shader->BindUniformBlock("CameraData", 0);
 
 		_standardLit = std::make_shared<Engine::Material>(shader);
@@ -216,7 +218,7 @@ public:
 		//_standardLit->SetUniform("useRoughnessMap", false);
 
 		auto mesh = std::make_shared<Engine::Mesh>("Sphere");
-		auto model = Engine::GltfIO::LoadFile("Resources/Models/Sphere/Sphere.gltf");
+		auto model = Engine::GltfIO::LoadModel("Resources/Models/Sphere/Sphere.gltf");
 		const auto& prim = model.meshes[0].primitives[0];
 		mesh->AddSubmesh(Engine::GltfIO::LoadPrimitive(model, prim));
 
@@ -234,6 +236,8 @@ public:
 			mr.materialInstance->SetUniform("albedo", glm::vec3(300));
 			s2.GetTransform().position = { 12,10,0 };
 		}
+
+		Engine::SceneSerializer::Serialize(*_scene, "Test.scene");
 	}
 
 	void OnUpdate(float ts) override {
@@ -260,6 +264,8 @@ public:
 
 		/* Render UI */
 		{
+			ImGui::Image((ImTextureID)(intptr_t)test_texture->GetInstanceID(), { 100,100 }, { 0,1 },{1,0});
+
 			/* Viewport */
 			{
 				ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.0f, 0.0f));
@@ -268,13 +274,13 @@ public:
 				auto& mainFramebuffer = _standardRenderPipeline->GetMainFramebuffer();
 				if (mainFramebuffer.GetSpecification().width != s.x ||
 					mainFramebuffer.GetSpecification().height != s.y)
-					_standardRenderPipeline->OnResize(s.x, s.y);
-				ImGui::Image((ImTextureID)(intptr_t)mainFramebuffer.GetColorAttachment(0)->GetID(), s, { 0,1 }, { 1,0 });
+					_standardRenderPipeline->OnResize((uint32_t)s.x, (uint32_t)s.y);
+				ImGui::Image((ImTextureID)(intptr_t)mainFramebuffer.GetColorAttachment(0)->GetInstanceID(), s, { 0,1 }, { 1,0 });
 				ImGui::End();
 				ImGui::PopStyleVar();
 			}
 
-			ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->_windowFramebuffer->GetColorAttachment(0)->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
+			ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->_windowFramebuffer->GetColorAttachment(0)->GetInstanceID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
 			//ImGui::Image((ImTextureID)(intptr_t)_standardRenderPipeline->GetMainFramebuffer().GetDepthAttachment()->GetID(), ImGui::GetContentRegionAvail(), { 0,1 }, { 1,0 });
 
 			ImGui::Begin("Window");

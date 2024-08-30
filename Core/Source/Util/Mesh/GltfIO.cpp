@@ -6,7 +6,7 @@
 
 using namespace Engine;
 
-tinygltf::Model GltfIO::LoadFile(const std::string& path) {
+tinygltf::Model GltfIO::LoadModel(const std::string& path) {
 	tinygltf::Model model;
 	tinygltf::TinyGLTF loader;
 	std::string err;
@@ -101,6 +101,23 @@ std::shared_ptr<VertexArrayObject> GltfIO::LoadPrimitive(const tinygltf::Model& 
 	vao->SetDrawMode((DrawMode)primitive.mode);
 
 	return vao;
+}
+
+std::shared_ptr<Mesh> Engine::GltfIO::LoadMesh(const tinygltf::Model& model, uint32_t meshIndex) {
+	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
+
+	if (meshIndex >= model.meshes.size()) {
+		ENGINE_ERROR("Mesh index out of bounds");
+		return nullptr;
+	}
+
+	auto& gltfMesh = model.meshes[meshIndex];
+	for (auto& gltfPrimitive : gltfMesh.primitives) {
+		auto va = LoadPrimitive(model, gltfPrimitive);
+		mesh->AddSubmesh(va);
+	}
+
+	return mesh;
 }
 
 int GetTinyGLTFComponentType(LType type) {

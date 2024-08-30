@@ -118,8 +118,8 @@ public:
 		_fullscreenQuadVao->SetDrawMode(Engine::DrawMode::TriangleStrip);
 
 		_postProcessShader = std::make_shared<Engine::Shader>();
-		_postProcessShader->AttachVertexShader(postProcessVertexShader);
-		_postProcessShader->AttachFragmentShader(postProcessFragmentShader);
+		_postProcessShader->AttachShader(Engine::ShaderStage::Vertex, postProcessVertexShader);
+		_postProcessShader->AttachShader(Engine::ShaderStage::Fragment, postProcessFragmentShader);
 		_postProcessShader->Link();
 
 		_postProcessShader->SetUniform("exposure", 1.0f);
@@ -128,8 +128,8 @@ public:
 
 		// Initialize Skybox Drawing
 		_skyboxShader = std::make_shared<Engine::Shader>();
-		_skyboxShader->AttachFragmentShader(skyboxFragmentShader);
-		_skyboxShader->AttachVertexShader(skyboxVertexShader);
+		_skyboxShader->AttachShader(Engine::ShaderStage::Vertex, skyboxVertexShader);
+		_skyboxShader->AttachShader(Engine::ShaderStage::Fragment, skyboxFragmentShader);
 		_skyboxShader->Link();
 	#pragma region Skybox Data
 		float skyboxVertices[] = {
@@ -196,7 +196,7 @@ public:
 		auto& camera = cameraEntity.GetComponent<Engine::CameraComponent>();
 		auto& cameraTransform = cameraEntity.GetTransform();
 		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _windowFramebuffer : camera.renderFramebuffer;
-		CameraData cameraData;
+		CameraData cameraData{};
 		glm::vec2 viewportSize = { framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 		float aspect = viewportSize.x / viewportSize.y;
 		cameraData.projection = camera.GetProjectionMatrix(aspect);
@@ -296,7 +296,7 @@ public:
 		auto& vao = *dsm.pointInfoVao;
 		auto& vbo = *dsm.pointInfoVbo;
 
-		size_t pointCount = dsm.pointData.size();
+		uint32_t pointCount = (uint32_t)dsm.pointData.size();
 		if (pointCount == 0)
 			return;
 
@@ -316,7 +316,7 @@ public:
 		auto& vao = *dsm.lineInfoVao;
 		auto& vbo = *dsm.lineInfoVbo;
 
-		size_t lineCount = dsm.lineData.size();
+		uint32_t lineCount = (uint32_t)dsm.lineData.size();
 		if (lineCount == 0)
 			return;
 
@@ -335,7 +335,7 @@ public:
 		auto& vao = *dsm.quadInfoVao;
 		auto& vbo = *dsm.quadInfoVbo;
 
-		size_t quadCount = dsm.quadData.size();
+		uint32_t quadCount = (uint32_t)dsm.quadData.size();
 		if (quadCount == 0)
 			return;
 

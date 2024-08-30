@@ -24,39 +24,6 @@
     <ClInclude Include="Source\Core\Logging\LoggingManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\BaseComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\BoundingBoxComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\CameraComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\Components.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\DebugShapeManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\MeshFilterComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\MeshRendererComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\NameComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Components\Native\TransformComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Entity.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Scene\Scene.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Logging\Logging.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -105,13 +72,49 @@
     <ClInclude Include="Source\Rendering\Platform\Texture2D.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h">
+    <ClInclude Include="Source\Rendering\Platform\TextureCubemap.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rendering\RenderCommands.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rendering\RenderManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\BaseComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\BoundingBoxComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\CameraComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\Components.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\DebugShapeManager.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\MeshFilterComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\MeshRendererComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\NameComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Components\Native\TransformComponent.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Entity.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\Scene.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\Scene\SceneSerializer.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h">
@@ -130,6 +133,9 @@
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\EntityPropertiesUI_ImGui.h">
+      <Filter>Source</Filter>
+    </ClInclude>
+    <ClInclude Include="Source\UI\MaterialUI_ImGui.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\UI\SceneHeirarchyUI_ImGui.h">
@@ -159,8 +165,14 @@
     <ClInclude Include="Source\Util\Mesh\GltfIO.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\UI\MaterialUI_ImGui.h" />
-    <ClInclude Include="Source\Scene\SceneSerializer.h" />
+    <ClInclude Include="Source\Scene\AssetManager.h" />
+    <ClInclude Include="Source\Scene\SerializerExtensions.h" />
+    <ClInclude Include="Source\Scene\Assets\BaseAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\Texture2DAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\TextureCubemapAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -173,15 +185,6 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Scene\Components\Native\DebugShapeManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Scene\Components\Native\MeshRendererComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp">
@@ -217,7 +220,7 @@
     <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\TextureCubeMap.cpp">
+    <ClCompile Include="Source\Rendering\Platform\TextureCubemap.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\RenderCommands.cpp">
@@ -226,10 +229,26 @@
     <ClCompile Include="Source\Rendering\RenderManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Scene\Components\Native\DebugShapeManager.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\Components\Native\MeshRendererComponent.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\Scene.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Scene\SceneSerializer.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp" />
-    <ClCompile Include="Source\Scene\SceneSerializer.cpp" />
+    <ClCompile Include="Source\Scene\AssetManager.cpp" />
+    <ClCompile Include="Source\Scene\Assets\AllAssets.h" />
+    <ClCompile Include="Source\Scene\Assets\MaterialAsset.cpp" />
   </ItemGroup>
 </Project>

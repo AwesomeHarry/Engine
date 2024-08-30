@@ -64,18 +64,13 @@ void BaseTexture::SetDataInternal(uint32_t target, void* data) {
 }
 
 #include <stb_image.h>
+#include "Util/FileIO.h"
 
 namespace Engine::Texture::Utils {
-	bool hasExtension(const std::string& filepath, const std::string& extension) {
-		if (filepath.length() >= extension.length())
-			return 0 == filepath.compare(filepath.length() - extension.length(), extension.length(), extension);
-		return false;
-	}
-
 	FileTextureData LoadFromFile(const std::string& path) {
 		FileTextureData data;
 		int channels;
-		if (hasExtension(path, ".hdr")) {
+		if (FileIO::HasExtension(path, ".hdr")) {
 			float* fdata = stbi_loadf(path.c_str(), &data.width, &data.height, &channels, 0);
 			if (fdata) {
 				data.data = fdata;

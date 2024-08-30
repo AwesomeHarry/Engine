@@ -36,7 +36,7 @@ project "imgui"
     }
 
     includedirs {
-        "vendor/glfw/include",
+        "Vendor/glfw/include",
         "Vendor/imgui"
     }
 

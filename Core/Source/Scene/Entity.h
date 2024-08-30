@@ -45,7 +45,7 @@ namespace Engine {
 			_scene->_registry.remove<ComponentType>(_id);
 		}
 
-		inline entt::entity GetID() const { return _id; }
+		inline entt::entity GetInstanceID() const { return _id; }
 		inline const std::string& GetName() { return GetComponent<NameComponent>().name; }
 		inline TransformComponent& GetTransform() { return GetComponent<TransformComponent>(); }
 

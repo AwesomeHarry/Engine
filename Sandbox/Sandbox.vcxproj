@@ -90,7 +90,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Resources\Shaders\SkyboxConvolution.vert" />
     <ClInclude Include="Source\BoundingBox.h" />
     <ClInclude Include="Source\FPSCameraController.h" />
     <ClInclude Include="Source\OrbitCameraController.h" />
@@ -103,11 +102,6 @@
     <ProjectReference Include="..\Core\Core.vcxproj">
       <Project>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</Project>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Resources\Shaders\PBR.frag" />
-    <None Include="Resources\Shaders\PBR.vert" />
-    <None Include="Resources\Shaders\SkyboxConvolution.frag" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
