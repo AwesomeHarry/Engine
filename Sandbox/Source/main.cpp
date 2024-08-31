@@ -25,9 +25,6 @@
 #include "Scene/AssetManager.h"
 #include "Scene/SceneSerializer.h"
 
-std::shared_ptr<Texture2D> test_texture;
-
-
 class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
@@ -135,7 +132,7 @@ public:
 
 			auto irradianceShader = Engine::Shader::Utils::FromFile("Resources/Shaders/SkyboxConvolution.vert", "Resources/Shaders/SkyboxConvolution.frag");
 			auto irradianceMaterial = std::make_shared<Engine::Material>(irradianceShader);
-			irradianceMaterial->SetTexture(skyboxCubemap, "environmentMap");
+			irradianceMaterial->SetTexture("environmentMap", skyboxCubemap);
 			irradianceMaterial->SetUniform("projection", captureProjection);
 			auto irradianceMaterialInstance = irradianceMaterial->CreateInstance();
 
@@ -205,7 +202,7 @@ public:
 		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 
-		_standardLit->SetTexture(irradianceCubemap, "irradianceMap");
+		//_standardLit->SetTexture("irradianceMap", irradianceCubemap);
 
 		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
 		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
@@ -264,7 +261,7 @@ public:
 
 		/* Render UI */
 		{
-			ImGui::Image((ImTextureID)(intptr_t)test_texture->GetInstanceID(), { 100,100 }, { 0,1 },{1,0});
+			//ImGui::Image((ImTextureID)(intptr_t)test_texture->GetInstanceID(), { 100,100 }, { 0,1 },{1,0});
 
 			/* Viewport */
 			{

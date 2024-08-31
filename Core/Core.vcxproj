@@ -94,10 +94,10 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Source\Scene\Assets\Asset.h" />
     <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
     <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\BaseAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\TextureAsset.h" />
     <ClInclude Include="Source\Scene\SerializerExtensions.h" />
     <ClInclude Include="Source\Scene\AssetManager.h" />
     <ClInclude Include="Source\Core\Application\Layer.h" />
@@ -151,14 +151,11 @@
     <ClInclude Include="Source\Util\EventSystem\EventDispatcher.h" />
     <ClInclude Include="Source\Util\FileIO.h" />
     <ClInclude Include="Source\Util\FlagSet.h" />
+    <ClInclude Include="Source\Util\Math\glm_serializer.h" />
     <ClInclude Include="Source\Util\Math\Transform.h" />
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
-    <ClInclude Include="Source\Scene\Assets\Texture2DAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\TextureCubemapAsset.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Scene\Assets\MaterialAsset.cpp" />
-    <ClCompile Include="Source\Scene\Assets\AllAssets.h" />
     <ClCompile Include="Source\Scene\AssetManager.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />
     <ClCompile Include="Source\Core\Application\Window.cpp" />

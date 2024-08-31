@@ -1,45 +1,40 @@
 #pragma once
 
-#include "BaseAsset.h"
+#include "Asset.h"
 #include "Rendering/Platform/Shader.h"
 
 namespace Engine {
-	template<>
-	struct Asset<Shader> : public BaseAsset<Shader> {
-		Asset() { type = AssetType::Shader; }
-		std::string filepath;
+	class ShaderAsset : public Asset<Shader> {
+	public:
+		ShaderAsset() { type = AssetType::Shader; }
 
-	private:
-		bool Create() override {
-			instance = Shader::Utils::FromFile(filepath);
+		nlohmann::json Serialize() const override {
+			nlohmann::json j;
+			to_json(j, static_cast<const AssetInfo&>(*this));
+			j["filepath"] = _filepath;
+			j["uniformBlocks"] = _instance ? _instance->GetUniformBlocks() : _uniformBlockMap;
+			return j;
+		}
+
+		void Deserialize(const nlohmann::json& j, AssetManager& assetManager) override {
+			from_json(j, static_cast<AssetInfo&>(*this));
+			j.at("filepath").get_to(_filepath);
+			j.at("uniformBlocks").get_to(_uniformBlockMap);
+		}
+	protected:
+		std::shared_ptr<Shader> Create(AssetManager& assetManager) override {
+			auto instance = Shader::Utils::FromFile(_filepath);
 			if (!instance) {
-				ENGINE_ERROR("Failed to load ShaderAsset: id={}", guid);
-				return false;
+				ENGINE_ERROR("[ShaderAsset] Failed to load shader from file: {0}", _filepath);
+				return nullptr;
 			}
-
-			for (const auto& [name, index] : _uniformBlockMap) {
-				instance->BindUniformBlock(name, index);
+			for (const auto& [name, binding] : _uniformBlockMap) {
+				instance->BindUniformBlock(name, binding);
 			}
-
-			return true;
+			return instance;
 		}
 	private:
-		// Reflects json deserialization
+		std::string _filepath;
 		std::map<std::string, uint32_t> _uniformBlockMap;
-
-		friend void to_json(nlohmann::json& j, const Asset<Shader>& asset);
-		friend void from_json(const nlohmann::json& j, Asset<Shader>& asset);
 	};
-
-	inline void to_json(nlohmann::json& j, const Asset<Shader>& asset) {
-		SERIALIZE_ASSET_INFO;
-		j["filepath"] = asset.filepath;
-		j["uniformBlocks"] = asset.isLoaded ? asset.instance->GetUniformBlocks() : asset._uniformBlockMap;
-	}
-
-	inline void from_json(const nlohmann::json& j, Asset<Shader>& asset) {
-		DESERIALIZE_ASSET_INFO;
-		j.at("filepath").get_to(asset.filepath);
-		j.at("uniformBlocks").get_to(asset._uniformBlockMap);
-	}
 }

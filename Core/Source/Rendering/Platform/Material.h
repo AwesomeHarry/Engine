@@ -29,20 +29,12 @@ namespace Engine {
 		virtual Shader& GetShader() = 0;
 		virtual const Shader& GetShader() const = 0;
 
-		virtual void SetTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName) = 0;
+		virtual void SetTexture(const std::string& uniformName, std::shared_ptr<BaseTexture> texture) = 0;
 		virtual UniformTexture GetTexture(const std::string& name) = 0;
 		virtual uint32_t GetTextureCount() const = 0;
 		virtual std::vector<std::string> GetTextureNames() const = 0;
 
-		virtual void SetUniform(const std::string& name, bool value) = 0;
-		virtual void SetUniform(const std::string& name, int value) = 0;
-		virtual void SetUniform(const std::string& name, float value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::vec2& value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::vec3& value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::vec4& value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::mat2& value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::mat3& value) = 0;
-		virtual void SetUniform(const std::string& name, const glm::mat4& value) = 0;
+		virtual void SetUniform(const std::string& name, UniformValue value) = 0;
 
 		virtual std::optional<UniformValue> GetUniform(const std::string& name) const = 0;
 		virtual std::vector<std::string> GetUniformNames() const = 0;
@@ -60,20 +52,12 @@ namespace Engine {
 		Shader& GetShader() override { return *_shader; }
 		const Shader& GetShader() const override { return *_shader; }
 
-		void SetTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName) override;
+		void SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) override;
 		UniformTexture GetTexture(const std::string& name) override;
 		uint32_t GetTextureCount() const override;
 		std::vector<std::string> GetTextureNames() const;
 
-		void SetUniform(const std::string& name, bool value) override;
-		void SetUniform(const std::string& name, int value) override;
-		void SetUniform(const std::string& name, float value) override;
-		void SetUniform(const std::string& name, const glm::vec2& value) override;
-		void SetUniform(const std::string& name, const glm::vec3& value) override;
-		void SetUniform(const std::string& name, const glm::vec4& value) override;
-		void SetUniform(const std::string& name, const glm::mat2& value) override;
-		void SetUniform(const std::string& name, const glm::mat3& value) override;
-		void SetUniform(const std::string& name, const glm::mat4& value) override;
+		void SetUniform(const std::string& name, UniformValue value) override;
 
 		std::optional<UniformValue> GetUniform(const std::string& name) const override;
 		std::vector<std::string> GetUniformNames() const override;
@@ -99,20 +83,12 @@ namespace Engine {
 		Shader& GetShader() override;
 		const Shader& GetShader() const override;
 
-		void SetTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName);
+		void SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture);
 		UniformTexture GetTexture(const std::string& name) override;
 		uint32_t GetTextureCount() const override;
 		std::vector<std::string> GetTextureNames() const;
 
-		void SetUniform(const std::string& name, bool value) override;
-		void SetUniform(const std::string& name, int value) override;
-		void SetUniform(const std::string& name, float value) override;
-		void SetUniform(const std::string& name, const glm::vec2& value) override;
-		void SetUniform(const std::string& name, const glm::vec3& value) override;
-		void SetUniform(const std::string& name, const glm::vec4& value) override;
-		void SetUniform(const std::string& name, const glm::mat2& value) override;
-		void SetUniform(const std::string& name, const glm::mat3& value) override;
-		void SetUniform(const std::string& name, const glm::mat4& value) override;
+		void SetUniform(const std::string& name, UniformValue value) override;
 
 		void ResetUniform(const std::string& name);
 

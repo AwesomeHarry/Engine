@@ -198,7 +198,7 @@ std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromTexture2D(std::shared
 		shader->Link();
 
 		auto equiToCubemapMaterial = std::make_shared<Engine::Material>(shader);
-		equiToCubemapMaterial->SetTexture(texture, "equirectangularMap");
+		equiToCubemapMaterial->SetTexture("equirectangularMap", texture);
 		equiToCubemapMaterial->SetUniform("projection", captureProjection);
 		auto equiToCubemapMaterialInstance = equiToCubemapMaterial->CreateInstance();
 

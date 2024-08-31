@@ -167,12 +167,11 @@
     </ClInclude>
     <ClInclude Include="Source\Scene\AssetManager.h" />
     <ClInclude Include="Source\Scene\SerializerExtensions.h" />
-    <ClInclude Include="Source\Scene\Assets\BaseAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\Asset.h" />
     <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\Texture2DAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\TextureCubemapAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
+    <ClInclude Include="Source\Scene\Assets\TextureAsset.h" />
     <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
+    <ClInclude Include="Source\Util\Math\glm_serializer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -248,7 +247,5 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Scene\AssetManager.cpp" />
-    <ClCompile Include="Source\Scene\Assets\AllAssets.h" />
-    <ClCompile Include="Source\Scene\Assets\MaterialAsset.cpp" />
   </ItemGroup>
 </Project>

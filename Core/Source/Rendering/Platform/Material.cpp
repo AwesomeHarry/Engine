@@ -69,12 +69,12 @@ void Material::SetShader(std::shared_ptr<Shader> shader) {
 	_shader = shader;
 }
 
-void Material::SetTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName) {
-	_textureMap[uniformName].texture = texture;
+void Material::SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) {
+	_textureMap[name].texture = texture;
 }
 
-UniformTexture Material::GetTexture(const std::string& uniformName) {
-	return _textureMap[uniformName];
+UniformTexture Material::GetTexture(const std::string& name) {
+	return _textureMap[name];
 }
 
 uint32_t Material::GetTextureCount() const {
@@ -89,39 +89,7 @@ std::vector<std::string> Engine::Material::GetTextureNames() const {
 	return names;
 }
 
-void Material::SetUniform(const std::string& name, bool value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, int value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, float value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::vec2& value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::vec3& value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::vec4& value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::mat2& value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::mat3& value) {
-	_uniformMap[name] = value;
-}
-
-void Material::SetUniform(const std::string& name, const glm::mat4& value) {
+void Material::SetUniform(const std::string& name, UniformValue value) {
 	_uniformMap[name] = value;
 }
 
@@ -152,6 +120,7 @@ MaterialInstance::MaterialInstance(std::shared_ptr<Material> baseMaterial)
 
 void MaterialInstance::Bind() const {
 	_baseMaterial->Bind();
+
 	for (const auto& [name, value] : _overriddenUniforms) {
 		std::visit([&, name = name](auto&& value) {
 			_baseMaterial->GetShader().SetUniform(name, value);
@@ -179,12 +148,12 @@ const Shader& MaterialInstance::GetShader() const {
 	return _baseMaterial->GetShader();
 }
 
-void MaterialInstance::SetTexture(std::shared_ptr<BaseTexture> texture, const std::string& uniformName) {
-	_overriddenTextures[uniformName] = texture;
+void MaterialInstance::SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) {
+	_overriddenTextures[name] = texture;
 }
 
-UniformTexture MaterialInstance::GetTexture(const std::string& uniformName) {
-	return { _overriddenTextures[uniformName],_baseMaterial->GetTexture(uniformName).bindingPoint };
+UniformTexture MaterialInstance::GetTexture(const std::string& name) {
+	return { _overriddenTextures[name],_baseMaterial->GetTexture(name).bindingPoint };
 }
 
 uint32_t MaterialInstance::GetTextureCount() const {
@@ -199,71 +168,7 @@ std::vector<std::string> Engine::MaterialInstance::GetTextureNames() const {
 	return names;
 }
 
-void MaterialInstance::SetUniform(const std::string& name, bool value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, int value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, float value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::vec2& value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::vec3& value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::vec4& value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::mat2& value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::mat3& value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
-		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
-		return;
-	}
-	_overriddenUniforms[name] = value;
-}
-
-void MaterialInstance::SetUniform(const std::string& name, const glm::mat4& value) {
+void MaterialInstance::SetUniform(const std::string& name, UniformValue value) {
 	if (!_baseMaterial->GetUniform(name).has_value()) {
 		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
 		return;
