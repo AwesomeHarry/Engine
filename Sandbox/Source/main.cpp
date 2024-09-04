@@ -22,8 +22,10 @@
 
 #include "SRP.h"
 
-#include "Scene/AssetManager.h"
-#include "Scene/SceneSerializer.h"
+#include "Scene/AssetBank.h"
+#include "Scene/Assets/ShaderAsset.h"
+#include "Scene/Assets/MaterialAsset.h"
+#include "Scene/Project.h"
 
 class SandboxLayer : public Engine::Layer {
 private:
@@ -202,7 +204,7 @@ public:
 		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 
-		//_standardLit->SetTexture("irradianceMap", irradianceCubemap);
+		_standardLit->SetTexture("irradianceMap", irradianceCubemap);
 
 		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
 		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
@@ -234,7 +236,21 @@ public:
 			s2.GetTransform().position = { 12,10,0 };
 		}
 
-		Engine::SceneSerializer::Serialize(*_scene, "Test.scene");
+		{
+			Engine::Project project("TestProject", std::filesystem::current_path() / "Projects/TestProject");
+			project.LoadAllAssets();
+
+			auto asset = project.GetAsset<Engine::ShaderAsset>("PBR Shader.asset");
+			asset->Instantiate();
+
+			//auto shaderAsset = project.CreateAsset<Engine::ShaderAsset>("PBR Shader", "Resources/Shaders/PBR.glsl");
+			//auto materialAsset = project.CreateAsset<Engine::MaterialAsset>("PBR Material", shaderAsset->GetId());
+			//
+			//shaderAsset->Instantiate();
+			//materialAsset->Instantiate();
+			//
+			//project.SaveAllAssets();
+		}
 	}
 
 	void OnUpdate(float ts) override {
@@ -244,7 +260,7 @@ public:
 		auto s2 = _scene->GetEntity("Light");
 		auto& mr = s2.GetComponent<Engine::MeshRendererComponent>();
 		mr.sharedMaterial->SetUniform("lightPosition", s2.GetTransform().position);
-		mr.sharedMaterial->SetUniform("lightColor", std::get<glm::vec3>(mr.materialInstance->GetUniform("albedo").value()));
+		mr.sharedMaterial->SetUniform("lightColor", std::get<glm::vec3>(mr.materialInstance->GetUniformValue("albedo").value()));
 
 		/* Render Axis */
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });

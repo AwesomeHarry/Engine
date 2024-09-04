@@ -165,13 +165,21 @@
     <ClInclude Include="Source\Util\Mesh\GltfIO.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Scene\AssetManager.h" />
-    <ClInclude Include="Source\Scene\SerializerExtensions.h" />
-    <ClInclude Include="Source\Scene\Assets\Asset.h" />
+    <ClInclude Include="Source\Scene\AssetBank.h" />
+    <ClInclude Include="Source\Scene\Asset.h" />
     <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
     <ClInclude Include="Source\Scene\Assets\TextureAsset.h" />
     <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
-    <ClInclude Include="Source\Util\Math\glm_serializer.h" />
+    <ClInclude Include="Source\Scene\AssetRef.h" />
+    <ClInclude Include="Source\Util\Serializers\MathSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\ComponentSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\FramebufferSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\FlagSetSerializer.h" />
+    <ClInclude Include="Source\Scene\AssetTypes.h" />
+    <ClInclude Include="Source\Util\Serializers\UniformSerializer.h" />
+    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
+    <ClInclude Include="Source\Scene\Project.h" />
+    <ClInclude Include="Source\Scene\AssetUtils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -246,6 +254,8 @@
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Scene\AssetManager.cpp" />
+    <ClCompile Include="Source\Scene\AssetBank.cpp" />
+    <ClCompile Include="Source\Scene\AssetRef.cpp" />
+    <ClCompile Include="Source\Scene\AssetUtils.cpp" />
   </ItemGroup>
 </Project>

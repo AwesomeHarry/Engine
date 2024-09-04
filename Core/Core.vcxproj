@@ -94,12 +94,15 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Scene\Assets\Asset.h" />
+    <ClInclude Include="Source\Scene\AssetUtils.h" />
+    <ClInclude Include="Source\Scene\Project.h" />
+    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
+    <ClInclude Include="Source\Scene\AssetRef.h" />
+    <ClInclude Include="Source\Scene\Asset.h" />
     <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
     <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
     <ClInclude Include="Source\Scene\Assets\TextureAsset.h" />
-    <ClInclude Include="Source\Scene\SerializerExtensions.h" />
-    <ClInclude Include="Source\Scene\AssetManager.h" />
+    <ClInclude Include="Source\Scene\AssetBank.h" />
     <ClInclude Include="Source\Core\Application\Layer.h" />
     <ClInclude Include="Source\Core\Application\Root.h" />
     <ClInclude Include="Source\Core\Application\Window.h" />
@@ -151,12 +154,17 @@
     <ClInclude Include="Source\Util\EventSystem\EventDispatcher.h" />
     <ClInclude Include="Source\Util\FileIO.h" />
     <ClInclude Include="Source\Util\FlagSet.h" />
-    <ClInclude Include="Source\Util\Math\glm_serializer.h" />
     <ClInclude Include="Source\Util\Math\Transform.h" />
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
+    <ClInclude Include="Source\Scene\AssetTypes.h" />
+    <ClInclude Include="Source\Util\Serializers\ComponentSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\FlagSetSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\FramebufferSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\MathSerializer.h" />
+    <ClInclude Include="Source\Util\Serializers\UniformSerializer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Scene\AssetManager.cpp" />
+    <ClCompile Include="Source\Scene\AssetBank.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />
     <ClCompile Include="Source\Core\Application\Window.cpp" />
     <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
@@ -175,6 +183,8 @@
     <ClCompile Include="Source\Rendering\Platform\TextureCubemap.cpp" />
     <ClCompile Include="Source\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />
+    <ClCompile Include="Source\Scene\AssetRef.cpp" />
+    <ClCompile Include="Source\Scene\AssetUtils.cpp" />
     <ClCompile Include="Source\Scene\Components\Native\DebugShapeManager.cpp" />
     <ClCompile Include="Source\Scene\Components\Native\MeshRendererComponent.cpp" />
     <ClCompile Include="Source\Scene\Scene.cpp" />

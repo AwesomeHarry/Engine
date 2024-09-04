@@ -1,28 +1,29 @@
 #pragma once
 
-#include "Asset.h"
+#include "Scene/Asset.h"
 #include "Rendering/Platform/Shader.h"
 
 namespace Engine {
 	class ShaderAsset : public Asset<Shader> {
 	public:
-		ShaderAsset() { type = AssetType::Shader; }
+		ShaderAsset(AssetBank& assetBank, uint32_t id, const std::string& filepath)
+			: Asset(assetBank, id, "", AssetType::Shader), _filepath(filepath) {}
 
-		nlohmann::json Serialize() const override {
-			nlohmann::json j;
-			to_json(j, static_cast<const AssetInfo&>(*this));
-			j["filepath"] = _filepath;
-			j["uniformBlocks"] = _instance ? _instance->GetUniformBlocks() : _uniformBlockMap;
-			return j;
+		virtual nlohmann::json Serialize() const override {
+			nlohmann::json json = Asset::Serialize();
+			json["filepath"] = _filepath;
+			// Gets uniform blocks from instance if it exists, otherwise gets from existing map
+			json["uniformBlocks"] = _instance ? _instance->GetUniformBlocks() : _uniformBlockMap;
+			return json;
 		}
 
-		void Deserialize(const nlohmann::json& j, AssetManager& assetManager) override {
-			from_json(j, static_cast<AssetInfo&>(*this));
-			j.at("filepath").get_to(_filepath);
-			j.at("uniformBlocks").get_to(_uniformBlockMap);
+		virtual void Deserialize(const nlohmann::json& json) override {
+			Asset::Deserialize(json);
+			_filepath = json["filepath"].get<std::string>();
+			_uniformBlockMap = json["uniformBlocks"].get<std::map<std::string, uint32_t>>();
 		}
 	protected:
-		std::shared_ptr<Shader> Create(AssetManager& assetManager) override {
+		std::shared_ptr<Shader> CreateInstance() override {
 			auto instance = Shader::Utils::FromFile(_filepath);
 			if (!instance) {
 				ENGINE_ERROR("[ShaderAsset] Failed to load shader from file: {0}", _filepath);

@@ -23,10 +23,10 @@ namespace Engine::UI {
 			if (widgetDesc.widgetType == WidgetType::None)
 				return;
 
-			auto overridenUniformOpt = materialInstance.GetUniform(uniformName);
+			auto overridenUniformOpt = materialInstance.GetUniformValue(uniformName);
 			bool isOverriden = materialInstance.IsUniformOverridden(uniformName);
 			Material& baseMaterial = *materialInstance.GetBaseMaterial();
-			auto baseUniformOpt = baseMaterial.GetUniform(uniformName);
+			auto baseUniformOpt = baseMaterial.GetUniformValue(uniformName);
 
 			if (!baseUniformOpt.has_value()) {
 				ImGui::Text("Uniform %s not found in base material", uniformName.c_str());
@@ -169,7 +169,7 @@ namespace Engine::UI {
 					if (CustomUniformWidgets.find(uniformName) != CustomUniformWidgets.end())
 						widgetDesc = CustomUniformWidgets[uniformName];
 					else
-						widgetDesc = { determineWidgetType(uniformName, materialInstance.GetUniform(uniformName).value()) };
+						widgetDesc = { determineWidgetType(uniformName, materialInstance.GetUniformValue(uniformName).value()) };
 
 					DrawUniformWidget(materialInstance, uniformName, widgetDesc);
 				}

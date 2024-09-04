@@ -1,63 +1,105 @@
 #pragma once
 
-#include "Asset.h"
+#include "Scene/Asset.h"
+#include "Scene/AssetRef.h"
 #include "Rendering/Platform/Material.h"
+#include "Util/Serializers/UniformSerializer.h"
+#include "ShaderAsset.h"
 
 namespace Engine {
 	class MaterialAssetInstance : public Material {
 	public:
-		MaterialAssetInstance(std::shared_ptr<Shader> shader, MaterialAsset* owner)
-			: Material(shader), _owner(owner) {}
-
-		void SetUniform(const std::string& name, UniformValue value) override {
-			Material::SetUniform(name, value);
-			_owner->UpdateUniform(name, value);
+		MaterialAssetInstance(AssetBank& assetBank, AssetRef shaderRef)
+			: Material(shaderRef.Resolve<ShaderAsset>(assetBank)->GetInstance()), _shaderRef(shaderRef) {
+			for (const auto& [name, _] : _textureMap)
+				_textureRefs[name] = AssetRef(0);
 		}
 
-		void SetTexture(const std::string& name, const AssetRef& texture) {
-			Material::SetTexture(name, texture.Resolve<BaseTexture>());
-			_owner->UpdateTexture(name, texture);
-		}
-	protected:
-		using Material::SetTexture;
+		void SetShaderRef(const AssetRef& shaderRef) { _shaderRef = shaderRef; }
+		const AssetRef& GetShaderRef() const { return _shaderRef; }
+
+		void SetTextureRef(const std::string& name, const AssetRef& textureRef) { _textureRefs[name] = textureRef; }
+		const AssetRef& GetTextureRef(const std::string& name) const { return _textureRefs.at(name); }
+
 	private:
-		MaterialAsset* _owner;
+		using Material::SetShader;
+		using Material::GetShader;
+		using Material::SetTexture;
+		using Material::GetTexture;
+	private:
+		AssetRef _shaderRef;
+		std::unordered_map<std::string, AssetRef> _textureRefs;
 	};
 
 	class MaterialAsset : public Asset<MaterialAssetInstance> {
 	public:
-		MaterialAsset() { type = AssetType::Material; }
+		MaterialAsset(AssetBank& assetBank, uint32_t id, uint32_t shaderId)
+			: Asset(assetBank, id, "", AssetType::Material), _shaderId(shaderId) {}
 
-		void UpdateUniform(const std::string& name, UniformValue value) {
-			_uniformValues[name] = value;
+		virtual nlohmann::json Serialize() const override {
+			nlohmann::json json = Asset::Serialize();
+
+			if (!IsInstantiated()) {
+				json["shader"] = _shaderId;
+				json["uniforms"] = _uniformValues;
+				json["textures"] = _textureIds;
+			}
+			else {
+				json["shader"] = _instance->GetShaderRef();
+
+				// Serialize uniforms
+				json["uniforms"] = nlohmann::json::object();
+				auto uniformNames = _instance->GetUniformNames();
+				for (const auto& uniformName : uniformNames) {
+					json["uniforms"][uniformName] = _instance->GetUniformValue(uniformName).value();
+				};
+
+				// Serialize textures
+				json["textures"] = nlohmann::json::object();
+				auto textureNames = _instance->GetTextureNames();
+				for (const auto& textureName : textureNames) {
+					json["textures"][textureName] = _instance->GetTextureRef(textureName);
+				}
+			}
+
+			return json;
 		}
 
-		void UpdateTexture(const std::string& name, const AssetRef& texture) {
-			_textures[name] = texture;
+		virtual void Deserialize(const nlohmann::json& j) override {
+			Asset::Deserialize(j);
+
+			_shaderId = j["shader"].get<uint32_t>();
+
+			// Deserialize uniforms
+			auto uniforms = j["uniforms"];
+			if (!uniforms.is_object())
+				ENGINE_ERROR("[MaterialAsset::Deserialize] Uniforms is not an object");
+
+			_uniformValues = uniforms.get<std::map<std::string, UniformValue>>();
+
+			// Deserialize textures
+			auto textures = j["textures"];
+			if (!textures.is_object())
+				ENGINE_ERROR("[MaterialAsset::Deserialize] Textures is not an object");
+
+			_textureIds = textures.get<std::unordered_map<std::string, uint32_t>>();
 		}
 
-		nlohmann::json Serialize() const override {
-			nlohmann::json j;
-			to_json(j, static_cast<const AssetInfo&>(*this));
-			j["shader"] = _shaderRef;
-
-
-
-			j["textures"] = _textures;
-			return j;
-		}
 	protected:
-		std::shared_ptr<Material> Create(AssetManager& assetManager) override;
-	private:
-		AssetRef _shaderRef;
-		std::unordered_map<std::string, UniformValue> _uniformValues;
-		std::unordered_map<std::string, std::pair<AssetRef, uint32_t>> _textures;
-	};
+		virtual std::shared_ptr<MaterialAssetInstance> CreateInstance() {
+			auto instance = std::make_shared<MaterialAssetInstance>(_assetBank, AssetRef(_shaderId));
 
-	inline void to_json(nlohmann::json& j, const UniformValue& uv) {
-		j = nlohmann::json{
-			{"type", uv.},
-			{"value", uv.value}
-		};
-	}
+			for (const auto& [name, textureId] : _textureIds)
+				instance->SetTextureRef(name, AssetRef(textureId));
+
+			for (const auto& [name, value] : _uniformValues)
+				instance->SetUniform(name, value);
+
+			return instance;
+		}
+	private:
+		uint32_t _shaderId;
+		std::unordered_map<std::string, uint32_t> _textureIds;
+		std::map<std::string, UniformValue> _uniformValues;
+	};
 }

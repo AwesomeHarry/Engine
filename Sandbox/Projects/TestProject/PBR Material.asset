@@ -1,0 +1,118 @@
+{
+    "id": 2,
+    "name": "",
+    "shader": 1,
+    "textures": {
+        "irradianceMap": 0
+    },
+    "type": "Material",
+    "uniforms": {
+        "albedo": {
+            "type": "vec3",
+            "value": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "ao": {
+            "type": "float",
+            "value": 0.0
+        },
+        "camPos": {
+            "type": "vec3",
+            "value": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "lightColor": {
+            "type": "vec3",
+            "value": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "lightPosition": {
+            "type": "vec3",
+            "value": [
+                0.0,
+                0.0,
+                0.0
+            ]
+        },
+        "metallic": {
+            "type": "float",
+            "value": 0.0
+        },
+        "model": {
+            "type": "mat4",
+            "value": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "projection": {
+            "type": "mat4",
+            "value": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        },
+        "roughness": {
+            "type": "float",
+            "value": 0.0
+        },
+        "view": {
+            "type": "mat4",
+            "value": [
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0
+            ]
+        }
+    }
+}

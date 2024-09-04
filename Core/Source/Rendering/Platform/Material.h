@@ -36,7 +36,7 @@ namespace Engine {
 
 		virtual void SetUniform(const std::string& name, UniformValue value) = 0;
 
-		virtual std::optional<UniformValue> GetUniform(const std::string& name) const = 0;
+		virtual std::optional<UniformValue> GetUniformValue(const std::string& name) const = 0;
 		virtual std::vector<std::string> GetUniformNames() const = 0;
 	};
 
@@ -53,17 +53,18 @@ namespace Engine {
 		const Shader& GetShader() const override { return *_shader; }
 
 		void SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) override;
+		bool HasTexture(const std::string& name) const;
 		UniformTexture GetTexture(const std::string& name) override;
 		uint32_t GetTextureCount() const override;
 		std::vector<std::string> GetTextureNames() const;
 
 		void SetUniform(const std::string& name, UniformValue value) override;
 
-		std::optional<UniformValue> GetUniform(const std::string& name) const override;
+		std::optional<UniformValue> GetUniformValue(const std::string& name) const override;
 		std::vector<std::string> GetUniformNames() const override;
 
 		std::shared_ptr<MaterialInstance> CreateInstance();
-	private:
+	protected:
 		std::shared_ptr<Shader> _shader;
 		std::map<std::string, UniformValue> _uniformMap;
 		std::unordered_map<std::string, UniformTexture> _textureMap;
@@ -92,7 +93,7 @@ namespace Engine {
 
 		void ResetUniform(const std::string& name);
 
-		std::optional<UniformValue> GetUniform(const std::string& name) const override;
+		std::optional<UniformValue> GetUniformValue(const std::string& name) const override;
 		std::vector<std::string> GetUniformNames() const override;
 
 		std::shared_ptr<Material> GetBaseMaterial() const { return _baseMaterial; }

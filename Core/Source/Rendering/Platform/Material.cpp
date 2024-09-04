@@ -70,10 +70,24 @@ void Material::SetShader(std::shared_ptr<Shader> shader) {
 }
 
 void Material::SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) {
+	if (!HasTexture(name)) {
+		ENGINE_ERROR("[Material] Texture '{0}' does not exist in the material.", name);
+		return;
+	}
+
 	_textureMap[name].texture = texture;
 }
 
+bool Material::HasTexture(const std::string& name) const {
+	return _textureMap.find(name) != _textureMap.end();
+}
+
 UniformTexture Material::GetTexture(const std::string& name) {
+	if (!HasTexture(name)) {
+		ENGINE_ERROR("[Material] Texture '{0}' does not exist in the material.", name);
+		return { nullptr, 0 };
+	}
+
 	return _textureMap[name];
 }
 
@@ -93,7 +107,7 @@ void Material::SetUniform(const std::string& name, UniformValue value) {
 	_uniformMap[name] = value;
 }
 
-std::optional<UniformValue> Material::GetUniform(const std::string& name) const {
+std::optional<UniformValue> Material::GetUniformValue(const std::string& name) const {
 	auto it = _uniformMap.find(name);
 	if (it != _uniformMap.end()) {
 		return it->second;
@@ -169,7 +183,7 @@ std::vector<std::string> Engine::MaterialInstance::GetTextureNames() const {
 }
 
 void MaterialInstance::SetUniform(const std::string& name, UniformValue value) {
-	if (!_baseMaterial->GetUniform(name).has_value()) {
+	if (!_baseMaterial->GetUniformValue(name).has_value()) {
 		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
 		return;
 	}
@@ -180,12 +194,12 @@ void MaterialInstance::ResetUniform(const std::string& name) {
 	_overriddenUniforms.erase(name);
 }
 
-std::optional<UniformValue> MaterialInstance::GetUniform(const std::string& name) const {
+std::optional<UniformValue> MaterialInstance::GetUniformValue(const std::string& name) const {
 	auto it = _overriddenUniforms.find(name);
 	if (it != _overriddenUniforms.end()) {
 		return it->second;
 	}
-	return _baseMaterial->GetUniform(name);
+	return _baseMaterial->GetUniformValue(name);
 }
 
 std::vector<std::string> MaterialInstance::GetUniformNames() const {
