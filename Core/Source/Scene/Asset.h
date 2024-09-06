@@ -65,7 +65,6 @@ namespace Engine {
 	inline nlohmann::json Asset<T>::Serialize() const {
 		nlohmann::json j;
 		j["id"] = _id;
-		j["type"] = _type;
 		j["name"] = _name;
 		return j;
 	}
@@ -73,7 +72,6 @@ namespace Engine {
 	template<typename T>
 	inline void Asset<T>::Deserialize(const nlohmann::json& j) {
 		_id = j["id"].get<uint32_t>();
-		_type = j["type"].get<AssetType>();
 		_name = j["name"].get<std::string>();
 	}
 

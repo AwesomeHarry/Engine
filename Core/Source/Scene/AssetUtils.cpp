@@ -5,8 +5,7 @@
 #include "Assets/MaterialAsset.h"
 #include "Assets/MeshAsset.h"
 
-std::shared_ptr<IAsset> Engine::AssetUtils::LoadAssetFromJson(AssetBank& assetBank, const nlohmann::json& assetJson) {
-	AssetType type = assetJson["type"].get<AssetType>();
+std::shared_ptr<IAsset> Engine::AssetUtils::LoadAssetFromJson(AssetBank& assetBank, const nlohmann::json& assetJson, AssetType type) {
 	std::string name = assetJson["name"].get<std::string>();
 	uint32_t id = assetJson["id"].get<uint32_t>();
 

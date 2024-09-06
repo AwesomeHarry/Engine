@@ -22,26 +22,32 @@
 
 #include "SRP.h"
 
-#include "Scene/AssetBank.h"
-#include "Scene/Assets/ShaderAsset.h"
-#include "Scene/Assets/MaterialAsset.h"
 #include "Scene/Project.h"
+#include "Scene/Assets/ShaderAsset.h"
+#include "Scene/Assets/TextureAsset.h"
+#include "Scene/Assets/MaterialAsset.h"
+#include "Scene/Assets/MeshAsset.h"
 
 class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
-	std::shared_ptr<Engine::Material> _standardLit;
+	std::shared_ptr<Engine::MaterialAssetInstance> _standardLit;
 
 	Engine::Entity testEntity;
 	Engine::Entity _camera;
 	FPSCameraController _fpsCameraController;
 	OrbitCameraController _orbitCameraController;
 
+	std::unique_ptr<Engine::Project> _project;
+
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
+		/* Create Project */
+		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/TestProject");
+
 		/* Create Scene */
 		_scene = std::make_shared<Engine::Scene>();
 
@@ -59,9 +65,9 @@ public:
 		}
 
 		/* Camera */
-		std::string path = "Resources/Skyboxes/brown_photostudio_06_4k.hdr";
-		auto hdrTexture2D = Engine::Texture2D::Utils::FromFile(path);
-		auto skyboxCubemap = Engine::TextureCubemap::Utils::FromTexture2D(hdrTexture2D, Engine::TextureCubemap::Utils::Texture2DCubemapFormat::Equirectangle);
+		auto skyboxAsset = _project->GetAsset<Engine::TextureCubemapAsset>("Skybox Cubemap.cubemap");
+
+		auto skyboxCubemap = skyboxAsset->GetInstance();
 
 		// Irradiance Map
 		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
@@ -189,78 +195,55 @@ public:
 		});
 
 		/* Create Shader & Material for test scene */
-		auto shader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.glsl");
+		auto pbrShader = _project->GetAsset<Engine::ShaderAsset>("PBR Shader.shader");
+
+		auto shader = pbrShader->GetInstance();
 		shader->BindUniformBlock("CameraData", 0);
 
-		_standardLit = std::make_shared<Engine::Material>(shader);
+		auto pbrMaterial = _project->GetAsset<Engine::MaterialAsset>("PBR Material.material");
+		_standardLit = pbrMaterial->GetInstance();
 
-		_standardLit->SetUniform("albedo", glm::vec3(1, 1, 1));
-		_standardLit->SetUniform("metallic", 0.0f);
-		_standardLit->SetUniform("roughness", 0.4f);
-		_standardLit->SetUniform("ao", 1.0f);
+		// Set irradiance map natively
+		_standardLit->SetTexture("irradianceMap", irradianceCubemap);
 
 		Engine::UI::MaterialUI::CustomUniformWidgets["albedo"] = { Engine::UI::MaterialUI::WidgetType::Color };
 		Engine::UI::MaterialUI::CustomUniformWidgets["roughness"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
-
-		_standardLit->SetTexture("irradianceMap", irradianceCubemap);
-
-		_standardLit->SetUniform("lightPosition", glm::vec3(1, 1, 0));
-		_standardLit->SetUniform("lightColor", glm::vec3(1, 1, 1));
-
 		Engine::UI::MaterialUI::CustomUniformWidgets["lightColor"] = { Engine::UI::MaterialUI::WidgetType::Color };
 
-		//_standardLit->SetUniform("useAlbedoMap", false);
-		//_standardLit->SetUniform("useEmissionMap", false);
-		//_standardLit->SetUniform("useNormalMap", false);
-		//_standardLit->SetUniform("useRoughnessMap", false);
-
-		auto mesh = std::make_shared<Engine::Mesh>("Sphere");
-		auto model = Engine::GltfIO::LoadModel("Resources/Models/Sphere/Sphere.gltf");
-		const auto& prim = model.meshes[0].primitives[0];
-		mesh->AddSubmesh(Engine::GltfIO::LoadPrimitive(model, prim));
+		auto meshAsset = _project->GetAsset<Engine::MeshAsset>("Sphere.mesh");
 
 		{
-			auto s = _scene->CreateEntity();
-			s.AddComponent<Engine::MeshFilterComponent>(mesh);
-			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			auto s = _scene->CreateEntity("Sphere");
+			s.AddComponent<Engine::MeshFilterComponent>(meshAsset);
+			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(pbrMaterial);
 			mr.materialInstance->SetUniform("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
 		}
 
 		{
 			auto s2 = _scene->CreateEntity("Light");
-			s2.AddComponent<Engine::MeshFilterComponent>(mesh);
-			auto& mr = s2.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			s2.AddComponent<Engine::MeshFilterComponent>(meshAsset);
+			auto& mr = s2.AddComponent<Engine::MeshRendererComponent>(pbrMaterial);
 			mr.materialInstance->SetUniform("albedo", glm::vec3(300));
 			s2.GetTransform().position = { 12,10,0 };
 		}
+	}
 
-		{
-			Engine::Project project("TestProject", std::filesystem::current_path() / "Projects/TestProject");
-			project.LoadAllAssets();
-
-			auto asset = project.GetAsset<Engine::ShaderAsset>("PBR Shader.asset");
-			asset->Instantiate();
-
-			//auto shaderAsset = project.CreateAsset<Engine::ShaderAsset>("PBR Shader", "Resources/Shaders/PBR.glsl");
-			//auto materialAsset = project.CreateAsset<Engine::MaterialAsset>("PBR Material", shaderAsset->GetId());
-			//
-			//shaderAsset->Instantiate();
-			//materialAsset->Instantiate();
-			//
-			//project.SaveAllAssets();
-		}
+	void OnDetach() override {
+		_project->SaveAllAssets();
 	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
 
+		auto s = _scene->GetEntity("Sphere");
+		auto& mr = s.GetComponent<Engine::MeshRendererComponent>();
 		auto s2 = _scene->GetEntity("Light");
-		auto& mr = s2.GetComponent<Engine::MeshRendererComponent>();
-		mr.sharedMaterial->SetUniform("lightPosition", s2.GetTransform().position);
-		mr.sharedMaterial->SetUniform("lightColor", std::get<glm::vec3>(mr.materialInstance->GetUniformValue("albedo").value()));
+		auto& mr2 = s2.GetComponent<Engine::MeshRendererComponent>();
+		mr.materialInstance->SetUniform("lightPosition", s2.GetTransform().position);
+		mr.materialInstance->SetUniform("lightColor", std::get<glm::vec3>(mr2.materialInstance->GetUniformValue("albedo").value()));
 
 		/* Render Axis */
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });

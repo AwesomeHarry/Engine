@@ -1,23 +1,22 @@
 {
-    "id": 2,
+    "id": 3,
     "name": "",
-    "shader": 1,
+    "shader": 2,
     "textures": {
         "irradianceMap": 0
     },
-    "type": "Material",
     "uniforms": {
         "albedo": {
             "type": "vec3",
             "value": [
-                0.0,
-                0.0,
-                0.0
+                1.0,
+                1.0,
+                1.0
             ]
         },
         "ao": {
             "type": "float",
-            "value": 0.0
+            "value": 1.0
         },
         "camPos": {
             "type": "vec3",
@@ -30,16 +29,16 @@
         "lightColor": {
             "type": "vec3",
             "value": [
-                0.0,
-                0.0,
-                0.0
+                1.0,
+                1.0,
+                1.0
             ]
         },
         "lightPosition": {
             "type": "vec3",
             "value": [
-                0.0,
-                0.0,
+                1.0,
+                1.0,
                 0.0
             ]
         },
@@ -91,7 +90,7 @@
         },
         "roughness": {
             "type": "float",
-            "value": 0.0
+            "value": 0.4000000059604645
         },
         "view": {
             "type": "mat4",

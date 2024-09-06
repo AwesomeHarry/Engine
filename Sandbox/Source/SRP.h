@@ -255,7 +255,7 @@ public:
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
 				auto& material = *renderer.materialInstance;
-				auto& mesh = *filter.mesh;
+				auto& mesh = *filter.meshAsset->GetInstance();
 
 				material.SetUniform("model", transform.GetTransformMatrix());
 

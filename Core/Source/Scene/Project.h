@@ -36,10 +36,14 @@ namespace Engine {
 			fs::path assetPath = _rootPath;
 
 			// Add extension if not present
-			if (path.extension() != ".asset")
-				assetPath /= path.string() + ".asset";
-			else
+			std::string extension = path.extension().string();
+			if (extension.empty()) {
+				extension = AssetUtils::GetAssetExtension<T>();
+				assetPath /= path.string() + extension;
+			}
+			else {
 				assetPath /= path;
+			}
 
 			_assetPaths[asset->GetId()] = assetPath;
 			_pathToId[assetPath.string()] = asset->GetId();
@@ -100,8 +104,9 @@ namespace Engine {
 				return;
 			}
 
-			if (path.extension() != ".asset") {
-				ENGINE_ERROR("[Project::AddAsset] File is not an asset: {0}", path.string());
+			AssetType type = ParseAssetType(assetPath);
+			if (type == AssetType::Unknown) {
+				ENGINE_ERROR("[Project::AddAsset] Unknown asset type: {0}", path.string());
 				return;
 			}
 
@@ -110,7 +115,7 @@ namespace Engine {
 			file >> jsonData;
 			file.close();
 
-			auto asset = AssetUtils::LoadAssetFromJson(*_assetBank, jsonData);
+			auto asset = AssetUtils::LoadAssetFromJson(*_assetBank, jsonData, type);
 
 			uint32_t id = asset->GetId();
 			_assetPaths[id] = assetPath;
@@ -143,6 +148,16 @@ namespace Engine {
 		// Getters
 		const std::string& GetName() const { return _name; }
 		const fs::path& GetRootPath() const { return _rootPath; }
+	private:
+		AssetType ParseAssetType(const fs::path& path) {
+			std::string extension = path.extension().string();
+			if (extension == ".shader")			return AssetType::Shader;
+			if (extension == ".tex2d")		return AssetType::Texture2D;
+			if (extension == ".cubemap") return AssetType::TextureCubemap;
+			if (extension == ".material")		return AssetType::Material;
+			if (extension == ".mesh")			return AssetType::Mesh;
+			return AssetType::Unknown;
+		}
 	private:
 		std::string _name;
 		fs::path _rootPath;
