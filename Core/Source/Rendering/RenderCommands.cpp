@@ -33,7 +33,7 @@ void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 
 #include "Rendering/Platform/Texture2D.h"
 
-void RenderCommands::RenderMesh(const Mesh& mesh, const MaterialOverride& material) {
+void RenderCommands::RenderMesh(const Mesh& mesh, const BaseMaterial& material) {
 	material.Bind();
 
 	for (uint32_t i = 0; i < mesh.GetSubmeshCount(); i++) {
