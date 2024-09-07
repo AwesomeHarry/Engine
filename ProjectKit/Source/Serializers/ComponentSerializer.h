@@ -1,7 +1,7 @@
 #include "Scene/Components/Native/Components.h"
-#include "Util/Serializers/MathSerializer.h"
-#include "Util/Serializers/FramebufferSerializer.h"
-#include "Util/Serializers/FlagSetSerializer.h"
+#include "Serializers/MathSerializer.h"
+#include "Serializers/FramebufferSerializer.h"
+#include "Serializers/FlagSetSerializer.h"
 
 using namespace Engine;
 

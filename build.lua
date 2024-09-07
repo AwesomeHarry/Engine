@@ -126,6 +126,50 @@ project "Core"
         defines { "NDEBUG" }
         optimize "On"
 
+project "ProjectKit"
+    location "ProjectKit"
+    kind "StaticLib"
+    language "C++"
+    targetdir "Binaries/%{cfg.buildcfg}"
+    objdir "Binaries-Intermediate/%{cfg.buildcfg}"
+    
+    files { 
+        "ProjectKit/Source/**.h", 
+        "ProjectKit/Source/**.cpp" 
+    }
+    
+    includedirs { 
+        "ProjectKit/Source/",
+    
+        -- dependencies
+        "Core/Source/",
+        "Vendor/glfw/include",
+        "Vendor/spdlog/include",
+        "Vendor/glad/include",
+        "Vendor/imgui",
+        "vendor/json",
+        "vendor/stb_image",
+        "vendor/tiny_gltf",
+        "vendor/entt/src",
+        "vendor/glm/include"
+    }
+    
+    vpaths {
+        ["Source"] = { "ProjectKit/Source/" },
+    }
+    
+    links {
+        "Core"
+    }
+    
+    filter "configurations:Debug"
+        defines { "DEBUG" }
+        symbols "On"
+    
+    filter "configurations:Release"
+        defines { "NDEBUG" }
+        optimize "On"
+    
 project "Sandbox"
     location "Sandbox"
     kind "ConsoleApp"
@@ -143,6 +187,7 @@ project "Sandbox"
 
         -- dependencies
         "Core/Source/",
+        "ProjectKit/Source/",
         "Vendor/glfw/include",
         "Vendor/spdlog/include",
         "Vendor/glad/include",
@@ -159,7 +204,8 @@ project "Sandbox"
     }
 
     links {
-        "Core"
+        "Core",
+        "ProjectKit"
     }
 
     filter "configurations:Debug"

@@ -11,6 +11,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imgui", "Vendor\imgui\imgui
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tiny_gltf", "Vendor\tiny_gltf\tiny_gltf.vcxproj", "{15CC37D6-8136-EC4C-CA74-9DF2361ECAA1}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ProjectKit", "ProjectKit\ProjectKit.vcxproj", "{E46B679B-D023-A9E8-392B-8244250244D9}"
+EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Sandbox", "Sandbox\Sandbox.vcxproj", "{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}"
 EndProject
 Global
@@ -35,6 +37,10 @@ Global
 		{15CC37D6-8136-EC4C-CA74-9DF2361ECAA1}.Debug|x64.Build.0 = Debug|x64
 		{15CC37D6-8136-EC4C-CA74-9DF2361ECAA1}.Release|x64.ActiveCfg = Release|x64
 		{15CC37D6-8136-EC4C-CA74-9DF2361ECAA1}.Release|x64.Build.0 = Release|x64
+		{E46B679B-D023-A9E8-392B-8244250244D9}.Debug|x64.ActiveCfg = Debug|x64
+		{E46B679B-D023-A9E8-392B-8244250244D9}.Debug|x64.Build.0 = Debug|x64
+		{E46B679B-D023-A9E8-392B-8244250244D9}.Release|x64.ActiveCfg = Release|x64
+		{E46B679B-D023-A9E8-392B-8244250244D9}.Release|x64.Build.0 = Release|x64
 		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Debug|x64.ActiveCfg = Debug|x64
 		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Debug|x64.Build.0 = Debug|x64
 		{F4C124E3-60A1-A37E-69B9-2E55D5170AE0}.Release|x64.ActiveCfg = Release|x64

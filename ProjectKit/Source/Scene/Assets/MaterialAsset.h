@@ -3,7 +3,7 @@
 #include "Scene/Asset.h"
 #include "Scene/AssetRef.h"
 #include "Rendering/Platform/Material.h"
-#include "Util/Serializers/UniformSerializer.h"
+#include "Serializers/UniformSerializer.h"
 
 #include "ShaderAsset.h"
 #include "TextureAsset.h"

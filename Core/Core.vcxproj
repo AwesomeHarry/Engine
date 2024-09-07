@@ -94,16 +94,6 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Source\Scene\Assets\SceneAsset.h" />
-    <ClInclude Include="Source\Scene\AssetUtils.h" />
-    <ClInclude Include="Source\Scene\Project.h" />
-    <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
-    <ClInclude Include="Source\Scene\AssetRef.h" />
-    <ClInclude Include="Source\Scene\Asset.h" />
-    <ClInclude Include="Source\Scene\Assets\MaterialAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\ShaderAsset.h" />
-    <ClInclude Include="Source\Scene\Assets\TextureAsset.h" />
-    <ClInclude Include="Source\Scene\AssetBank.h" />
     <ClInclude Include="Source\Core\Application\Layer.h" />
     <ClInclude Include="Source\Core\Application\Root.h" />
     <ClInclude Include="Source\Core\Application\Window.h" />
@@ -111,7 +101,6 @@
     <ClInclude Include="Source\Core\Input\InputSystem.h" />
     <ClInclude Include="Source\Core\Logging\LoggingManager.h" />
     <ClInclude Include="Source\Logging\Logging.h" />
-    <ClInclude Include="Source\Rendering\BaseRenderPipeline.h" />
     <ClInclude Include="Source\Rendering\BufferBit.h" />
     <ClInclude Include="Source\Rendering\GraphicsContext.h" />
     <ClInclude Include="Source\Rendering\Platform\BaseTexture.h" />
@@ -126,28 +115,9 @@
     <ClInclude Include="Source\Rendering\Platform\Mesh.h" />
     <ClInclude Include="Source\Rendering\Platform\Shader.h" />
     <ClInclude Include="Source\Rendering\Platform\Texture2D.h" />
-    <ClInclude Include="Source\Rendering\Platform\TextureCubemap.h" />
+    <ClInclude Include="Source\Rendering\Platform\TextureCubeMap.h" />
     <ClInclude Include="Source\Rendering\RenderCommands.h" />
     <ClInclude Include="Source\Rendering\RenderManager.h" />
-    <ClInclude Include="Source\Scene\Components\Native\BaseComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\BoundingBoxComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\CameraComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\Components.h" />
-    <ClInclude Include="Source\Scene\Components\Native\DebugShapeManager.h" />
-    <ClInclude Include="Source\Scene\Components\Native\MeshFilterComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\MeshRendererComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\NameComponent.h" />
-    <ClInclude Include="Source\Scene\Components\Native\TransformComponent.h" />
-    <ClInclude Include="Source\Scene\Entity.h" />
-    <ClInclude Include="Source\Scene\Scene.h" />
-    <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h" />
-    <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h" />
-    <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h" />
-    <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h" />
-    <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h" />
-    <ClInclude Include="Source\UI\EntityPropertiesUI_ImGui.h" />
-    <ClInclude Include="Source\UI\MaterialUI_ImGui.h" />
-    <ClInclude Include="Source\UI\SceneHeirarchyUI_ImGui.h" />
     <ClInclude Include="Source\UI\UIUtil.h" />
     <ClInclude Include="Source\UI\WindowInfoUI_ImGui.h" />
     <ClInclude Include="Source\Util\EventSystem\Event.h" />
@@ -156,15 +126,8 @@
     <ClInclude Include="Source\Util\FlagSet.h" />
     <ClInclude Include="Source\Util\Math\Transform.h" />
     <ClInclude Include="Source\Util\Mesh\GltfIO.h" />
-    <ClInclude Include="Source\Scene\AssetTypes.h" />
-    <ClInclude Include="Source\Util\Serializers\ComponentSerializer.h" />
-    <ClInclude Include="Source\Util\Serializers\FlagSetSerializer.h" />
-    <ClInclude Include="Source\Util\Serializers\FramebufferSerializer.h" />
-    <ClInclude Include="Source\Util\Serializers\MathSerializer.h" />
-    <ClInclude Include="Source\Util\Serializers\UniformSerializer.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Source\Scene\AssetBank.cpp" />
     <ClCompile Include="Source\Core\Application\Root.cpp" />
     <ClCompile Include="Source\Core\Application\Window.cpp" />
     <ClCompile Include="Source\Core\Input\InputSystem.cpp" />
@@ -180,16 +143,9 @@
     <ClCompile Include="Source\Rendering\Platform\Mesh.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Shader.cpp" />
     <ClCompile Include="Source\Rendering\Platform\Texture2D.cpp" />
-    <ClCompile Include="Source\Rendering\Platform\TextureCubemap.cpp" />
+    <ClCompile Include="Source\Rendering\Platform\TextureCubeMap.cpp" />
     <ClCompile Include="Source\Rendering\RenderCommands.cpp" />
     <ClCompile Include="Source\Rendering\RenderManager.cpp" />
-    <ClCompile Include="Source\Scene\AssetRef.cpp" />
-    <ClCompile Include="Source\Scene\Assets\MaterialAsset.cpp" />
-    <ClCompile Include="Source\Scene\AssetUtils.cpp" />
-    <ClCompile Include="Source\Scene\Components\Native\DebugShapeManager.cpp" />
-    <ClCompile Include="Source\Scene\Components\Native\MeshRendererComponent.cpp" />
-    <ClCompile Include="Source\Scene\Scene.cpp" />
-    <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp" />
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp" />
   </ItemGroup>
   <ItemGroup>

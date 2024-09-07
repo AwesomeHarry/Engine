@@ -184,7 +184,7 @@ public:
 			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
 
 			/* Cubemap */
-			cc.skyboxCubemap = skyboxCubemap;
+			cc.skyboxCubemapAsset = skyboxAsset;
 		}
 
 		// Camera Controls

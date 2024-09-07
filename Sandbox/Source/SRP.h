@@ -2,7 +2,7 @@
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include "Scene/Scene.h"
-#include "Rendering/BaseRenderPipeline.h"
+#include "Scene/BaseRenderPipeline.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Rendering/RenderManager.h"
@@ -221,7 +221,7 @@ public:
 			_skyboxShader->SetUniform("projection", cameraData.projection);
 			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
 			_skyboxShader->SetUniform("exposure", camera.skyboxExposure);
-			camera.skyboxCubemap->Bind(0);
+			camera.skyboxCubemapAsset->GetInstance()->Bind(0);
 
 			glDepthMask(GL_FALSE);
 			Engine::RenderCommands::RenderMesh(*_skyboxVao, *_skyboxShader);

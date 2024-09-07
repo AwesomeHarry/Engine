@@ -7,7 +7,7 @@
 #include "Scene/Entity.h"
 
 #include "Scene/Components/Native/Components.h"
-#include "Util/Serializers/ComponentSerializer.h"
+#include "Serializers/ComponentSerializer.h"
 
 namespace Engine {
 	class SceneAsset : public Asset<Scene> {

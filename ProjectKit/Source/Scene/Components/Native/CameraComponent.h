@@ -9,7 +9,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/euler_angles.hpp>
 
-#include "Rendering/BaseRenderPipeline.h"
+#include "Scene/BaseRenderPipeline.h"
 #include "Rendering/BufferBit.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Scene/Assets/TextureAsset.h"
