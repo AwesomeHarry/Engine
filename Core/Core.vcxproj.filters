@@ -114,9 +114,6 @@
     <ClInclude Include="Source\Scene\Scene.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\Scene\SceneSerializer.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -180,6 +177,7 @@
     <ClInclude Include="Source\Scene\Assets\MeshAsset.h" />
     <ClInclude Include="Source\Scene\Project.h" />
     <ClInclude Include="Source\Scene\AssetUtils.h" />
+    <ClInclude Include="Source\Scene\Assets\SceneAsset.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Source\Core\Application\Root.cpp">
@@ -245,9 +243,6 @@
     <ClCompile Include="Source\Scene\Scene.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Scene\SceneSerializer.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\UI\MaterialUI_ImGui.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -257,5 +252,6 @@
     <ClCompile Include="Source\Scene\AssetBank.cpp" />
     <ClCompile Include="Source\Scene\AssetRef.cpp" />
     <ClCompile Include="Source\Scene\AssetUtils.cpp" />
+    <ClCompile Include="Source\Scene\Assets\MaterialAsset.cpp" />
   </ItemGroup>
 </Project>

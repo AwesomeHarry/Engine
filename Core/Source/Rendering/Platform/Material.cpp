@@ -123,16 +123,16 @@ std::vector<std::string> Material::GetUniformNames() const {
 	return names;
 }
 
-std::shared_ptr<MaterialInstance> Material::CreateInstance() {
-	return std::make_shared<MaterialInstance>(shared_from_this());
+std::shared_ptr<MaterialOverride> Material::CreateInstance() {
+	return std::make_shared<MaterialOverride>(this);
 }
 
 // MaterialInstance implementation
 
-MaterialInstance::MaterialInstance(std::shared_ptr<Material> baseMaterial)
+MaterialOverride::MaterialOverride(Material* baseMaterial)
 	: _baseMaterial(baseMaterial) {}
 
-void MaterialInstance::Bind() const {
+void MaterialOverride::Bind() const {
 	_baseMaterial->Bind();
 
 	for (const auto& [name, value] : _overriddenUniforms) {
@@ -146,35 +146,40 @@ void MaterialInstance::Bind() const {
 	}
 }
 
-void MaterialInstance::Unbind() const {
+void MaterialOverride::Unbind() const {
 	_baseMaterial->Unbind();
 }
 
-void MaterialInstance::SetShader(std::shared_ptr<Shader> shader) {
+void MaterialOverride::SetShader(std::shared_ptr<Shader> shader) {
 	_baseMaterial->SetShader(shader);
 }
 
-Shader& MaterialInstance::GetShader() {
+Shader& MaterialOverride::GetShader() {
 	return _baseMaterial->GetShader();
 }
 
-const Shader& MaterialInstance::GetShader() const {
+const Shader& MaterialOverride::GetShader() const {
 	return _baseMaterial->GetShader();
 }
 
-void MaterialInstance::SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) {
+void MaterialOverride::SetTexture(const std::string& name, std::shared_ptr<BaseTexture> texture) {
+	if (!_baseMaterial->HasTexture(name)) {
+		ENGINE_ERROR("[MaterialInstance] Texture '{0}' does not exist in the base material.", name);
+		return;
+	}
+
 	_overriddenTextures[name] = texture;
 }
 
-UniformTexture MaterialInstance::GetTexture(const std::string& name) {
+UniformTexture MaterialOverride::GetTexture(const std::string& name) {
 	return { _overriddenTextures[name],_baseMaterial->GetTexture(name).bindingPoint };
 }
 
-uint32_t MaterialInstance::GetTextureCount() const {
+uint32_t MaterialOverride::GetTextureCount() const {
 	return (uint32_t)_overriddenTextures.size();
 }
 
-std::vector<std::string> Engine::MaterialInstance::GetTextureNames() const {
+std::vector<std::string> Engine::MaterialOverride::GetTextureNames() const {
 	std::vector<std::string> names;
 	for (const auto& [name, _] : _overriddenTextures) {
 		names.push_back(name);
@@ -182,7 +187,7 @@ std::vector<std::string> Engine::MaterialInstance::GetTextureNames() const {
 	return names;
 }
 
-void MaterialInstance::SetUniform(const std::string& name, UniformValue value) {
+void MaterialOverride::SetUniform(const std::string& name, UniformValue value) {
 	if (!_baseMaterial->GetUniformValue(name).has_value()) {
 		ENGINE_ERROR("Uniform '{0}' does not exist in the base material.", name);
 		return;
@@ -190,11 +195,11 @@ void MaterialInstance::SetUniform(const std::string& name, UniformValue value) {
 	_overriddenUniforms[name] = value;
 }
 
-void MaterialInstance::ResetUniform(const std::string& name) {
+void MaterialOverride::ResetUniform(const std::string& name) {
 	_overriddenUniforms.erase(name);
 }
 
-std::optional<UniformValue> MaterialInstance::GetUniformValue(const std::string& name) const {
+std::optional<UniformValue> MaterialOverride::GetUniformValue(const std::string& name) const {
 	auto it = _overriddenUniforms.find(name);
 	if (it != _overriddenUniforms.end()) {
 		return it->second;
@@ -202,22 +207,30 @@ std::optional<UniformValue> MaterialInstance::GetUniformValue(const std::string&
 	return _baseMaterial->GetUniformValue(name);
 }
 
-std::vector<std::string> MaterialInstance::GetUniformNames() const {
+std::vector<std::string> MaterialOverride::GetUniformNames() const {
 	return _baseMaterial->GetUniformNames();
 }
 
-bool MaterialInstance::IsUniformOverridden(const std::string& name) const {
-	return _overriddenUniforms.find(name) != _overriddenUniforms.end();
-}
-
-bool MaterialInstance::IsTextureOverridden(const std::string& name) const {
-	return _overriddenTextures.find(name) != _overriddenTextures.end();
-}
-
-std::vector<std::string> MaterialInstance::GetOverriddenUniformNames() const {
+std::vector<std::string> MaterialOverride::GetOverriddenUniformNames() const {
 	std::vector<std::string> names;
 	for (const auto& [name, _] : _overriddenUniforms) {
 		names.push_back(name);
 	}
 	return names;
+}
+
+bool MaterialOverride::IsUniformOverridden(const std::string& name) const {
+	return _overriddenUniforms.find(name) != _overriddenUniforms.end();
+}
+
+std::vector<std::string> Engine::MaterialOverride::GetOverriddenTextureNames() const {
+	std::vector<std::string> names;
+	for (const auto& [name, _] : _overriddenTextures) {
+		names.push_back(name);
+	}
+	return names;
+}
+
+bool MaterialOverride::IsTextureOverridden(const std::string& name) const {
+	return _overriddenTextures.find(name) != _overriddenTextures.end();
 }

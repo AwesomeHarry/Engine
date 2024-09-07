@@ -19,7 +19,7 @@ namespace Engine::UI {
 
 		static std::unordered_map<std::string, UniformWidgetDesc> CustomUniformWidgets;
 
-		static void DrawUniformWidget(MaterialInstance& materialInstance, const std::string& uniformName, const UniformWidgetDesc& widgetDesc) {
+		static void DrawUniformWidget(MaterialOverride& materialInstance, const std::string& uniformName, const UniformWidgetDesc& widgetDesc) {
 			if (widgetDesc.widgetType == WidgetType::None)
 				return;
 
@@ -161,7 +161,7 @@ namespace Engine::UI {
 			}
 		}
 
-		static void DrawAllUniformWidgets(MaterialInstance& materialInstance) {
+		static void DrawAllUniformWidgets(MaterialOverride& materialInstance) {
 			auto uniforms = materialInstance.GetBaseMaterial()->GetUniformNames();
 			if (ImGui::TreeNode("Material Instance Uniforms")) {
 				for (const auto& uniformName : uniforms) {

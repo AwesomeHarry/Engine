@@ -9,51 +9,43 @@
 #include "TextureAsset.h"
 
 namespace Engine {
+	class MaterialAssetInstanceOverride;
+
 	class MaterialAssetInstance : public Material {
 	public:
-		MaterialAssetInstance(AssetBank& assetBank, AssetRef shaderRef)
-			: Material(shaderRef.Resolve<ShaderAsset>(assetBank)->GetInstance()), _shaderRef(shaderRef), _assetBank(assetBank) {
-			for (const auto& [name, _] : _textureMap)
-				_textureRefs[name] = AssetRef(0);
-		}
+		MaterialAssetInstance(AssetBank& assetBank, AssetRef shaderRef);
 
-		void SetShaderRef(const AssetRef& shaderRef) { 
-			_shaderRef = shaderRef;
-			_shader = _shaderRef.Resolve<ShaderAsset>(_assetBank)->GetInstance();
-		}
-
+		void SetShaderRef(const AssetRef& shaderRef);
 		const AssetRef& GetShaderRef() const { return _shaderRef; }
 
-		void SetTextureRef(const std::string& name, const AssetRef& textureRef) { 
-			auto it = _textureMap.find(name);
-			if (it == _textureMap.end()) {
-				ENGINE_ERROR("[MaterialAssetInstance::SetTextureRef] Texture '{0}' does not exist in the material.", name);
-				return;
-			}
+		void SetTextureRef(const std::string& name, const AssetRef& textureRef);
+		const AssetRef& GetTextureRef(const std::string& name) const;
 
-			_textureRefs[name] = textureRef;
-
-			if (textureRef.GetId() == 0) return;
-
-			auto textureAsset = _assetBank.GetAsset<IAsset>(textureRef.GetId());
-			auto textureType = textureAsset->GetType();
-			if (textureType == AssetType::Texture2D) {
-				auto texture = textureRef.Resolve<Texture2DAsset>(_assetBank)->GetInstance();
-				SetTexture(name, texture);
-			}
-			else if (textureType == AssetType::TextureCubemap) {
-				auto texture = textureRef.Resolve<TextureCubemapAsset>(_assetBank)->GetInstance();
-				SetTexture(name, texture);
-			}
-		}
-
-		const AssetRef& GetTextureRef(const std::string& name) const { return _textureRefs.at(name); }
+		std::shared_ptr<MaterialOverride> CreateInstance() override;
 
 	private:
 		AssetBank& _assetBank;
 
 		AssetRef _shaderRef;
 		std::unordered_map<std::string, AssetRef> _textureRefs;
+	};
+
+	class MaterialAssetInstanceOverride : public MaterialOverride {
+	public:
+		MaterialAssetInstanceOverride(AssetBank& assetBank, MaterialAssetInstance* materialAssetInstance);
+
+		void SetShaderRef(const AssetRef& shaderRef);
+		const AssetRef& GetShaderRef() const { return _shaderRef; }
+
+		void SetTextureRef(const std::string& name, const AssetRef& textureRef);
+		const AssetRef& GetTextureRef(const std::string& name) const;
+
+	private:
+		AssetBank& _assetBank;
+		MaterialAssetInstance* _baseMaterialAssetInstance;
+
+		AssetRef _shaderRef;
+		std::unordered_map<std::string, AssetRef> _overridenTextureRefs;
 	};
 
 	class MaterialAsset : public Asset<MaterialAssetInstance> {
