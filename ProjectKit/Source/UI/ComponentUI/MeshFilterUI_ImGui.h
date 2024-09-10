@@ -8,8 +8,7 @@ namespace Engine {
 	public:
 		static void RenderUI(MeshFilterComponent& meshFilter) {
 			if (ImGui::TreeNodeEx("Mesh Filter", ImGuiTreeNodeFlags_Framed)) {
-				auto& meshAsset = *meshFilter.meshAsset;
-				auto& mesh = *meshAsset.GetInstance();
+				auto& mesh = *meshFilter.mesh;
 
 				ImGui::Text("Mesh Name: %s", mesh.GetName().c_str());
 				if (ImGui::TreeNode("Mesh Info")) {

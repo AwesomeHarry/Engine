@@ -2,19 +2,17 @@
 #include <memory>
 
 #include "BaseComponent.h"
-#include "Scene/Assets/MaterialAsset.h"
+#include "Rendering/Platform/Material.h"
 
 namespace Engine {
 	class Entity;
 
 	struct MeshRendererComponent : public BaseComponent {
-		std::shared_ptr<MaterialAsset> materialAsset;
-		std::shared_ptr<MaterialAssetInstanceOverride> materialInstance;
+		std::shared_ptr<Material> material;
 
 		MeshRendererComponent() {}
-		MeshRendererComponent(const std::shared_ptr<MaterialAsset>& materialAsset)
-			: materialAsset(materialAsset), 
-			materialInstance(std::dynamic_pointer_cast<MaterialAssetInstanceOverride>(materialAsset->GetInstance()->CreateInstance())) {}
+		MeshRendererComponent(const std::shared_ptr<Material>& material)
+			: material(material) {}
 
 		// Check to make sure entity also has mesh filter component
 		virtual void OnComponentAdded(Entity& entity) override;

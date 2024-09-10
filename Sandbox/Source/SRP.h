@@ -221,7 +221,7 @@ public:
 			_skyboxShader->SetUniform("projection", cameraData.projection);
 			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
 			_skyboxShader->SetUniform("exposure", camera.skyboxExposure);
-			camera.skyboxCubemapAsset->GetInstance()->Bind(0);
+			camera.skyboxCubemap->Bind(0);
 
 			glDepthMask(GL_FALSE);
 			Engine::RenderCommands::RenderMesh(*_skyboxVao, *_skyboxShader);
@@ -254,8 +254,8 @@ public:
 				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
-				auto& material = *renderer.materialInstance;
-				auto& mesh = *filter.meshAsset->GetInstance();
+				auto& material = *renderer.material;
+				auto& mesh = *filter.mesh;
 
 				material.SetUniform("model", transform.GetTransformMatrix());
 

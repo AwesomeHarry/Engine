@@ -1,16 +1,16 @@
 #pragma once
 
 #include "BaseComponent.h"
-#include "Scene/Assets/MeshAsset.h"
+#include "Rendering/Platform/Mesh.h"
 
 namespace Engine {
 	class Entity;
 
 	struct MeshFilterComponent : public BaseComponent {
-		std::shared_ptr<MeshAsset> meshAsset;
+		std::shared_ptr<Mesh> mesh;
 
 		MeshFilterComponent() {}
-		MeshFilterComponent(const std::shared_ptr<MeshAsset>& meshAsset)
-			: meshAsset(meshAsset) {}
+		MeshFilterComponent(const std::shared_ptr<Mesh>& mesh)
+			: mesh(mesh) {}
 	};
 }

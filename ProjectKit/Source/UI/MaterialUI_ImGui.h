@@ -19,44 +19,42 @@ namespace Engine::UI {
 
 		static std::unordered_map<std::string, UniformWidgetDesc> CustomUniformWidgets;
 
-		static void DrawUniformWidget(MaterialOverride& materialInstance, const std::string& uniformName, const UniformWidgetDesc& widgetDesc) {
+		static void DrawUniformWidget(Material& material, const std::string& uniformName, const UniformWidgetDesc& widgetDesc) {
 			if (widgetDesc.widgetType == WidgetType::None)
 				return;
 
-			auto overridenUniformOpt = materialInstance.GetUniformValue(uniformName);
-			bool isOverriden = materialInstance.IsUniformOverridden(uniformName);
-			Material& baseMaterial = *materialInstance.GetBaseMaterial();
-			auto baseUniformOpt = baseMaterial.GetUniformValue(uniformName);
+			auto overridenUniformOpt = material.GetUniformValue(uniformName);
+			auto baseUniformOpt = material.GetUniformValue(uniformName);
 
 			if (!baseUniformOpt.has_value()) {
 				ImGui::Text("Uniform %s not found in base material", uniformName.c_str());
 				return;
 			}
 
-			auto uniformValue = isOverriden ? overridenUniformOpt.value() : baseUniformOpt.value();
+			auto uniformValue = baseUniformOpt.value();
 
 			std::visit([&](auto&& arg) {
 				using T = std::decay_t<decltype(arg)>;
 				if constexpr (std::is_same_v<T, bool>) {
 					bool value = arg;
 					if (ImGui::Checkbox(uniformName.c_str(), &value))
-						materialInstance.SetUniform(uniformName, value);
+						material.SetUniform(uniformName, value);
 				}
 				else if constexpr (std::is_same_v<T, int>) {
 					int value = arg;
 					switch (widgetDesc.widgetType) {
 					case WidgetType::Drag:
 						if (ImGui::DragInt(uniformName.c_str(), &value, widgetDesc.speed, (int)widgetDesc.min, (int)widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Input:
 						ImGui::InputInt(uniformName.c_str(), &value);
 						if (ImGui::IsItemDeactivatedAfterEdit())
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Slider:
 						if (ImGui::SliderInt(uniformName.c_str(), &value, (int)widgetDesc.min, (int)widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					default:
 						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
@@ -68,15 +66,15 @@ namespace Engine::UI {
 					switch (widgetDesc.widgetType) {
 					case WidgetType::Drag:
 						if (ImGui::DragFloat(uniformName.c_str(), &value, widgetDesc.speed, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Input:
 						if (ImGui::InputFloat(uniformName.c_str(), &value))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Slider:
 						if (ImGui::SliderFloat(uniformName.c_str(), &value, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					default:
 						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
@@ -88,15 +86,15 @@ namespace Engine::UI {
 					switch (widgetDesc.widgetType) {
 					case WidgetType::Drag:
 						if (ImGui::DragFloat2(uniformName.c_str(), &value.x, widgetDesc.speed, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Slider:
 						if (ImGui::SliderFloat2(uniformName.c_str(), &value.x, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Input:
 						if (ImGui::InputFloat2(uniformName.c_str(), &value.x))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					default:
 						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
@@ -108,19 +106,19 @@ namespace Engine::UI {
 					switch (widgetDesc.widgetType) {
 					case WidgetType::Drag:
 						if (ImGui::DragFloat3(uniformName.c_str(), &value.x, widgetDesc.speed, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Color:
 						if (ImGui::ColorEdit3(uniformName.c_str(), &value.x))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Slider:
 						if (ImGui::SliderFloat3(uniformName.c_str(), &value.x, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Input:
 						if (ImGui::InputFloat3(uniformName.c_str(), &value.x))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					default:
 						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
@@ -132,19 +130,19 @@ namespace Engine::UI {
 					switch (widgetDesc.widgetType) {
 					case WidgetType::Drag:
 						if (ImGui::DragFloat4(uniformName.c_str(), &value.x, widgetDesc.speed, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Color:
 						if (ImGui::ColorEdit4(uniformName.c_str(), &value.x))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Slider:
 						if (ImGui::SliderFloat4(uniformName.c_str(), &value.x, widgetDesc.min, widgetDesc.max))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					case WidgetType::Input:
 						if (ImGui::InputFloat4(uniformName.c_str(), &value.x))
-							materialInstance.SetUniform(uniformName, value);
+							material.SetUniform(uniformName, value);
 						break;
 					default:
 						ImGui::Text("Unsupported type for uniform '%s'", uniformName.c_str());
@@ -152,34 +150,21 @@ namespace Engine::UI {
 					}
 				}
 			}, uniformValue);
-
-			if (isOverriden) {
-				ImGui::SameLine();
-				if (ImGui::Button("Reset")) {
-					materialInstance.ResetUniform(uniformName);
-				}
-			}
 		}
 
-		static void DrawAllUniformWidgets(MaterialOverride& materialInstance) {
-			auto uniforms = materialInstance.GetBaseMaterial()->GetUniformNames();
+		static void DrawAllUniformWidgets(Material& material) {
+			auto uniforms = material.GetUniformNames();
 			if (ImGui::TreeNode("Material Instance Uniforms")) {
 				for (const auto& uniformName : uniforms) {
 					UniformWidgetDesc widgetDesc;
 					if (CustomUniformWidgets.find(uniformName) != CustomUniformWidgets.end())
 						widgetDesc = CustomUniformWidgets[uniformName];
 					else
-						widgetDesc = { determineWidgetType(uniformName, materialInstance.GetUniformValue(uniformName).value()) };
+						widgetDesc = { determineWidgetType(uniformName, material.GetUniformValue(uniformName).value()) };
 
-					DrawUniformWidget(materialInstance, uniformName, widgetDesc);
+					DrawUniformWidget(material, uniformName, widgetDesc);
 				}
 				ImGui::TreePop();
-			}
-
-			if (ImGui::Button("Reset All")) {
-				for (const auto& uniformName : uniforms) {
-					materialInstance.ResetUniform(uniformName);
-				}
 			}
 		}
 	private:

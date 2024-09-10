@@ -9,6 +9,8 @@
 #include "Scene/Entity.h"
 
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
+#include "Rendering/Platform/Texture2D.h"
+#include "Rendering/Platform/TextureCubeMap.h"
 
 #include "Util/Mesh/GltfIO.h"
 
@@ -23,17 +25,13 @@
 #include "SRP.h"
 
 #include "Scene/Project.h"
-#include "Scene/Assets/ShaderAsset.h"
-#include "Scene/Assets/TextureAsset.h"
-#include "Scene/Assets/MaterialAsset.h"
-#include "Scene/Assets/MeshAsset.h"
 
 class SandboxLayer : public Engine::Layer {
 private:
 	std::shared_ptr<Engine::Scene> _scene;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
-	std::shared_ptr<Engine::MaterialAssetInstance> _standardLit;
+	std::shared_ptr<Engine::Material> _standardLit;
 
 	Engine::Entity testEntity;
 	Engine::Entity _camera;
@@ -65,9 +63,8 @@ public:
 		}
 
 		/* Camera */
-		auto skyboxAsset = _project->GetAsset<Engine::TextureCubemapAsset>("Skybox Cubemap.cubemap");
-
-		auto skyboxCubemap = skyboxAsset->GetInstance();
+		auto skyboxTexture = Engine::Texture2D::Utils::FromFile("Resources/Skyboxes/brown_photostudio_06_4k.hdr");
+		auto skyboxCubemap = Engine::TextureCubemap::Utils::FromTexture2D(skyboxTexture, Engine::TextureCubemap::Utils::Texture2DCubemapFormat::Equirectangle);
 
 		// Irradiance Map
 		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
@@ -184,7 +181,7 @@ public:
 			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
 
 			/* Cubemap */
-			cc.skyboxCubemapAsset = skyboxAsset;
+			cc.skyboxCubemap = skyboxCubemap;
 		}
 
 		// Camera Controls
@@ -195,13 +192,10 @@ public:
 		});
 
 		/* Create Shader & Material for test scene */
-		auto pbrShader = _project->GetAsset<Engine::ShaderAsset>("PBR Shader.shader");
+		auto pbrShader = Engine::Shader::Utils::FromFile("Resources/Shaders/PBR.glsl");
+		pbrShader->BindUniformBlock("CameraData", 0);
 
-		auto shader = pbrShader->GetInstance();
-		shader->BindUniformBlock("CameraData", 0);
-
-		auto pbrMaterial = _project->GetAsset<Engine::MaterialAsset>("PBR Material.material");
-		_standardLit = pbrMaterial->GetInstance();
+		_standardLit = std::make_unique<Engine::Material>(pbrShader);
 
 		// Set irradiance map natively
 		_standardLit->SetTexture("irradianceMap", irradianceCubemap);
@@ -212,38 +206,23 @@ public:
 		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["lightColor"] = { Engine::UI::MaterialUI::WidgetType::Color };
 
-		auto meshAsset = _project->GetAsset<Engine::MeshAsset>("Sphere.mesh");
+		auto model = Engine::GltfIO::LoadModel("Resources/Models/Sphere/Sphere.gltf");
+		auto mesh = Engine::GltfIO::LoadMesh(model, 0);
 
 		{
 			auto s = _scene->CreateEntity("Sphere");
-			s.AddComponent<Engine::MeshFilterComponent>(meshAsset);
-			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(pbrMaterial);
-			mr.materialInstance->SetUniform("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
-		}
-
-		{
-			auto s2 = _scene->CreateEntity("Light");
-			s2.AddComponent<Engine::MeshFilterComponent>(meshAsset);
-			auto& mr = s2.AddComponent<Engine::MeshRendererComponent>(pbrMaterial);
-			mr.materialInstance->SetUniform("albedo", glm::vec3(300));
-			s2.GetTransform().position = { 12,10,0 };
+			s.AddComponent<Engine::MeshFilterComponent>(mesh);
+			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
+			mr.material->SetUniform("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
 		}
 	}
 
 	void OnDetach() override {
-		_project->SaveAllAssets();
 	}
 
 	void OnUpdate(float ts) override {
 		/* Update anything as required */
 		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
-
-		auto s = _scene->GetEntity("Sphere");
-		auto& mr = s.GetComponent<Engine::MeshRendererComponent>();
-		auto s2 = _scene->GetEntity("Light");
-		auto& mr2 = s2.GetComponent<Engine::MeshRendererComponent>();
-		mr.materialInstance->SetUniform("lightPosition", s2.GetTransform().position);
-		mr.materialInstance->SetUniform("lightColor", std::get<glm::vec3>(mr2.materialInstance->GetUniformValue("albedo").value()));
 
 		/* Render Axis */
 		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });

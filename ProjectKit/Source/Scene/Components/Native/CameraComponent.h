@@ -12,7 +12,7 @@
 #include "Scene/BaseRenderPipeline.h"
 #include "Rendering/BufferBit.h"
 #include "Rendering/Platform/Framebuffer.h"
-#include "Scene/Assets/TextureAsset.h"
+#include "Rendering/Platform/TextureCubeMap.h"
 
 #include "TransformComponent.h"
 
@@ -41,7 +41,7 @@ namespace Engine {
 		enum class BackgroundType { Color, Skybox };
 		BackgroundType backgroundType = BackgroundType::Color;
 		glm::vec3 backgroundColor = glm::vec3(0.06f, 0.06f, 0.06f);
-		std::shared_ptr<TextureCubemapAsset> skyboxCubemapAsset = nullptr;
+		std::shared_ptr<TextureCubemap> skyboxCubemap = nullptr;
 		float skyboxExposure = 1.0f;
 	#pragma endregion
 
