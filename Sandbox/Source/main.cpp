@@ -5,8 +5,8 @@
 
 #include "Core/Application/Root.h"
 
-#include "Scene/Scene.h"
-#include "Scene/Entity.h"
+#include "Project/Scene/Scene.h"
+#include "Project/Scene/Entity.h"
 
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Texture2D.h"
@@ -24,10 +24,15 @@
 
 #include "SRP.h"
 
-#include "Scene/Project.h"
+#include "Project/Project.h"
+#include "Project/AssetSystem.h"
+#include "Project/Assets/ShaderAsset.h"
+#include "Project/Assets/TextureAsset.h"
+#include "Project/Assets/MeshAsset.h"
 
 class SandboxLayer : public Engine::Layer {
 private:
+	std::unique_ptr<Engine::Project> _project;
 	std::shared_ptr<Engine::Scene> _scene;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
@@ -38,14 +43,10 @@ private:
 	FPSCameraController _fpsCameraController;
 	OrbitCameraController _orbitCameraController;
 
-	std::unique_ptr<Engine::Project> _project;
 
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
-		/* Create Project */
-		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/TestProject");
-
 		/* Create Scene */
 		_scene = std::make_shared<Engine::Scene>();
 
@@ -215,9 +216,40 @@ public:
 			auto& mr = s.AddComponent<Engine::MeshRendererComponent>(_standardLit);
 			mr.material->SetUniform("albedo", glm::vec3(0.5f, 0.0f, 0.0f));
 		}
+
+		/* Create Project */
+		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/");
+
+		/* Create Asset Bank */
+		auto assetBank = std::make_shared<Engine::AssetBank>();
+
+		/* Create Shader Asset */
+		auto [shaderAsset, shaderRef] = _project->CreateAsset<Engine::ShaderAsset>("PBR", "Shaders/");
+		shaderAsset->SetShaderPath("Resources/Shaders/PBR.glsl");
+		shaderAsset->SetUniformBlock("CameraData", 0);
+
+		/* Create Texture Assets */
+		auto [textureAsset, textureRef] = _project->CreateAsset<Engine::TextureAsset>("UV_Test", "Textures/");
+		textureAsset->SetTexturePath("Resources/Textures/UV_Test.png");
+		textureAsset->SetType(Engine::TextureType::Tex2D);
+
+		auto [cubemapAsset, cubemapRef] = _project->CreateAsset<Engine::TextureAsset>("Skybox1", "Textures/");
+		cubemapAsset->SetTexturePath("Resources/Skyboxes/brown_photostudio_06_4k.hdr");
+		cubemapAsset->SetType(Engine::TextureType::TexCubemap);
+
+		/* Create Material Asset */
+		auto [materialAsset, materialRef] = _project->CreateAsset<Engine::MaterialAsset>("PBR", "Materials/");
+		materialAsset->SetShader(shaderRef);
+		materialAsset->SetTexture("albedo", textureRef);
+
+		/* Create Mesh Asset */
+		auto [meshAsset, meshRef] = _project->CreateAsset<Engine::MeshAsset>("Sphere", "Meshes/");
+		meshAsset->SetMeshPath("Resources/Models/Sphere/Sphere.gltf");
+		meshAsset->SetMeshIndex(0);
 	}
 
 	void OnDetach() override {
+		_project->SaveAllAssets();
 	}
 
 	void OnUpdate(float ts) override {

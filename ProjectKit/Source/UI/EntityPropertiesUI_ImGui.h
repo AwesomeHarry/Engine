@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
-#include "Scene/Entity.h"
-#include "Scene/Components/Native/Components.h"
+#include "Project/Scene/Entity.h"
+#include "Project/Scene/Components/Native/Components.h"
 #include "ComponentUI/MeshFilterUI_ImGui.h"
 #include "ComponentUI/MeshRendererUI_ImGui.h"
 #include "ComponentUI/TransformUI_ImGui.h"

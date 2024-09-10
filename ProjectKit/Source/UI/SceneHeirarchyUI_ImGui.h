@@ -1,7 +1,7 @@
 #pragma once
 #include <imgui.h>
-#include "Scene/Scene.h"
-#include "Scene/Entity.h"
+#include "Project/Scene/Scene.h"
+#include "Project/Scene/Entity.h"
 
 namespace Engine {
 	class SceneHeirarchyUI_ImGui {

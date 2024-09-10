@@ -1,7 +1,8 @@
 #pragma once
 #include <imgui.h>
-#include "Scene/Components/Native/CameraComponent.h"
 #include <string>
+
+#include "Project/Scene/Components/Native/CameraComponent.h"
 
 namespace Engine {
 	std::string CameraTypeToString(CameraType type) {

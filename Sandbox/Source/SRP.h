@@ -1,12 +1,12 @@
 #pragma once
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "Scene/Scene.h"
-#include "Scene/BaseRenderPipeline.h"
+#include "Project/Scene/Scene.h"
+#include "Project/Scene/BaseRenderPipeline.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Rendering/RenderManager.h"
-#include "Scene/Components/Native/Components.h"
+#include "Project/Scene/Components/Native/Components.h"
 
 #pragma region Skybox Shader
 const char* skyboxVertexShader = R"(

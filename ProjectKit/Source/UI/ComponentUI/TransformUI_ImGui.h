@@ -1,6 +1,6 @@
 #pragma once
 #include <imgui.h>
-#include "Scene/Components/Native/TransformComponent.h"
+#include "Project/Scene/Components/Native/TransformComponent.h"
 
 namespace Engine {
 	class TransformUI_ImGui {
