@@ -8,5 +8,5 @@ using namespace Engine;
 
 void MeshRendererComponent::OnComponentAdded(Entity& entity) {
 	if (!entity.HasComponent<MeshFilterComponent>())
-		ENGINE_TRACE("Entity [{}] auto added MeshFilter", entity.GetName())
+		ENGINE_TRACE("[MeshRendererComponent::OnComponentAdded] Entity '{}' auto added MeshFilter", entity.GetName())
 }

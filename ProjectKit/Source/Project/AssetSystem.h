@@ -40,6 +40,8 @@ namespace Engine {
 
 			return std::dynamic_pointer_cast<T>(it->second);
 		}
+
+		static AssetRef Invalid() { return AssetRef(GUID::Invalid()); }
 	};
 
 	inline void to_json(nlohmann::json& j, const AssetRef& p) {
@@ -66,6 +68,8 @@ namespace Engine {
 		virtual void Load() = 0;
 		virtual void Unload() = 0;
 
+		bool IsLoaded() const { return _loaded; }
+
 		void SetGUID(const GUID& guid) { _guid = guid; }
 		const GUID& GetGUID() const { return _guid; }
 
@@ -86,6 +90,14 @@ namespace Engine {
 		static std::pair<std::shared_ptr<T>, AssetRef> Create(AssetBank& assetBank) {
 			auto asset = std::make_shared<T>(assetBank);
 			GUID guid;
+			asset->SetGUID(guid);
+			assetBank._assets[guid.ToString()] = asset;
+			return { asset, AssetRef(guid) };
+		}
+
+		template<typename T>
+		static std::pair<std::shared_ptr<T>, AssetRef> CreateWithGUID(AssetBank& assetBank, const GUID& guid) {
+			auto asset = std::make_shared<T>(assetBank);
 			asset->SetGUID(guid);
 			assetBank._assets[guid.ToString()] = asset;
 			return { asset, AssetRef(guid) };

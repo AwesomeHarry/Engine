@@ -11,7 +11,7 @@ uint32_t ShaderTypeToOpenGLType(ShaderStage type) {
 	case ShaderStage::Fragment: return GL_FRAGMENT_SHADER;
 	case ShaderStage::Geometry: return GL_GEOMETRY_SHADER;
 	}
-	ENGINE_ASSERT(false, "Invalid shader type!");
+	ENGINE_ASSERT(false, "[ShaderTypeToOpenGLType] Invalid shader type!");
 	return 0;
 }
 
@@ -41,7 +41,7 @@ void Shader::Link() {
 		glGetProgramiv(_id, GL_INFO_LOG_LENGTH, &infoLogLength);
 		std::string infoLog(infoLogLength, ' ');
 		glGetProgramInfoLog(_id, infoLogLength, &infoLogLength, &infoLog[0]);
-		ENGINE_ERROR("Shader linking failed: {}", infoLog);
+		ENGINE_ERROR("[Shader::Link] Shader linking failed: {}", infoLog);
 		return;
 	}
 
@@ -111,7 +111,7 @@ void Shader::preloadUniforms() {
 		case GL_SAMPLER_2D: utype = UniformType::Sampler2D; break;
 		case GL_SAMPLER_CUBE: utype = UniformType::SamplerCube; break;
 		default:
-			ENGINE_WARN("Uniform type not supported!");
+			ENGINE_WARN("[Shader::preloadUniforms] Uniform type not supported!");
 			utype = UniformType::Int;
 		}
 
@@ -126,7 +126,7 @@ void Shader::preloadUniforms() {
 // Checks if uniform exists
 bool Shader::uniformExists(const std::string& name) {
 	if (_uniformsMap.find(name) == _uniformsMap.end()) {
-		ENGINE_ERROR("Uniform {} not found!", name);
+		ENGINE_ERROR("[Shader::uniformExists] Uniform {} not found!", name);
 		return false;
 	}
 	return true;
@@ -197,7 +197,7 @@ bool Shader::BindUniformBlock(const std::string& blockName, uint32_t bindingPoin
 	glUseProgram(_id);
 	uint32_t blockIndex = glGetUniformBlockIndex(_id, blockName.c_str());
 	if (blockIndex == GL_INVALID_INDEX) {
-		ENGINE_ERROR("Uniform block '{}' not found in shader program!", blockName);
+		ENGINE_ERROR("[Shader::BindUniformBlock] Uniform block '{}' not found in shader program!", blockName);
 		return false;
 	}
 	glUniformBlockBinding(_id, blockIndex, bindingPoint);
@@ -242,7 +242,7 @@ const std::unordered_map<std::string, ShaderStage> stageMarkers = {
 std::unordered_map<ShaderStage, std::string> Shader::Utils::ParseShader(const std::string& filepath) {
 	std::ifstream file(filepath);
 	if (!file.is_open()) {
-		ENGINE_ERROR("Failed to open file: {}", filepath);
+		ENGINE_ERROR("[Shader::ParseShader] Failed to open file: {}", filepath);
 		return {};
 	}
 
@@ -266,7 +266,7 @@ std::unordered_map<ShaderStage, std::string> Shader::Utils::ParseShader(const st
 				currentStage = it->second;
 			}
 			else {
-				ENGINE_WARN("Unknown shader stage marker: {}", line);
+				ENGINE_WARN("[Shader::ParseShader] Unknown shader stage marker: {}", line);
 			}
 		}
 		else {

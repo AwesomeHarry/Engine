@@ -1,4 +1,5 @@
 #pragma once
+
 #include <glm/glm.hpp>
 #include <glad/glad.h>
 #include "Project/Scene/Scene.h"
@@ -124,7 +125,6 @@ public:
 
 		_postProcessShader->SetUniform("exposure", 1.0f);
 		_postProcessShader->SetUniform("screenMap", 0);
-		//_postProcessShader->AddTexture(_windowFramebuffer->GetColorAttachment(0), "screenMap", 0);
 
 		// Initialize Skybox Drawing
 		_skyboxShader = std::make_shared<Engine::Shader>();
@@ -248,14 +248,17 @@ public:
 
 		/* Render Meshes */
 		{
-			auto view = reg.view<const Engine::TransformComponent, const Engine::MeshFilterComponent, const Engine::MeshRendererComponent>();
+			auto view = reg.view<const Engine::TransformComponent, Engine::MeshFilterComponent, Engine::MeshRendererComponent>();
 			for (auto entity : view) {
 				auto& filter = view.get<Engine::MeshFilterComponent>(entity);
 				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
-				auto& material = *renderer.material;
-				auto& mesh = *filter.mesh;
+				if (!renderer.materialAsset || !filter.meshAsset)
+					continue;
+
+				auto& material = *renderer.materialAsset->GetInternal();
+				auto& mesh = *filter.meshAsset->GetInternal();
 
 				material.SetUniform("model", transform.GetTransformMatrix());
 

@@ -8,7 +8,15 @@ namespace Engine {
 	public:
 		static void RenderUI(MeshRendererComponent& meshRenderer) {
 			if (ImGui::TreeNodeEx("Mesh Renderer", ImGuiTreeNodeFlags_Framed)) {
-				auto& material = *meshRenderer.material;
+				auto& materialAsset = *meshRenderer.materialAsset;
+
+				if (!materialAsset.IsLoaded()) {
+					ImGui::Text("Material not loaded.");
+					return;
+				}
+
+				auto& material = *materialAsset.GetInternal();
+
 				ImGui::Text("Uniforms:");
 
 				Engine::UI::MaterialUI::DrawAllUniformWidgets(material);

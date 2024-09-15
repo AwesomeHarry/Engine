@@ -22,7 +22,7 @@ namespace Engine {
                 file.close();
             }
             else {
-                ENGINE_ERROR("Error: Could not open shader file: {}", filePath);
+                ENGINE_ERROR("[FileIO::ReadFile] Could not open shader file: {}", filePath);
             }
 
             return ss.str();

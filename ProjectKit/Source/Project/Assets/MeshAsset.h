@@ -21,7 +21,7 @@ namespace Engine {
 		}
 
 		std::shared_ptr<Mesh> GetInternal() {
-			if (_loaded) Load();
+			if (!_loaded) Load();
 			return _internalMesh;
 		}
 

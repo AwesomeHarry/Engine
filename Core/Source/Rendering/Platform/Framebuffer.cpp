@@ -59,7 +59,7 @@ void Framebuffer::Resize(uint32_t width, uint32_t height) {
 
 void Framebuffer::ModifyColorAttachment(int index, TextureTarget target, BaseTexture& texture) {
     if (index > _colorAttachments.size() - 1) {
-        ENGINE_WARN("Failed to modify attachment, index outside valid range.")
+        ENGINE_WARN("[Framebuffer::ModifyColorAttachment] Failed to modify attachment, index outside valid range.")
         return;
     }
 
@@ -109,7 +109,7 @@ void Framebuffer::Invalidate() {
             // Check if attachment was successful
             GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
             if (status != GL_FRAMEBUFFER_COMPLETE) {
-                ENGINE_ERROR("Failed to attach color buffer {}: {}", i, GetFramebufferStatusString(status));
+                ENGINE_ERROR("[Framebuffer::Invalidate] Failed to attach color buffer {}: {}", i, GetFramebufferStatusString(status));
                 return;
             }
         }
@@ -129,7 +129,7 @@ void Framebuffer::Invalidate() {
         // Check if depth-stencil attachment was successful
         GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
         if (status != GL_FRAMEBUFFER_COMPLETE) {
-            ENGINE_ERROR("Failed to attach depth-stencil buffer: {}", GetFramebufferStatusString(status));
+            ENGINE_ERROR("[Framebuffer::Invalidate] Failed to attach depth-stencil buffer: {}", GetFramebufferStatusString(status));
             return;
         }
     }
@@ -145,7 +145,7 @@ void Framebuffer::Invalidate() {
 
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if (status != GL_FRAMEBUFFER_COMPLETE) {
-        ENGINE_ERROR("Framebuffer is incomplete: {}", GetFramebufferStatusString(status));
+        ENGINE_ERROR("[Framebuffer::Invalidate] Framebuffer is incomplete: {}", GetFramebufferStatusString(status));
     }
 
     glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -168,7 +168,7 @@ int Engine::Utils::TextureTargetToOpenGLTarget(TextureTarget target) {
     case TextureTarget::CubemapNegZ:
         return GL_TEXTURE_CUBE_MAP_NEGATIVE_Z;
     default:
-        ENGINE_ERROR("Invalid texture target");
+        ENGINE_ERROR("[Framebuffer::TextureTargetToOpenGLTarget] Invalid texture target");
         return -1;
     }
 }

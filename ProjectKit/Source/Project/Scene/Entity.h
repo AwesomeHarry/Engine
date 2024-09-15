@@ -19,7 +19,7 @@ namespace Engine {
 		template<typename ComponentType, typename ...Args>
 		ComponentType& AddComponent(Args&&... args) {
 			if (HasComponent<ComponentType>()) {
-				ENGINE_ERROR("Failed to add component of type {} to {}", typeid(ComponentType).name(), GetName());
+				ENGINE_ERROR("[Entity::AddComponent] Failed to add component of type {} to {}", typeid(ComponentType).name(), GetName());
 				return GetComponent<ComponentType>();
 			}
 
@@ -35,13 +35,13 @@ namespace Engine {
 
 		template<typename ComponentType>
 		ComponentType& GetComponent() {
-			ENGINE_ASSERT(HasComponent<ComponentType>(), "Entity does not have component.");
+			ENGINE_ASSERT(HasComponent<ComponentType>(), "[Entity::GetComponent] Entity does not have component.");
 			return _scene->_registry.get<ComponentType>(_id);
 		}
 
 		template<typename ComponentType>
 		void RemoveComponent() {
-			ENGINE_ASSERT(HasComponent<ComponentType>(), "Entity does not have component.");
+			ENGINE_ASSERT(HasComponent<ComponentType>(), "[Entity::RemoveComponent] Entity does not have component.");
 			_scene->_registry.remove<ComponentType>(_id);
 		}
 

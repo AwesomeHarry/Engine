@@ -15,20 +15,20 @@ tinygltf::Model GltfIO::LoadModel(const std::string& path) {
 	bool ret = loader.LoadASCIIFromFile(&model, &err, &warn, path);
 
 	if (!warn.empty()) {
-		ENGINE_WARN("Warn: {}", warn);
+		ENGINE_WARN("[GltfIO::LoadModel] Warn: {}", warn);
 	}
 
 	if (!err.empty()) {
-		ENGINE_ERROR("Error: {}", err);
+		ENGINE_ERROR("[GltfIO::LoadModel] Error: {}", err);
 		return {};
 	}
 
 	if (!ret) {
-		ENGINE_ERROR("Failed to parse glTF");
+		ENGINE_ERROR("[GltfIO::LoadModel] Failed to parse glTF");
 		return {};
 	}
 
-	ENGINE_INFO("Successfully loaded glTF");
+	ENGINE_INFO("[GltfIO::LoadModel] Successfully loaded glTF");
 
 	return model;
 }
@@ -103,11 +103,11 @@ std::shared_ptr<VertexArrayObject> GltfIO::LoadPrimitive(const tinygltf::Model& 
 	return vao;
 }
 
-std::shared_ptr<Mesh> Engine::GltfIO::LoadMesh(const tinygltf::Model& model, uint32_t meshIndex) {
+std::shared_ptr<Mesh> GltfIO::LoadMesh(const tinygltf::Model& model, uint32_t meshIndex) {
 	std::shared_ptr<Mesh> mesh = std::make_shared<Mesh>();
 
 	if (meshIndex >= model.meshes.size()) {
-		ENGINE_ERROR("Mesh index out of bounds");
+		ENGINE_ERROR("[GltfIO::LoadMesh] Mesh index out of bounds");
 		return nullptr;
 	}
 

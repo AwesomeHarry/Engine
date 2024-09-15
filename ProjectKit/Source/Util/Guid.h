@@ -23,6 +23,8 @@ namespace Engine {
 
 		static GUID Invalid() { return GUID(""); }
 
+		bool operator==(const GUID& other) const { return _guid == other._guid; }
+
 	private:
 		std::string _guid;
 	};

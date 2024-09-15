@@ -22,7 +22,7 @@ RenderManager::RenderManager(const GraphicsContext& graphicsContext)
 
 bool RenderManager::Initialize(Window& window) {
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		ENGINE_ERROR("Failed to initialize GLAD");
+		ENGINE_ERROR("[RenderManager::Initialize] Failed to initialize GLAD");
 		return false;
 	}
 

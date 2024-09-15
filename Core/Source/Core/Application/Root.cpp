@@ -24,7 +24,7 @@ bool Root::Initialize(const WindowSpec& windowSpec, const GraphicsContext& graph
 	_inputManager->Initialize(*_window);
 
 	// Log debug
-	ENGINE_INFO("Systems initialized in {:.4f}s", sw);
+	ENGINE_INFO("[Root::Initialize] Systems initialized in {:.4f}s", sw);
 	return true;
 }
 
@@ -50,7 +50,7 @@ void Root::PopLayer(std::shared_ptr<Layer> layer) {
 void Root::Run() {
 	_window->Open();
 	if (!_renderManager->Initialize(*_window)) {
-		ENGINE_ERROR("Failed to initialize renderer!");
+		ENGINE_ERROR("[Root::Run] Failed to initialize RenderManager");
 		return;
 	}
 

@@ -42,7 +42,7 @@ std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromFile(const CubemapPat
         else {
             // Check consistency with the first image
             if (fileData.width != spec.width || fileData.height != spec.height || fileData.format != spec.format) {
-                ENGINE_ERROR("All cubemap images must have the same dimensions and format");
+                ENGINE_ERROR("[Cubemap::FromFile] All cubemap images must have the same dimensions and format");
             }
         }
 
@@ -200,7 +200,6 @@ std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromTexture2D(std::shared
 		auto equiToCubemapMaterial = std::make_shared<Engine::Material>(shader);
 		equiToCubemapMaterial->SetTexture("equirectangularMap", texture);
 		equiToCubemapMaterial->SetUniform("projection", captureProjection);
-		auto equiToCubemapMaterialInstance = equiToCubemapMaterial->CreateInstance();
 
 		uint32_t captureSize = texture->GetHeight() / 2;
 
@@ -226,13 +225,13 @@ std::shared_ptr<TextureCubemap> TextureCubemap::Utils::FromTexture2D(std::shared
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, cubemap->GetInstanceID(), 0);
 
 			Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
-			Engine::RenderCommands::RenderMesh(*cubeMesh, *equiToCubemapMaterialInstance);
+			Engine::RenderCommands::RenderMesh(*cubeMesh, *equiToCubemapMaterial);
 		}
 		captureFrambuffer->Unbind();
     }
 	break;
     default:
-        ENGINE_ERROR("Invalid format to convert texture2D to cubemap!");
+        ENGINE_ERROR("[Cubemap::FromTexture2D] Invalid format to convert texture2D to cubemap!");
         return nullptr;
     }
 

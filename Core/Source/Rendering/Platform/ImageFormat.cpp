@@ -54,7 +54,7 @@ uint32_t Utils::ImageFormatToOpenGLDataFormat(ImageFormat format) {
     case ImageFormat::D32FS8:
         return GL_DEPTH_STENCIL;
     }
-    ENGINE_ASSERT(false, "Invalid image format!");
+    ENGINE_ASSERT(false, "[ImageFormatToOpenGLDataFormat] Invalid image format!");
     return 0;
 }
 
@@ -102,7 +102,7 @@ uint32_t Utils::ImageFormatToOpenGLInternalFormat(ImageFormat format) {
     case ImageFormat::D24S8:    return GL_DEPTH24_STENCIL8;
     case ImageFormat::D32FS8:   return GL_DEPTH32F_STENCIL8;
     }
-    ENGINE_ASSERT(false, "Invalid image format!");
+    ENGINE_ASSERT(false, "[ImageFormatToOpenGLInternalFormat] Invalid image format!");
     return 0;
 }
 
@@ -162,6 +162,6 @@ uint32_t Utils::ImageFormatToOpenGLDataType(ImageFormat format) {
     case ImageFormat::D32FS8:
         return GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
     }
-    ENGINE_ASSERT(false, "Invalid image format!");
+    ENGINE_ASSERT(false, "[ImageFormatToOpenGLDataType] Invalid image format!");
     return 0;
 }

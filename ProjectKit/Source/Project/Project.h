@@ -48,6 +48,8 @@ namespace Engine {
 			fs::create_directories(_rootPath);
 
 			_assetBank = std::make_unique<AssetBank>();
+
+			LoadAllAssets();
 		}
 
 		// Create Asset
@@ -126,8 +128,8 @@ namespace Engine {
 				return;
 			}
 
-			if (!fs::exists(assetPath)) {
-				ENGINE_ERROR("[Project::LoadAsset] Asset not found at '{1}'", assetPath.string());
+			if (!fs::is_regular_file(assetPath)) {
+				ENGINE_ERROR("[Project::LoadAsset] Asset not found at '{0}'", assetPath.string());
 				return;
 			}
 
@@ -141,18 +143,30 @@ namespace Engine {
 			std::shared_ptr<Asset> asset;
 
 			AssetType assetType = ParseAssetType(assetPath.extension().string());
+			GUID guid(assetJson["guid"].get<std::string>());
+
+			if (guid == GUID::Invalid()) {
+				ENGINE_ERROR("[Project::LoadAsset] Invalid GUID for asset '{0}'", assetName);
+				return;
+			}
+
+			if (HasAsset(AssetRef(guid))) {
+				ENGINE_ERROR("[Project::LoadAsset] Asset with GUID '{0}' already exists in project!", guid.ToString());
+				return;
+			}
+
 			switch (assetType) {
 			case AssetType::Shader: // Shader
-				asset = AssetFactory::Create<ShaderAsset>(*_assetBank).first;
+				asset = AssetFactory::CreateWithGUID<ShaderAsset>(*_assetBank, guid).first;
 				break;
 			case AssetType::Texture: // Texture
-				asset = AssetFactory::Create<TextureAsset>(*_assetBank).first;
+				asset = AssetFactory::CreateWithGUID<TextureAsset>(*_assetBank, guid).first;
 				break;
 			case AssetType::Material: // Material
-				asset = AssetFactory::Create<MaterialAsset>(*_assetBank).first;
+				asset = AssetFactory::CreateWithGUID<MaterialAsset>(*_assetBank, guid).first;
 				break;
 			case AssetType::Mesh: // Mesh
-				asset = AssetFactory::Create<MeshAsset>(*_assetBank).first;
+				asset = AssetFactory::CreateWithGUID<MeshAsset>(*_assetBank, guid).first;
 				break;
 			default:
 				ENGINE_ERROR("[Project::LoadAsset] Unknown asset type '{0}'");
@@ -197,16 +211,18 @@ namespace Engine {
 
 		// Load All Assets
 		void LoadAllAssets() {
-			for (auto& path : fs::recursive_directory_iterator(_rootPath)) {
-				if (path.is_regular_file()) {
-					LoadAsset(path.path().relative_path());
+			for (auto& entry : fs::recursive_directory_iterator(_rootPath)) {
+				if (entry.is_regular_file()) {
+					fs::path relativePath = fs::relative(entry.path(), _rootPath);
+					LoadAsset(relativePath);
 				}
 			}
 		}
 
 		// Getters
-		const std::string& GetName() const { return _name; }
+		const std::string& GetProjectName() const { return _name; }
 		const fs::path& GetRootPath() const { return _rootPath; }
+		AssetBank& GetAssetBank() { return *_assetBank; }
 	private:
 		std::string _name;
 		fs::path _rootPath;

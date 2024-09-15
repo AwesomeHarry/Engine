@@ -64,7 +64,7 @@ void Scene::RenderScene() {
 		Entity cameraEntity = { entity,this };
 
 		if (!camera.renderPipeline)
-			ENGINE_ERROR("No IRenderPipeline set for Camera: ", cameraEntity.GetName());
+			ENGINE_ERROR("[Scene::RenderScene] No IRenderPipeline set for Camera: ", cameraEntity.GetName());
 
 		camera.renderPipeline->RenderScene(*this, cameraEntity);
 	}
