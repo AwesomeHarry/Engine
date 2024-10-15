@@ -16,6 +16,8 @@
 
 #include "TransformComponent.h"
 
+#include "Project/AssetSystem.h"
+
 namespace Engine {
 
 	enum class CameraType { Orthographic, Perspective };
@@ -41,7 +43,7 @@ namespace Engine {
 		enum class BackgroundType { Color, Skybox };
 		BackgroundType backgroundType = BackgroundType::Color;
 		glm::vec3 backgroundColor = glm::vec3(0.06f, 0.06f, 0.06f);
-		std::shared_ptr<TextureCubemap> skyboxCubemap = nullptr;
+		std::shared_ptr<TextureAsset> skyboxCubemap = nullptr;
 		float skyboxExposure = 1.0f;
 	#pragma endregion
 

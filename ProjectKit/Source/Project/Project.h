@@ -14,6 +14,7 @@
 #include "Assets/TextureAsset.h"
 #include "Assets/MaterialAsset.h"
 #include "Assets/MeshAsset.h"
+#include "Assets/SceneAsset.h"
 
 namespace fs = std::filesystem;
 
@@ -24,6 +25,8 @@ namespace Engine {
 		case AssetType::Texture: return ".texture";
 		case AssetType::Material: return ".material";
 		case AssetType::Mesh: return ".mesh";
+		case AssetType::Scene: return ".scene";
+
 		default: ENGINE_ERROR("[GetAssetExtension] Unknown asset type '{0}'");
 		}
 	}
@@ -33,6 +36,7 @@ namespace Engine {
 		if (extension == ".texture")	return AssetType::Texture;
 		if (extension == ".material")	return AssetType::Material;
 		if (extension == ".mesh")		return AssetType::Mesh;
+		if (extension == ".scene")		return AssetType::Scene;
 
 		ENGINE_ERROR("[ParseAssetType] Unknown asset extension '{0}'", extension);
 		return AssetType::Unkown;
@@ -167,6 +171,9 @@ namespace Engine {
 				break;
 			case AssetType::Mesh: // Mesh
 				asset = AssetFactory::CreateWithGUID<MeshAsset>(*_assetBank, guid).first;
+				break;
+			case AssetType::Scene: // Scene
+				asset = AssetFactory::CreateWithGUID<SceneAsset>(*_assetBank, guid).first;
 				break;
 			default:
 				ENGINE_ERROR("[Project::LoadAsset] Unknown asset type '{0}'");

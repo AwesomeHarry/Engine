@@ -29,11 +29,13 @@
 #include "Project/Assets/ShaderAsset.h"
 #include "Project/Assets/TextureAsset.h"
 #include "Project/Assets/MeshAsset.h"
+#include "Project/Assets/MaterialAsset.h"
+#include "Project/Assets/SceneAsset.h"
 
 class SandboxLayer : public Engine::Layer {
 private:
 	std::unique_ptr<Engine::Project> _project;
-	std::shared_ptr<Engine::Scene> _scene;
+	std::shared_ptr<Engine::SceneAsset> _sceneAsset;
 	std::shared_ptr<SRP> _standardRenderPipeline;
 
 	std::shared_ptr<Engine::Material> _pbrMaterial;
@@ -45,8 +47,11 @@ private:
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
-		/* Create Scene */
-		_scene = std::make_shared<Engine::Scene>();
+		/* Create Project */
+		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/");
+
+		/* Get Assets */
+		_sceneAsset = Engine::AssetRef(Engine::GUID("d8385d392e703a6f378d9da2e943a73c")).Resolve<Engine::SceneAsset>(_project->GetAssetBank());
 
 		/* Create Standard Render Pipeline */
 		_standardRenderPipeline = std::make_shared<SRP>();
@@ -61,11 +66,12 @@ public:
 			_standardRenderPipeline->Initialize(mainFramebuffer);
 		}
 
-		/* Camera */
-		auto skyboxTexture = Engine::Texture2D::Utils::FromFile("Resources/Skyboxes/brown_photostudio_06_4k.hdr");
-		auto skyboxCubemap = Engine::TextureCubemap::Utils::FromTexture2D(skyboxTexture, Engine::TextureCubemap::Utils::Texture2DCubemapFormat::Equirectangle);
+		/* Set Render Pipeline */
+		_camera = _sceneAsset->GetInternal()->GetEntity("Camera");
+		_camera.GetComponent<Engine::CameraComponent>().renderPipeline = _standardRenderPipeline;
 
-		// Irradiance Map
+
+		/* Create Irradiance Map */
 		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
 		{
 			glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
@@ -77,6 +83,9 @@ public:
 				glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f,  1.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
 				glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f,  0.0f, -1.0f), glm::vec3(0.0f, -1.0f,  0.0f))
 			};
+
+			auto skyboxAsset = _camera.GetComponent<Engine::CameraComponent>().skyboxCubemap;
+			auto skyboxCubemap = skyboxAsset->GetInternal();
 
 		#pragma region Skybox Data
 			float skyboxVertices[] = {
@@ -168,20 +177,11 @@ public:
 			captureFrambuffer->Unbind();
 		}
 
-		{
-			/* Add Camera */
-			_camera = _scene->CreateEntity("Camera");
-			_camera.GetTransform().position.z += 5.0f;
-			auto& cc = _camera.AddComponent<Engine::CameraComponent>();
-			cc.renderPipeline = _standardRenderPipeline;
-			cc.type = Engine::CameraType::Perspective;
-			cc.farPlane = 1000000;
-			cc.backgroundType = Engine::CameraComponent::BackgroundType::Skybox;
-
-			/* Cubemap */
-			cc.skyboxCubemap = skyboxCubemap;
-		}
-
+		// Set Irradiance Map
+		auto materialAsset = Engine::AssetRef(Engine::GUID("da42cc67d876c4dd408c17b052483920")).Resolve<Engine::MaterialAsset>(_project->GetAssetBank());
+		_pbrMaterial = materialAsset->GetInternal();
+		_pbrMaterial->SetTexture("irradianceMap", irradianceCubemap);
+		
 		// Camera Controls
 		_fpsCameraController = FPSCameraController(_inputManager);
 		_orbitCameraController = OrbitCameraController(_inputManager);
@@ -189,54 +189,12 @@ public:
 			_orbitCameraController.OnScroll((float)e.yOffset);
 		});
 
+		/* Set Custom Uniform Widgets */
 		Engine::UI::MaterialUI::CustomUniformWidgets["albedo"] = { Engine::UI::MaterialUI::WidgetType::Color };
 		Engine::UI::MaterialUI::CustomUniformWidgets["roughness"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["metallic"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["ao"] = { Engine::UI::MaterialUI::WidgetType::Drag, 0.025f, 0.0f, 1.0f };
 		Engine::UI::MaterialUI::CustomUniformWidgets["lightColor"] = { Engine::UI::MaterialUI::WidgetType::Color };
-
-		/* Create Project */
-		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/");
-
-		if (false) {
-			/* Create Shader Asset */
-			auto [shaderAsset, shaderRef] = _project->CreateAsset<Engine::ShaderAsset>("PBR_Internal_Shader", "Shaders/");
-			shaderAsset->SetShaderPath("Resources/Shaders/PBR.glsl");
-			shaderAsset->SetUniformBlock("CameraData", 0);
-
-			/* Create Texture Assets */
-			auto [textureAsset, textureRef] = _project->CreateAsset<Engine::TextureAsset>("UV_Test", "Textures/");
-			textureAsset->SetTexturePath("Resources/Textures/UV_Test.png");
-			textureAsset->SetType(Engine::TextureType::Tex2D);
-
-			auto [cubemapAsset, cubemapRef] = _project->CreateAsset<Engine::TextureAsset>("Skybox1", "Textures/");
-			cubemapAsset->SetTexturePath("Resources/Skyboxes/brown_photostudio_06_4k.hdr");
-			cubemapAsset->SetType(Engine::TextureType::TexCubemap);
-
-			/* Create Material Asset */
-			auto [materialAsset, materialRef] = _project->CreateAsset<Engine::MaterialAsset>("PBR", "Materials/");
-			materialAsset->SetShader(shaderRef);
-			materialAsset->SetTexture("albedo", textureRef);
-
-			/* Create Mesh Asset */
-			auto [meshAsset, meshRef] = _project->CreateAsset<Engine::MeshAsset>("Sphere", "Meshes/");
-			meshAsset->SetMeshPath("Resources/Models/Sphere/Sphere.gltf");
-			meshAsset->SetMeshIndex(0);
-		} // Create Assets
-
-		/* Get Assets */
-		auto meshAsset = Engine::AssetRef(Engine::GUID("a3a5f8998cef2f901f84d716491dbb45")).Resolve<Engine::MeshAsset>(_project->GetAssetBank());
-		auto materialAsset = Engine::AssetRef(Engine::GUID("da42cc67d876c4dd408c17b052483920")).Resolve<Engine::MaterialAsset>(_project->GetAssetBank());
-
-		auto material = materialAsset->GetInternal();
-		material->SetTexture("irradianceMap", irradianceCubemap);
-		_pbrMaterial = material;
-
-		/* Create Scene Entities */
-		auto sphereEntity = _scene->CreateEntity("Sphere");
-		sphereEntity.AddComponent<Engine::MeshFilterComponent>(meshAsset);
-		sphereEntity.AddComponent<Engine::MeshRendererComponent>(materialAsset);
-
 	}
 
 	void OnDetach() override {
@@ -248,17 +206,17 @@ public:
 		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
 
 		/* Render Axis */
-		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 1,0,0 }, { 1,0,0,1 } });
-		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
-		_scene->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
+		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({{0,0,0}, {1,0,0}, {1,0,0,1}});
+		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
+		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
 
 		/* Update Scene */
-		_scene->UpdateScene(ts);
+		_sceneAsset->GetInternal()->UpdateScene(ts);
 
 		_pbrMaterial->SetUniform("camPos", _camera.GetTransform().position);
 
 		/* Render Scene */
-		_scene->RenderScene();
+		_sceneAsset->GetInternal()->RenderScene();
 
 		/* Render UI */
 		{
@@ -304,7 +262,7 @@ public:
 			ImGui::End();
 
 			ImGui::Begin("Scene Info");
-			Engine::SceneHeirarchyUI_ImGui::RenderUI(*_scene);
+			Engine::SceneHeirarchyUI_ImGui::RenderUI(*_sceneAsset->GetInternal());
 			ImGui::End();
 		}
 	}

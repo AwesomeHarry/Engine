@@ -10,7 +10,7 @@ namespace Engine {
 	using AssetGUID = std::string;
 
 	enum class AssetType {
-		Unkown = 0, Shader, Texture, Material, Mesh
+		Unkown = 0, Shader, Texture, Material, Mesh, Scene
 	};
 
 	class Asset;

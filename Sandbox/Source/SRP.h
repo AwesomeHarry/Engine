@@ -213,7 +213,7 @@ public:
 
 		RenderOpaqueObjects(scene, cameraTransform);
 		RenderDebugMeshes(scene, viewportSize);
-		
+
 		// Render Skybox
 		if (camera.backgroundType == Engine::CameraComponent::BackgroundType::Skybox) {
 			_skyboxShader->Bind();
@@ -221,7 +221,8 @@ public:
 			_skyboxShader->SetUniform("projection", cameraData.projection);
 			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
 			_skyboxShader->SetUniform("exposure", camera.skyboxExposure);
-			camera.skyboxCubemap->Bind(0);
+			auto skyboxCubemap = camera.skyboxCubemap->GetInternal();
+			skyboxCubemap->Bind(0);
 
 			glDepthMask(GL_FALSE);
 			Engine::RenderCommands::RenderMesh(*_skyboxVao, *_skyboxShader);
@@ -254,8 +255,15 @@ public:
 				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
-				if (!renderer.materialAsset || !filter.meshAsset)
+				if (!renderer.materialAsset) {
+					ENGINE_WARN("MeshRendererComponent has no material asset!");
 					continue;
+				}
+
+				if (!filter.meshAsset) {
+					ENGINE_WARN("MeshFilterComponent has no mesh asset!");
+					continue;
+				}
 
 				auto& material = *renderer.materialAsset->GetInternal();
 				auto& mesh = *filter.meshAsset->GetInternal();

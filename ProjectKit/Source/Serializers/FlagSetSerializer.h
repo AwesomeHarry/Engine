@@ -1,3 +1,5 @@
+#pragma once
+
 #include <json.hpp>
 #include "Util/FlagSet.h"
 
@@ -10,14 +12,14 @@ namespace nlohmann {
 
         static void from_json(const json& j, FlagSet<T>& flagset) {
             if (!j.is_string()) {
-                throw json::type_error::create(302, "Type must be string, but is " + std::string(j.type_name()));
+                throw json::type_error::create(302, "Type must be string, but is " + std::string(j.type_name()), j);
             }
 
             std::string bitstring = j.get<std::string>();
 
             // Ensure the bitstring length matches the FlagSet size
             if (bitstring.length() != flagset.size()) {
-                throw json::other_error::create(500, "Bitstring length does not match FlagSet size");
+                throw json::other_error::create(500, "Bitstring length does not match FlagSet size", j);
             }
 
             flagset.reset(); // Clear all flags
@@ -28,7 +30,7 @@ namespace nlohmann {
                     flagset.set(static_cast<T>(i));
                 }
                 else if (bitstring[i] != '0') {
-                    throw json::parse_error::create(101, "Invalid character in bitstring");
+                    throw json::parse_error::create(101, 0, "Invalid character in bitstring", j);
                 }
             }
         }
