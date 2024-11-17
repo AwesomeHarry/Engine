@@ -70,6 +70,17 @@ public:
 		_camera = _sceneAsset->GetInternal()->GetEntity("Camera");
 		_camera.GetComponent<Engine::CameraComponent>().renderPipeline = _standardRenderPipeline;
 
+		/* Create Spheres */
+		auto sphereMeshAsset = Engine::AssetRef(Engine::GUID("a3a5f8998cef2f901f84d716491dbb45")).Resolve<Engine::MeshAsset>(_project->GetAssetBank());
+		auto sphereMaterialAsset = Engine::AssetRef(Engine::GUID("da42cc67d876c4dd408c17b052483920")).Resolve<Engine::MaterialAsset>(_project->GetAssetBank());
+		auto scene = _sceneAsset->GetInternal();
+
+		for (int i = 0; i < 10; i++) {
+			auto sphere = scene->CreateEntity("Sphere_"+std::to_string(i));
+			sphere.AddComponent<Engine::MeshFilterComponent>(sphereMeshAsset);
+			auto& mr = sphere.AddComponent<Engine::MeshRendererComponent>(sphereMaterialAsset);
+			sphere.GetTransform().position.x = i * 2.0f - 10.0f;
+		}
 
 		/* Create Irradiance Map */
 		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
