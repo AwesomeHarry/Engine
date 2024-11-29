@@ -265,13 +265,12 @@ public:
 					continue;
 				}
 
-				const auto& materialAsset = *renderer.materialAsset;
-				auto& material = materialAsset.GetInternal();
-				auto& mesh = *filter.meshAsset->GetInternal();
+				auto& materialAsset = *renderer.materialAsset;
+				auto& meshAsset = *filter.meshAsset;
 
 				materialAsset.SetUniform("model", transform.GetTransformMatrix());
 
-				Engine::RenderCommands::RenderMesh(mesh, materialAsset);
+				Engine::RenderCommands::RenderMesh(*meshAsset.GetInternal(), *materialAsset.GetInternal());
 			}
 		}
 	}

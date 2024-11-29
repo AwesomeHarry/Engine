@@ -38,6 +38,34 @@
                     1.0
                 ]
             }
+        },
+        {
+            "components": {
+                "mesh-filter": {
+                    "id": "a3a5f8998cef2f901f84d716491dbb45"
+                },
+                "mesh-renderer": {
+                    "material": "da42cc67d876c4dd408c17b052483920"
+                }
+            },
+            "name": "Sphere",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
         }
     ],
     "guid": "d8385d392e703a6f378d9da2e943a73c"
