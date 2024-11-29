@@ -19,7 +19,7 @@ namespace Engine {
 		inline void SetName(const std::string& newName) { _name = newName; }
 		inline std::string GetName() const { return _name; }
 
-		inline int GetSubmeshCount() const { return _submeshes.size(); }
+		inline uint32_t GetSubmeshCount() const { return (uint32_t)_submeshes.size(); }
 		inline const VertexArrayObject& GetSubmesh(int index) const { return *_submeshes[index]; }
 	private:
 		std::string _name;

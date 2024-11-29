@@ -32,11 +32,11 @@ namespace Engine {
 		void Compute();
 
 		inline const IndexBufferObject& GetIndexBuffer() const { return *_indexBuffer; }
-		inline int GetVertexBufferCount() const { return _vertexBuffers.size(); }
+		inline uint32_t GetVertexBufferCount() const { return (uint32_t)_vertexBuffers.size(); }
 		inline const VertexBufferObject& GetVertexBuffer(int index) const { return *_vertexBuffers[index]; }
 
 		inline bool HasIndices() const { return _hasIndices; }
-		inline uint64_t GetCount() const { return _hasIndices ? _indexBuffer->GetCount() : _vertexBuffers[0]->GetCount(); }
+		inline uint32_t GetCount() const { return _hasIndices ? _indexBuffer->GetCount() : _vertexBuffers[0]->GetCount(); }
 
 		inline DrawMode GetDrawMode() const { return _drawMode; }
 		inline void SetDrawMode(DrawMode mode) { _drawMode = mode; }

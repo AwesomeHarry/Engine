@@ -24,43 +24,7 @@
     <ClInclude Include="Source\Core\Logging\LoggingManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\BaseComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\BoundingBoxComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\CameraComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\Components.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\DebugShapeManager.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\MeshFilterComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\MeshRendererComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\NameComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Components\Native\TransformComponent.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Scene\Entity.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\ECS\Scene\Scene.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\Logging\Logging.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\Rendering\BaseRenderPipeline.h">
       <Filter>Source</Filter>
     </ClInclude>
     <ClInclude Include="Source\Rendering\BufferBit.h">
@@ -114,27 +78,6 @@
     <ClInclude Include="Source\Rendering\RenderManager.h">
       <Filter>Source</Filter>
     </ClInclude>
-    <ClInclude Include="Source\UI\ComponentUI\CameraUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\ComponentUI\DebugShapeManagerUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\ComponentUI\MeshFilterUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\ComponentUI\MeshRendererUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\ComponentUI\TransformUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\EntityPropertiesUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
-    <ClInclude Include="Source\UI\SceneHeirarchyUI_ImGui.h">
-      <Filter>Source</Filter>
-    </ClInclude>
     <ClInclude Include="Source\UI\UIUtil.h">
       <Filter>Source</Filter>
     </ClInclude>
@@ -173,15 +116,6 @@
     <ClCompile Include="Source\Core\Logging\LoggingManager.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\ECS\Components\Native\DebugShapeManager.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Components\Native\MeshRendererComponent.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
-    <ClCompile Include="Source\ECS\Scene\Scene.cpp">
-      <Filter>Source</Filter>
-    </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\BaseTexture.cpp">
       <Filter>Source</Filter>
     </ClCompile>
@@ -201,6 +135,9 @@
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\ImageFormat.cpp">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Rendering\Platform\Material.cpp">
       <Filter>Source</Filter>
     </ClCompile>
     <ClCompile Include="Source\Rendering\Platform\Mesh.cpp">
@@ -224,6 +161,5 @@
     <ClCompile Include="Source\Util\Mesh\GltfIO.cpp">
       <Filter>Source</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Rendering\Platform\Material.cpp" />
   </ItemGroup>
 </Project>

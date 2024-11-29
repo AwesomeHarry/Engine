@@ -38,7 +38,7 @@ void VertexArrayObject::Compute() {
 		const auto& layout = vertexBuffer->GetLayout();
 		uint32_t offset = 0;
 		for (const auto& component : layout.GetComponents()) {
-			glVertexAttribPointer(index, component.Count, (GLenum)component.Type, false, layout.GetStride(), (const void*)offset);
+			glVertexAttribPointer(index, component.Count, (GLenum)component.Type, false, layout.GetStride(), (const void*)(intptr_t)offset);
 			glEnableVertexAttribArray(index);
 			offset += component.GetByteSize();
 			index++;

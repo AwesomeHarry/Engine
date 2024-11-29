@@ -22,7 +22,7 @@ void VertexBufferObject::Unbind() const {
     glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void VertexBufferObject::SetData(const void* data, uint64_t count, const VertexLayout& layout) {
+void VertexBufferObject::SetData(const void* data, uint32_t count, const VertexLayout& layout) {
     _layout = layout;
     _count = count;
     uint64_t requiredSize = count * layout.GetStride();

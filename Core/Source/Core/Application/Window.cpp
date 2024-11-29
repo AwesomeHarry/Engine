@@ -9,11 +9,11 @@ Window::Window(const WindowSpec& windowSpec)
 
 bool Window::Initialize() {
 	glfwSetErrorCallback([](int error, const char* description) {
-		ENGINE_ERROR("GLFW Error {}: {}", error, description);
+		ENGINE_ERROR("[Window] GLFW Error {}: {}", error, description);
 	});
 
 	if (!glfwInit()) {
-		ENGINE_ERROR("Failed to initialize GLFW");
+		ENGINE_ERROR("[Window::Initialize] Failed to initialize GLFW");
 		return false;
 	}
 
@@ -24,16 +24,16 @@ bool Window::Initialize() {
 
 void Window::Open() {
 	if (isOpen) {
-		ENGINE_WARN("Trying to open window that is already open - {}", GetTitle());
+		ENGINE_WARN("[Window::Open] Trying to open window that is already open - {}", GetTitle());
 		return;
 	}
 
 	// Create window
 	if (createWindow()) {
-		ENGINE_INFO("Window created - {}", GetTitle());
+		ENGINE_INFO("[Window::Open] Window created - {}", GetTitle());
 	}
 	else {
-		ENGINE_ERROR("Failed to create window - {}", GetTitle());
+		ENGINE_ERROR("[Window::Open] Failed to create window - {}", GetTitle());
 		Close();
 		return;
 	}
@@ -50,7 +50,7 @@ bool Window::createWindow() {
 
 	_handle = glfwCreateWindow(_width, _height, _title.c_str(), nullptr, nullptr);
 	if (!_handle) {
-		ENGINE_ERROR("Failed to create window");
+		ENGINE_ERROR("[Window::createWindow] Failed to create window");
 		return false;
 	}
 
@@ -98,10 +98,10 @@ void Window::Close() {
 	isOpen = false;
 	glfwDestroyWindow(_handle);
 
-	ENGINE_INFO("Window closed - {}", GetTitle());
+	ENGINE_INFO("[Window::Close] Window closed - {}", GetTitle());
 }
 
-void Engine::Window::Shutdown() {
+void Window::Shutdown() {
 	glfwTerminate();
 }
 

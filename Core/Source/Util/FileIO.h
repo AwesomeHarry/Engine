@@ -7,6 +7,12 @@
 namespace Engine {
 	class FileIO {
     public:
+        static bool HasExtension(const std::string& filepath, const std::string& extension) {
+            if (filepath.length() >= extension.length())
+                return 0 == filepath.compare(filepath.length() - extension.length(), extension.length(), extension);
+            return false;
+        }
+
         static std::string ReadFile(const std::string& filePath) {
             std::ifstream file(filePath);
             std::stringstream ss;
@@ -16,7 +22,7 @@ namespace Engine {
                 file.close();
             }
             else {
-                ENGINE_ERROR("Error: Could not open shader file: {}", filePath);
+                ENGINE_ERROR("[FileIO::ReadFile] Could not open shader file: {}", filePath);
             }
 
             return ss.str();

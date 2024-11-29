@@ -8,7 +8,7 @@
 namespace Engine {
 	class Texture2D;
 
-	enum class CubeMapIndex {
+	enum class CubemapIndex {
 		PositiveX = 0, NegativeX = 1,
 		PositiveY = 2, NegativeY = 3,
 		PositiveZ = 4, NegativeZ = 5,
@@ -16,15 +16,15 @@ namespace Engine {
 		First = PositiveX
 	};
 
-	class TextureCubeMap : public BaseTexture {
+	class TextureCubemap : public BaseTexture {
 	public:
-		TextureCubeMap(const TextureSpec& spec);
-		~TextureCubeMap() = default;
+		TextureCubemap(const TextureSpec& spec);
+		~TextureCubemap() = default;
 
-		void SetData(CubeMapIndex index, void* data);
+		void SetData(CubemapIndex index, void* data);
 
 		struct Utils {
-			struct CubeMapPaths {
+			struct CubemapPaths {
 				std::string positiveX;
 				std::string negativeX;
 				std::string positiveY;
@@ -33,13 +33,13 @@ namespace Engine {
 				std::string negativeZ;
 			};
 
-			static std::shared_ptr<TextureCubeMap> FromFile(const CubeMapPaths& paths);
+			static std::shared_ptr<TextureCubemap> FromFile(const CubemapPaths& paths);
 
 			enum class Texture2DCubemapFormat {
 				Equirectangle
 			};
 
-			static std::shared_ptr<TextureCubeMap> FromTexture2D(std::shared_ptr<Texture2D> texture, Texture2DCubemapFormat format);
+			static std::shared_ptr<TextureCubemap> FromTexture2D(std::shared_ptr<Texture2D> texture, Texture2DCubemapFormat format);
 		};
 	};
 }

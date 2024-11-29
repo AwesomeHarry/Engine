@@ -33,10 +33,10 @@ void RenderCommands::SetWireframe(WireframeMode wireframeMode) {
 
 #include "Rendering/Platform/Texture2D.h"
 
-void RenderCommands::RenderMesh(const Mesh& mesh, const Material& material) {
+void RenderCommands::RenderMesh(const Mesh& mesh, const IMaterial& material) {
 	material.Bind();
 
-	for (size_t i = 0; i < mesh.GetSubmeshCount(); i++) {
+	for (uint32_t i = 0; i < mesh.GetSubmeshCount(); i++) {
 		auto& vertexArray = mesh.GetSubmesh(i);
 
 		vertexArray.Bind();
@@ -63,7 +63,7 @@ void RenderCommands::RenderMesh(const VertexArrayObject& vertexArray, const Shad
 }
 
 // Likely usage for geometry shaders
-void RenderCommands::RenderPoints(const VertexArrayObject& vertexArray, uint64_t count, const Shader& shader) {
+void RenderCommands::RenderPoints(const VertexArrayObject& vertexArray, uint32_t count, const Shader& shader) {
 	shader.Bind();
 	vertexArray.Bind();
 	glDrawArrays(GL_POINTS, 0, count);

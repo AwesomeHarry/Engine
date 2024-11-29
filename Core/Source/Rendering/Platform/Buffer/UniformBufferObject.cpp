@@ -4,7 +4,7 @@
 using namespace Engine;
 
 UniformBufferObject::UniformBufferObject(uint32_t size, uint32_t bindingPoint, BufferUsage usage) 
-	: _bindingPoint(bindingPoint) {
+	: _bindingPoint(bindingPoint), _id(0) {
 	glGenBuffers(1, &_id);
 	glBindBuffer(GL_UNIFORM_BUFFER, _id);
 	glBufferData(GL_UNIFORM_BUFFER, size, nullptr, (GLenum)usage);

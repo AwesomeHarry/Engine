@@ -22,7 +22,7 @@ namespace Engine {
     public:
         struct Attachment {
             std::shared_ptr<Texture2D> texture;
-            ImageFormat format;
+            ImageFormat format = ImageFormat::RGB8;
         };
 
         struct FramebufferSpec {

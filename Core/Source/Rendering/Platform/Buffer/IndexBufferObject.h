@@ -1,5 +1,6 @@
 #pragma once
 #include <cstdint>
+#include <vector>
 #include "BufferCommon.h"
 
 namespace Engine {
@@ -11,14 +12,16 @@ namespace Engine {
 		void Bind() const;
 		void Unbind() const;
 
-		void SetData(const void* data, LType type, uint64_t count);
+		void SetData(const void* data, LType type, uint32_t count);
 
-		inline uint64_t GetCount() const { return _count; }
+		std::vector<uint8_t> GetRawData() const;
+
+		inline uint32_t GetCount() const { return _count; }
 		inline LType GetType() const { return _type; }
 	private:
 		uint32_t _id;
 		BufferUsage _usage;
 		LType _type;
-		uint64_t _count;
+		uint32_t _count;
 	};
 }

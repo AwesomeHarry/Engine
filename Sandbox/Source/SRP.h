@@ -1,12 +1,13 @@
 #pragma once
+
 #include <glm/glm.hpp>
 #include <glad/glad.h>
-#include "ECS/Scene/Scene.h"
-#include "Rendering/BaseRenderPipeline.h"
+#include "Project/Scene/Scene.h"
+#include "Project/Scene/BaseRenderPipeline.h"
 #include "Rendering/Platform/Buffer/UniformBufferObject.h"
 #include "Rendering/Platform/Framebuffer.h"
 #include "Rendering/RenderManager.h"
-#include "ECS/Components/Native/Components.h"
+#include "Project/Scene/Components/Native/Components.h"
 
 #pragma region Skybox Shader
 const char* skyboxVertexShader = R"(
@@ -42,9 +43,6 @@ void main()
     vec3 hdrColor = texture(skybox, TexCoords).rgb;
 	hdrColor *= exposure;
     FragColor = vec4(hdrColor, 1.0);
-
-    //vec3 mapped = vec3(1.0) - exp(-hdrColor * exposure);
-    //mapped = pow(mapped, vec3(1.0 / gamma));
 }
 )";
 
@@ -84,18 +82,23 @@ void main()
 class SRP : public Engine::BaseRenderPipeline {
 public:
 	std::shared_ptr<Engine::Framebuffer> _windowFramebuffer;
-	std::shared_ptr<Engine::Mesh> _fullscreenQuadMesh;
-	std::shared_ptr<Engine::Material> _postProcessMaterial;
-
 private:
+
 	struct CameraData { glm::mat4 projection; glm::mat4 view; };
 	std::shared_ptr<Engine::UniformBufferObject> _cameraDataUbo;
-	std::shared_ptr<Engine::Shader> _skyboxShader;
+
 	std::shared_ptr<Engine::VertexArrayObject> _skyboxVao;
+	std::shared_ptr<Engine::Shader> _skyboxShader;
+
+	std::shared_ptr<Engine::VertexArrayObject> _fullscreenQuadVao;
+	std::shared_ptr<Engine::Shader> _postProcessShader;
+
+	float _exposure = 1.0f;
 public:
 	virtual void Initialize(std::shared_ptr<Engine::Framebuffer> mainFramebuffer) {
 		Engine::BaseRenderPipeline::Initialize(mainFramebuffer);
 
+		// Create Window Framebuffer
 		Engine::Framebuffer::FramebufferSpec fbSpec;
 		fbSpec.width = 1280;
 		fbSpec.height = 720;
@@ -103,28 +106,30 @@ public:
 		fbSpec.includeDepthStencil = true;
 		_windowFramebuffer = std::make_shared<Engine::Framebuffer>(fbSpec);
 
+		// Initialize Camera Data UBO
+		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0, Engine::BufferUsage::Dynamic);
+
+		// Create Fullscreen Quad
 		float fullscreenQuadVertices[] = { 0,0, 1,0, 0,1, 1,1 };
 		auto fullscreenQuadVbo = std::make_shared<Engine::VertexBufferObject>(Engine::BufferUsage::Static);
 		fullscreenQuadVbo->SetData(fullscreenQuadVertices, 4, { { "POSITION",Engine::LType::Float,2 } });
-		auto fullscreenQuadVao = std::make_shared<Engine::VertexArrayObject>();
-		fullscreenQuadVao->AddVertexBuffer(fullscreenQuadVbo);
-		fullscreenQuadVao->Compute();
-		fullscreenQuadVao->SetDrawMode(Engine::DrawMode::TriangleStrip);
-		_fullscreenQuadMesh = std::make_shared<Engine::Mesh>("Fullscreen Quad");
-		_fullscreenQuadMesh->AddSubmesh(fullscreenQuadVao);
+		_fullscreenQuadVao = std::make_shared<Engine::VertexArrayObject>();
+		_fullscreenQuadVao->AddVertexBuffer(fullscreenQuadVbo);
+		_fullscreenQuadVao->Compute();
+		_fullscreenQuadVao->SetDrawMode(Engine::DrawMode::TriangleStrip);
 
-		auto postProcessShader = std::make_shared<Engine::Shader>();
-		postProcessShader->AttachVertexShader(postProcessVertexShader);
-		postProcessShader->AttachFragmentShader(postProcessFragmentShader);
-		postProcessShader->Link();
-		_postProcessMaterial = std::make_shared<Engine::Material>(postProcessShader);
-		_postProcessMaterial->SetUniform("exposure", 1.0f);
-		_postProcessMaterial->AddTexture(_windowFramebuffer->GetColorAttachment(0), "screenMap", 0);
+		_postProcessShader = std::make_shared<Engine::Shader>();
+		_postProcessShader->AttachShader(Engine::ShaderStage::Vertex, postProcessVertexShader);
+		_postProcessShader->AttachShader(Engine::ShaderStage::Fragment, postProcessFragmentShader);
+		_postProcessShader->Link();
 
-		_cameraDataUbo = std::make_shared<Engine::UniformBufferObject>(sizeof(CameraData), 0, Engine::BufferUsage::Dynamic);
+		_postProcessShader->SetUniform("exposure", 1.0f);
+		_postProcessShader->SetUniform("screenMap", 0);
+
+		// Initialize Skybox Drawing
 		_skyboxShader = std::make_shared<Engine::Shader>();
-		_skyboxShader->AttachFragmentShader(skyboxFragmentShader);
-		_skyboxShader->AttachVertexShader(skyboxVertexShader);
+		_skyboxShader->AttachShader(Engine::ShaderStage::Vertex, skyboxVertexShader);
+		_skyboxShader->AttachShader(Engine::ShaderStage::Fragment, skyboxFragmentShader);
 		_skyboxShader->Link();
 	#pragma region Skybox Data
 		float skyboxVertices[] = {
@@ -184,19 +189,14 @@ public:
 	virtual void OnResize(uint32_t newWidth, uint32_t newHeight) override {
 		_mainFb->Resize(newWidth, newHeight);
 		_windowFramebuffer->Resize(newWidth, newHeight);
-		_postProcessMaterial->UpdateTexture("screenMap", _windowFramebuffer->GetColorAttachment(0));
+		//_postProcessMaterial->UpdateTexture("screenMap", _windowFramebuffer->GetColorAttachment(0));
 	}
-
-	/* Set render target from camera */
-	/* RenderOpaqueObjects(scene, camera); */
-	/* RenderTransparentObjects(scene, camera); */
-	/* ApplyPostProcessing(); */
 
 	virtual void RenderScene(Engine::Scene& scene, Engine::Entity& cameraEntity) override {
 		auto& camera = cameraEntity.GetComponent<Engine::CameraComponent>();
 		auto& cameraTransform = cameraEntity.GetTransform();
 		auto& framebuffer = camera.renderTarget == Engine::CameraComponent::RenderTarget::Window ? _windowFramebuffer : camera.renderFramebuffer;
-		CameraData cameraData;
+		CameraData cameraData{};
 		glm::vec2 viewportSize = { framebuffer->GetSpecification().width, framebuffer->GetSpecification().height };
 		float aspect = viewportSize.x / viewportSize.y;
 		cameraData.projection = camera.GetProjectionMatrix(aspect);
@@ -214,7 +214,6 @@ public:
 		RenderOpaqueObjects(scene, cameraTransform);
 		RenderDebugMeshes(scene, viewportSize);
 
-
 		// Render Skybox
 		if (camera.backgroundType == Engine::CameraComponent::BackgroundType::Skybox) {
 			_skyboxShader->Bind();
@@ -222,7 +221,8 @@ public:
 			_skyboxShader->SetUniform("projection", cameraData.projection);
 			_skyboxShader->SetUniform("view", glm::mat4(glm::mat3(cameraData.view)));
 			_skyboxShader->SetUniform("exposure", camera.skyboxExposure);
-			camera.skyboxCubemap->Bind(0);
+			auto skyboxCubemap = camera.skyboxCubemap->GetInternal();
+			skyboxCubemap->Bind(0);
 
 			glDepthMask(GL_FALSE);
 			Engine::RenderCommands::RenderMesh(*_skyboxVao, *_skyboxShader);
@@ -232,14 +232,16 @@ public:
 		framebuffer->Unbind();
 
 		// Apply Post Processing
-		Engine::MaterialUtils::DrawUniformWidget(*_postProcessMaterial, "exposure");
-
 		_mainFb->Bind();
 		Engine::RenderCommands::SetClearColor(0.2f, 0.5f, 0.1f);
 		glDisable(GL_DEPTH_TEST);
 		Engine::RenderCommands::ClearBuffers(FlagSet(Engine::BufferBit::Color));
-		Engine::RenderCommands::RenderMesh(*_fullscreenQuadMesh, *_postProcessMaterial);
+		_windowFramebuffer->GetColorAttachment(0)->Bind(0);
+		Engine::RenderCommands::RenderMesh(*_fullscreenQuadVao, *_postProcessShader);
 		_mainFb->Unbind();
+
+		if (ImGui::DragFloat("Scene Exposure", &_exposure, 0.05f, 0.0f, 100.0f))
+			_postProcessShader->SetUniform("exposure", _exposure);
 	}
 
 	void RenderOpaqueObjects(Engine::Scene& scene, Engine::TransformComponent& cameraTransform) {
@@ -247,21 +249,30 @@ public:
 
 		/* Render Meshes */
 		{
-			auto view = reg.view<const Engine::TransformComponent, const Engine::MeshFilterComponent, const Engine::MeshRendererComponent>();
+			auto view = reg.view<const Engine::TransformComponent, Engine::MeshFilterComponent, Engine::MeshRendererComponent>();
 			for (auto entity : view) {
 				auto& filter = view.get<Engine::MeshFilterComponent>(entity);
 				auto& renderer = view.get<Engine::MeshRendererComponent>(entity);
 				auto& transform = view.get<Engine::TransformComponent>(entity);
 
-				auto& material = *renderer.material;
-				auto& mesh = *filter.mesh;
+				if (!renderer.materialAsset) {
+					ENGINE_WARN("MeshRendererComponent has no material asset!");
+					continue;
+				}
+
+				if (!filter.meshAsset) {
+					ENGINE_WARN("MeshFilterComponent has no mesh asset!");
+					continue;
+				}
+
+				auto& material = *renderer.materialAsset->GetInternal();
+				auto& mesh = *filter.meshAsset->GetInternal();
 
 				material.SetUniform("model", transform.GetTransformMatrix());
 
 				Engine::RenderCommands::RenderMesh(mesh, material);
 			}
 		}
-
 	}
 
 	void RenderDebugMeshes(Engine::Scene& scene, const glm::vec2& viewportSize) {
@@ -296,7 +307,7 @@ public:
 		auto& vao = *dsm.pointInfoVao;
 		auto& vbo = *dsm.pointInfoVbo;
 
-		size_t pointCount = dsm.pointData.size();
+		uint32_t pointCount = (uint32_t)dsm.pointData.size();
 		if (pointCount == 0)
 			return;
 
@@ -316,7 +327,7 @@ public:
 		auto& vao = *dsm.lineInfoVao;
 		auto& vbo = *dsm.lineInfoVbo;
 
-		size_t lineCount = dsm.lineData.size();
+		uint32_t lineCount = (uint32_t)dsm.lineData.size();
 		if (lineCount == 0)
 			return;
 
@@ -335,7 +346,7 @@ public:
 		auto& vao = *dsm.quadInfoVao;
 		auto& vbo = *dsm.quadInfoVbo;
 
-		size_t quadCount = dsm.quadData.size();
+		uint32_t quadCount = (uint32_t)dsm.quadData.size();
 		if (quadCount == 0)
 			return;
 

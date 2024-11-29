@@ -1,5 +1,10 @@
 #include "RenderManager.h"
 
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <Logging/Logging.h>
@@ -17,7 +22,7 @@ RenderManager::RenderManager(const GraphicsContext& graphicsContext)
 
 bool RenderManager::Initialize(Window& window) {
 	if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
-		ENGINE_ERROR("Failed to initialize GLAD");
+		ENGINE_ERROR("[RenderManager::Initialize] Failed to initialize GLAD");
 		return false;
 	}
 
