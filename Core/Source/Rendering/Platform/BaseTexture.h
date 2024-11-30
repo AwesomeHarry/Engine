@@ -9,10 +9,32 @@ namespace Engine {
 		TexCubemap
 	};
 
+	enum class TextureWrap {
+		ClampToEdge = 0x812F,
+		ClampToBorder = 0x812D,
+		MirroredRepeat = 0x8370,
+		Repeat = 0x2901
+	};
+
+	enum class TextureFilter {
+		Nearest = 0x2600,
+		Linear = 0x2601,
+		NearestMipmapNearest = 0x2700,
+		LinearMipmapNearest = 0x2701,
+		NearestMipmapLinear = 0x2702,
+		LinearMipmapLinear = 0x2703
+	};
+
 	struct TextureSpec {
 		uint32_t width = 1;
 		uint32_t height = 1;
 		ImageFormat format = ImageFormat::RGBA8;
+		TextureWrap wrapS = TextureWrap::ClampToEdge;
+		TextureWrap wrapT = TextureWrap::ClampToEdge;
+		TextureWrap wrapR = TextureWrap::ClampToEdge;
+		TextureFilter minFilter = TextureFilter::Linear;
+		TextureFilter magFilter = TextureFilter::Linear;
+		bool generateMipmaps = false;
 	};
 
 	class BaseTexture {
@@ -35,6 +57,11 @@ namespace Engine {
 		uint32_t _id;
 		TextureType _type;
 		ImageFormat _format;
+
+		TextureWrap _wrapS, _wrapT, _wrapR;
+		TextureFilter _minFilter, _magFilter;
+
+		bool _generateMipmaps;
 
 		uint32_t _width, _height;
 		uint32_t _internalType;

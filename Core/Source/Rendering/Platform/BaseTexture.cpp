@@ -26,16 +26,34 @@ TextureType OpenGLTextureTypeToTextureType(uint32_t type) {
 }
 
 BaseTexture::BaseTexture(TextureType type, const TextureSpec& spec)
-	: _format(spec.format), _type(type), _internalType(TextureTypeToOpenGLTextureType(type)),
-	_width(spec.width), _height(spec.height),
+	: _format(spec.format), _type(type),
+	_width(spec.width), _height(spec.height), 
+	_wrapS(spec.wrapS), _wrapT(spec.wrapT), _wrapR(spec.wrapR), 
+	_minFilter(spec.minFilter), _magFilter(spec.magFilter),
+	_generateMipmaps(spec.generateMipmaps),
 	_id(0),
-	_internalFormat(0), _dataFormat(0), _dataType(0) {
-
-	_internalFormat = Utils::ImageFormatToOpenGLInternalFormat(spec.format);
-	_dataFormat = Utils::ImageFormatToOpenGLDataFormat(spec.format);
-	_dataType = Utils::ImageFormatToOpenGLDataType(spec.format);
+	_internalType(TextureTypeToOpenGLTextureType(type)),
+	_internalFormat(Utils::ImageFormatToOpenGLInternalFormat(spec.format)), 
+	_dataFormat(Utils::ImageFormatToOpenGLDataFormat(spec.format)), 
+	_dataType(Utils::ImageFormatToOpenGLDataType(spec.format)) {
 
 	glGenTextures(1, &_id);
+
+	BindInternal();
+
+	// Set texture wrapping
+	glTexParameteri(_internalType, GL_TEXTURE_WRAP_S, (uint32_t)_wrapS);
+	glTexParameteri(_internalType, GL_TEXTURE_WRAP_T, (uint32_t)_wrapT);
+	glTexParameteri(_internalType, GL_TEXTURE_WRAP_R, (uint32_t)_wrapR);
+
+	// Set texture filtering
+	glTexParameteri(_internalType, GL_TEXTURE_MIN_FILTER, (uint32_t)_minFilter);
+	glTexParameteri(_internalType, GL_TEXTURE_MAG_FILTER, (uint32_t)_magFilter);
+
+	// Generate Mipmaps
+	if (spec.generateMipmaps) {
+		glGenerateMipmap(_internalType);
+	}
 }
 
 BaseTexture::~BaseTexture() {

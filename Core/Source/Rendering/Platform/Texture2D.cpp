@@ -11,11 +11,6 @@ Texture2D::Texture2D(const TextureSpec& spec)
 
 	//SetDataInternal(GL_TEXTURE_2D, nullptr);
 	glTexImage2D(GL_TEXTURE_2D, 0, _internalFormat, _width, _height, 0, _dataFormat, _dataType, nullptr);
-
-	glTexParameteri(_internalType, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(_internalType, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-	glTexParameteri(_internalType, GL_TEXTURE_WRAP_S, GL_REPEAT);
-	glTexParameteri(_internalType, GL_TEXTURE_WRAP_T, GL_REPEAT);
 }
 
 void Texture2D::SetData(void* data) {
