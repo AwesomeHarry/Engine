@@ -46,7 +46,6 @@ namespace Engine {
 			_loaded = false;
 		}
 
-		// TODO: Add Default Uniforms / Textures + Name Checking
 		void SetShader(AssetRef shaderRef) {
 			_shaderRef = shaderRef;
 			auto shaderAsset = _shaderRef.Resolve<ShaderAsset>(_assetBank);
@@ -72,6 +71,7 @@ namespace Engine {
 
 			if (!shaderLoaded) shaderAsset->Unload();
 		}
+		AssetRef GetShaderRef() const { return _shaderRef; }
 
 		void SetUniform(const std::string& name, const UniformValue& value) {
 			if (!UniformExists(name)) {
@@ -84,6 +84,23 @@ namespace Engine {
 			if (_loaded) {
 				_internalMaterial->SetUniform(name, value);
 			}
+		}
+		bool UniformExists(const std::string& name) const {
+			return _uniforms.find(name) != _uniforms.end();
+		}
+		std::optional<UniformValue> GetUniformValue(const std::string& name) const {
+			if (!UniformExists(name)) {
+				ENGINE_ERROR("[MaterialAsset::GetUniformValue] Uniform '{0}' does not exist", name);
+				return std::nullopt;
+			}
+			return _uniforms.at(name);
+		}
+		std::vector<std::string> GetUniformNames() const {
+			std::vector<std::string> names;
+			for (auto& [name, _] : _uniforms) {
+				names.push_back(name);
+			}
+			return names;
 		}
 
 		void SetTexture(const std::string& name, AssetRef textureRef) {
@@ -100,14 +117,25 @@ namespace Engine {
 				_internalMaterial->SetTexture(name, texture);
 			}
 		}
-
-		bool UniformExists(const std::string& name) const {
-			return _uniforms.find(name) != _uniforms.end();
-		}
-
 		bool TextureExists(const std::string& name) const {
 			return _textures.find(name) != _textures.end();
 		}
+		AssetRef GetTextureRef(const std::string& name) const {
+			if (!TextureExists(name)) {
+				ENGINE_ERROR("[MaterialAsset::GetTextureRef] Texture '{0}' does not exist", name);
+				return AssetRef::Invalid();
+			}
+			return _textures.at(name);
+		}
+		std::vector<std::string> GetTextureNames() const {
+			std::vector<std::string> names;
+			for (auto& [name, _] : _textures) {
+				names.push_back(name);
+			}
+			return names;
+		}
+
+
 
 		nlohmann::json Serialize() const override {
 			nlohmann::json data = Asset::Serialize();
@@ -129,8 +157,6 @@ namespace Engine {
 			if (!_loaded) Load();
 			return _internalMaterial;
 		}
-
-		AssetRef GetShaderRef() const { return _shaderRef; }
 
 	private:
 		std::shared_ptr<Material> _internalMaterial = nullptr;

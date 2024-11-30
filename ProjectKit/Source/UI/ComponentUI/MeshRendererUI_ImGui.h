@@ -4,6 +4,15 @@
 #include "UI/MaterialUI_ImGui.h"
 
 namespace Engine {
+	std::string TextureTypeToString(TextureType type) {
+		switch (type) {
+		case TextureType::Tex2D: return "Texture2D";
+		case TextureType::TexCubemap: return "TextureCubemap";
+		}
+
+		return "Unknown";
+	}
+
 	class MeshRendererUI_ImGui {
 	public:
 		static void RenderUI(MeshRendererComponent& meshRenderer) {
@@ -30,6 +39,25 @@ namespace Engine {
 					ImGui::Text(name.c_str());
 					ImGui::SameLine();
 					ImGui::Text("%d", location);
+				}
+
+				ImGui::Separator();
+
+				ImGui::Text("Textures:");
+				auto& textureNames = material.GetTextureNames();
+				for (auto& textureName : textureNames) {
+					auto& uniformTexture = material.GetTexture(textureName);
+					auto& texture = *uniformTexture.texture;
+					auto textureType = texture.GetType();
+
+					ImGui::Text(textureName.c_str());
+					ImGui::SameLine();
+					ImGui::Text("%d", uniformTexture.bindingPoint);
+					ImGui::SameLine();
+					ImGui::Text("Type: %s", TextureTypeToString(textureType).c_str());
+
+					if (textureType == TextureType::Tex2D)
+						ImGui::Image((void*)(intptr_t)texture.GetInstanceID(), ImVec2(64, 64));
 				}
 
 				ImGui::TreePop();
