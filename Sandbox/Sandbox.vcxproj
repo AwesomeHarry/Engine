@@ -59,7 +59,7 @@
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>DEBUG;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>Source;..\Core\Source;..\ProjectKit\Source;..\Vendor\glfw\include;..\Vendor\spdlog\include;..\Vendor\glad\include;..\Vendor\imgui;..\vendor\json;..\vendor\stb_image;..\vendor\tiny_gltf;..\vendor\entt\src;..\vendor\glm\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <ExternalWarningLevel>Level3</ExternalWarningLevel>
@@ -105,6 +105,12 @@
     <ProjectReference Include="..\ProjectKit\ProjectKit.vcxproj">
       <Project>{E46B679B-D023-A9E8-392B-8244250244D9}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\Shaders\BRDFLUT.frag" />
+    <None Include="Resources\Shaders\BRDFLUT.vert" />
+    <None Include="Resources\Shaders\SkyboxPrefilter.frag" />
+    <None Include="Resources\Shaders\SkyboxPrefilter.vert" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

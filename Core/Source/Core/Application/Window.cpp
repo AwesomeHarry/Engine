@@ -19,6 +19,8 @@ bool Window::Initialize() {
 
 	glfwMakeContextCurrent(_handle);
 
+	glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+
 	return true;
 }
 

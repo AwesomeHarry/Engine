@@ -9,8 +9,8 @@
             "type": "vec3",
             "value": [
                 1.0,
-                0.0,
-                0.0
+                1.0,
+                1.0
             ]
         },
         "ao": {
@@ -43,7 +43,7 @@
         },
         "metallic": {
             "type": "float",
-            "value": 0.0
+            "value": 1.0
         },
         "model": {
             "type": "mat4",
@@ -89,7 +89,7 @@
         },
         "roughness": {
             "type": "float",
-            "value": 0.5
+            "value": 0.10000000149011612
         },
         "view": {
             "type": "mat4",

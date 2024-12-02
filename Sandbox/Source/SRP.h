@@ -40,7 +40,8 @@ const float gamma = 2.2;
 
 void main()
 {
-    vec3 hdrColor = texture(skybox, TexCoords).rgb;
+    //vec3 hdrColor = texture(skybox, TexCoords).rgb;
+    vec3 hdrColor = textureLod(skybox, TexCoords, 1.0).rgb;
 	hdrColor *= exposure;
     FragColor = vec4(hdrColor, 1.0);
 }

@@ -34,7 +34,6 @@ namespace Engine {
 		TextureWrap wrapR = TextureWrap::ClampToEdge;
 		TextureFilter minFilter = TextureFilter::Linear;
 		TextureFilter magFilter = TextureFilter::Linear;
-		bool generateMipmaps = false;
 	};
 
 	class BaseTexture {
@@ -44,6 +43,8 @@ namespace Engine {
 
 		void Bind(uint32_t slot) const;
 		void Unbind() const;
+
+		void GenerateMipmaps();
 
 		inline uint32_t GetInstanceID() const { return _id; }
 		inline TextureType GetType() const { return _type; }
@@ -60,8 +61,6 @@ namespace Engine {
 
 		TextureWrap _wrapS, _wrapT, _wrapR;
 		TextureFilter _minFilter, _magFilter;
-
-		bool _generateMipmaps;
 
 		uint32_t _width, _height;
 		uint32_t _internalType;

@@ -2,6 +2,34 @@
     "entities": [
         {
             "components": {
+                "mesh-filter": {
+                    "id": "a3a5f8998cef2f901f84d716491dbb45"
+                },
+                "mesh-renderer": {
+                    "material": "da42cc67d876c4dd408c17b052483920"
+                }
+            },
+            "name": "Sphere",
+            "transform": {
+                "position": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "rotation": [
+                    0.0,
+                    0.0,
+                    0.0
+                ],
+                "scale": [
+                    1.0,
+                    1.0,
+                    1.0
+                ]
+            }
+        },
+        {
+            "components": {
                 "camera": {
                     "backgroundColor": [
                         0.05999999865889549,
@@ -23,41 +51,13 @@
             "name": "Camera",
             "transform": {
                 "position": [
-                    -4.37113897078234e-07,
-                    0.0,
-                    10.0
+                    -6.663234233856201,
+                    0.9150159955024719,
+                    7.400270462036133
                 ],
                 "rotation": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "scale": [
-                    1.0,
-                    1.0,
-                    1.0
-                ]
-            }
-        },
-        {
-            "components": {
-                "mesh-filter": {
-                    "id": "a3a5f8998cef2f901f84d716491dbb45"
-                },
-                "mesh-renderer": {
-                    "material": "da42cc67d876c4dd408c17b052483920"
-                }
-            },
-            "name": "Sphere",
-            "transform": {
-                "position": [
-                    0.0,
-                    0.0,
-                    0.0
-                ],
-                "rotation": [
-                    0.0,
-                    0.0,
+                    5.25,
+                    42.0,
                     0.0
                 ],
                 "scale": [

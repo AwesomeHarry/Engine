@@ -47,7 +47,7 @@ private:
 	bool _renderWireframe = false;
 public:
 	void OnAttach() override {
-		/* Create Project */
+		/* Create Project */ 
 		_project = std::make_unique<Engine::Project>("TestProject", std::filesystem::current_path() / "Projects/");
 
 		/* Get Assets */
@@ -66,13 +66,14 @@ public:
 			_standardRenderPipeline->Initialize(mainFramebuffer);
 		}
 
+
 		/* Set Render Pipeline */
 		_camera = _sceneAsset->GetInternal()->GetEntity("Camera");
 		_camera.GetComponent<Engine::CameraComponent>().renderPipeline = _standardRenderPipeline;
 
-		/* Create Irradiance Map */
-		std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
 		{
+			/* Create Irradiance Map */
+
 			glm::mat4 captureProjection = glm::perspective(glm::radians(90.0f), 1.0f, 0.1f, 10.0f);
 			glm::mat4 captureViews[] = {
 				glm::lookAt(glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(1.0f,  0.0f,  0.0f), glm::vec3(0.0f, -1.0f,  0.0f)),
@@ -85,6 +86,7 @@ public:
 
 			auto skyboxAsset = _camera.GetComponent<Engine::CameraComponent>().skyboxCubemap;
 			auto skyboxCubemap = skyboxAsset->GetInternal();
+			skyboxCubemap->GenerateMipmaps();
 
 		#pragma region Skybox Data
 			float skyboxVertices[] = {
@@ -132,6 +134,7 @@ public:
 				 1.0f, -1.0f,  1.0f
 			};
 		#pragma endregion
+
 			auto cubeVa = std::make_shared<Engine::VertexArrayObject>();
 			auto skyboxVbo = std::make_shared<Engine::VertexBufferObject>(Engine::BufferUsage::Static);
 			skyboxVbo->SetData(skyboxVertices, 36, {
@@ -147,25 +150,40 @@ public:
 			irradianceMaterial->SetTexture("environmentMap", skyboxCubemap);
 			irradianceMaterial->SetUniform("projection", captureProjection);
 
-			uint32_t captureSize = 32;
+			uint32_t captureFBO, captureRBO;
+			glGenFramebuffers(1, &captureFBO);
+			glGenRenderbuffers(1, &captureRBO);
 
-			auto textureSpec = Engine::TextureSpec{
+			glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+			glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
+
+			std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
+
+			uint32_t captureSize = 32;
+			auto irradianceTextureSpec = Engine::TextureSpec{
 				captureSize,
 				captureSize,
 				Engine::ImageFormat::RGB16F
 			};
-			irradianceCubemap = std::make_shared<Engine::TextureCubemap>(textureSpec);
+			irradianceCubemap = std::make_shared<Engine::TextureCubemap>(irradianceTextureSpec);
 
-			auto framebufferSpec = Engine::Framebuffer::FramebufferSpec{
+			/*auto framebufferSpec = Engine::Framebuffer::FramebufferSpec{
 				captureSize,
 				captureSize,
 				{ Engine::ImageFormat::RGB16F },
 				true
 			};
-			auto captureFrambuffer = std::make_shared<Engine::Framebuffer>(framebufferSpec);
+			auto captureFramebuffer = std::make_shared<Engine::Framebuffer>(framebufferSpec);*/
 
-			captureFrambuffer->Bind();
-			for (uint32_t i = 0; i < 6; i++) {
+			glViewport(0, 0, 32, 32);
+			glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+			glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+			//captureFramebuffer->Bind();
+			for (uint32_t i = 0; i < 6; ++i) {
 				//captureFrambuffer->ModifyColorAttachment(0, (Engine::TextureTarget)((int)Engine::TextureTarget::CubemapPosX + i), *cubemap);
 				irradianceMaterial->SetUniform("view", captureViews[i]);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceCubemap->GetInstanceID(), 0);
@@ -173,14 +191,68 @@ public:
 				Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
 				Engine::RenderCommands::RenderMesh(*cubeMesh, *irradianceMaterial);
 			}
-			captureFrambuffer->Unbind();
+			//captureFramebuffer->Unbind();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			/* Create Prefilter Maps */
+			std::shared_ptr<Engine::TextureCubemap> prefilterCubemap;
+
+			// Create Prefilter Cubemap
+			uint32_t prefilterSize = 128;
+			Engine::TextureSpec prefilterTextureSpec;
+			prefilterTextureSpec.width = prefilterSize;
+			prefilterTextureSpec.height = prefilterSize;
+			prefilterTextureSpec.format = Engine::ImageFormat::RGB16F;
+			prefilterTextureSpec.minFilter = Engine::TextureFilter::LinearMipmapLinear;
+			prefilterCubemap = std::make_shared<Engine::TextureCubemap>(prefilterTextureSpec);
+			prefilterCubemap->GenerateMipmaps();
+
+			// Run Quasi Monte Carlo integration on the environment lighting to create a prefilter (cube)map.
+			auto prefilterShader = Engine::Shader::Utils::FromFile("Resources/Shaders/SkyboxPrefilter.vert", "Resources/Shaders/SkyboxPrefilter.frag");
+			auto prefilterMaterial = std::make_shared<Engine::Material>(prefilterShader);
+
+			prefilterMaterial->SetTexture("environmentMap", skyboxCubemap);
+			prefilterMaterial->SetUniform("projection", captureProjection);
+
+			//captureFramebuffer->Bind();
+			glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+			uint32_t maxMipLevels = 5;
+			for (uint32_t mip = 0; mip < maxMipLevels; ++mip) {
+				// Resize framebuffer according to mip-level size.
+				uint32_t mipWidth = (uint32_t)(prefilterSize * std::pow(0.5, mip));
+				uint32_t mipHeight = (uint32_t)(prefilterSize * std::pow(0.5, mip));
+
+				//captureFramebuffer->Resize(mipWidth, mipHeight);
+				glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+				glViewport(0, 0, mipWidth, mipHeight);
+
+				float roughness = (float)mip / (float)(maxMipLevels - 1);
+				prefilterMaterial->SetUniform("roughness", roughness);
+
+				for (uint32_t i = 0; i < 6; ++i) {
+					prefilterMaterial->SetUniform("view", captureViews[i]);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterCubemap->GetInstanceID(), mip);
+
+					Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
+					Engine::RenderCommands::RenderMesh(*cubeMesh, *prefilterMaterial);
+				}
+			}
+			//captureFramebuffer->Unbind();
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			/* Create BRDF LUT from texture */
+			auto brdfLUT = Engine::Texture2D::Utils::FromFile("Resources/Textures/ibl_brdf_lut.png");
+
+			// Set Maps
+			auto materialAsset = Engine::AssetRef(Engine::GUID("da42cc67d876c4dd408c17b052483920")).Resolve<Engine::MaterialAsset>(_project->GetAssetBank());
+			_pbrMaterial = materialAsset->GetInternal();
+			_pbrMaterial->SetTexture("irradianceMap", irradianceCubemap);
+			_pbrMaterial->SetTexture("prefilterMap", prefilterCubemap);
+			_pbrMaterial->SetTexture("brdfLUT", brdfLUT);
 		}
 
-		// Set Irradiance Map
-		auto materialAsset = Engine::AssetRef(Engine::GUID("da42cc67d876c4dd408c17b052483920")).Resolve<Engine::MaterialAsset>(_project->GetAssetBank());
-		_pbrMaterial = materialAsset->GetInternal();
-		_pbrMaterial->SetTexture("irradianceMap", irradianceCubemap);
-		
+
 		// Camera Controls
 		_fpsCameraController = FPSCameraController(_inputManager);
 		_orbitCameraController = OrbitCameraController(_inputManager);
@@ -205,7 +277,7 @@ public:
 		_orbitCameraController.OnUpdate(_camera.GetTransform(), ts);
 
 		/* Render Axis */
-		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({{0,0,0}, {1,0,0}, {1,0,0,1}});
+		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({ {0,0,0}, {1,0,0}, {1,0,0,1} });
 		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,1,0 }, { 0,1,0,1 } });
 		_sceneAsset->GetInternal()->GetDebugRenderer().DrawLine({ { 0,0,0 }, { 0,0,1 }, { 0,0,1,1 } });
 
@@ -264,6 +336,7 @@ public:
 			Engine::SceneHeirarchyUI_ImGui::RenderUI(*_sceneAsset->GetInternal());
 			ImGui::End();
 		}
+
 	}
 };
 
