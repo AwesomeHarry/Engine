@@ -159,6 +159,7 @@ public:
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 512, 512);
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, captureRBO);
 
+
 			std::shared_ptr<Engine::TextureCubemap> irradianceCubemap;
 
 			uint32_t captureSize = 32;
@@ -177,22 +178,35 @@ public:
 			};
 			auto captureFramebuffer = std::make_shared<Engine::Framebuffer>(framebufferSpec);*/
 
-			glViewport(0, 0, 32, 32);
-			glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
-			glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+			//glViewport(0, 0, 32, 32);
+			//glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+			//glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+			//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, 32, 32);
+
+			F_Buffer fbo(32, 32);
+			fbo.BindRenderbuffer(Engine::ImageFormat::D24);
 
 			//captureFramebuffer->Bind();
 			for (uint32_t i = 0; i < 6; ++i) {
 				//captureFrambuffer->ModifyColorAttachment(0, (Engine::TextureTarget)((int)Engine::TextureTarget::CubemapPosX + i), *cubemap);
 				irradianceMaterial->SetUniform("view", captureViews[i]);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceCubemap->GetInstanceID(), 0);
+
+				//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, irradianceCubemap->GetInstanceID(), 0);
+				F_TextureAttachment attachment;
+				attachment.type = F_TextureAttachmentType::Color;
+				attachment.texture = irradianceCubemap;
+				attachment.cubemapTarget = i;
+				attachment.bindingPoint = 0;
+				attachment.mipLevel = 0;
+				fbo.BindTexture(attachment);
+				fbo.Bind();
 
 				Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
 				Engine::RenderCommands::RenderMesh(*cubeMesh, *irradianceMaterial);
 			}
 			//captureFramebuffer->Unbind();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			fbo.Unbind();
 
 			/* Create Prefilter Maps */
 			std::shared_ptr<Engine::TextureCubemap> prefilterCubemap;
@@ -215,31 +229,46 @@ public:
 			prefilterMaterial->SetUniform("projection", captureProjection);
 
 			//captureFramebuffer->Bind();
-			glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
+			//glBindFramebuffer(GL_FRAMEBUFFER, captureFBO);
 			uint32_t maxMipLevels = 5;
 			for (uint32_t mip = 0; mip < maxMipLevels; ++mip) {
 				// Resize framebuffer according to mip-level size.
 				uint32_t mipWidth = (uint32_t)(prefilterSize * std::pow(0.5, mip));
 				uint32_t mipHeight = (uint32_t)(prefilterSize * std::pow(0.5, mip));
 
+				if (mipWidth == 0 || mipHeight == 0) {
+					ENGINE_WARN("Mip level size is 0, skipping mip level...");
+					continue;
+				}
+
 				//captureFramebuffer->Resize(mipWidth, mipHeight);
-				glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
-				glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
-				glViewport(0, 0, mipWidth, mipHeight);
+				//glBindRenderbuffer(GL_RENDERBUFFER, captureRBO);
+				//glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, mipWidth, mipHeight);
+				//glViewport(0, 0, mipWidth, mipHeight);
+				fbo.Resize(mipWidth, mipHeight);
 
 				float roughness = (float)mip / (float)(maxMipLevels - 1);
 				prefilterMaterial->SetUniform("roughness", roughness);
 
 				for (uint32_t i = 0; i < 6; ++i) {
 					prefilterMaterial->SetUniform("view", captureViews[i]);
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterCubemap->GetInstanceID(), mip);
+					//glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, prefilterCubemap->GetInstanceID(), mip);
+					F_TextureAttachment attachment;
+					attachment.type = F_TextureAttachmentType::Color;
+					attachment.texture = prefilterCubemap;
+					attachment.cubemapTarget = i;
+					attachment.bindingPoint = 0;
+					attachment.mipLevel = mip;
+					fbo.BindTexture(attachment);
+					fbo.Bind();
 
 					Engine::RenderCommands::ClearBuffers(Engine::BufferBit::Color | Engine::BufferBit::Depth);
 					Engine::RenderCommands::RenderMesh(*cubeMesh, *prefilterMaterial);
 				}
 			}
 			//captureFramebuffer->Unbind();
-			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			//glBindFramebuffer(GL_FRAMEBUFFER, 0);
+			fbo.Unbind();
 
 			/* Create BRDF LUT from texture */
 			auto brdfLUT = Engine::Texture2D::Utils::FromFile("Resources/Textures/ibl_brdf_lut.png");

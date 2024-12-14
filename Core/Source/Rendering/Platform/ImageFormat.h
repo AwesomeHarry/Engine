@@ -43,10 +43,13 @@ namespace Engine {
         RG32UI,
         RGB32UI,
         RGBA32UI,
-        // Depth/stencil formats
+        // Depth formats
         D16,
         D24,
         D32F,
+        // Stencil format
+        S8,
+        // Combined depth/stencil formats
         D24S8,
         D32FS8,
         // Compressed formats (if needed)
